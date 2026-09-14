@@ -53,6 +53,12 @@ def annual_debt_service(loan, annual_rate, term_months=360):
 
 
 # --- Self-check against the Pro v2 reference deal ---
+def annual_interest(loan, annual_rate, year, term_months=360):
+        """Total interest paid during a given year (year 1 = months 1-12)."""
+        rows = schedule(loan, annual_rate, term_months)
+        start = (year - 1) * 12
+        end = year * 12
+        return sum(r["interest"] for r in rows[start:end])
 if __name__ == "__main__":
     LOAN, RATE = 175000, 0.078
 
@@ -69,3 +75,5 @@ if __name__ == "__main__":
     bal60 = balance_at(LOAN, RATE, 60)
     print(f"\nBalance at month 60 (end of Yr 5): ${bal60:,.2f}")
     print(f"Annual debt service: ${annual_debt_service(LOAN, RATE):,.2f}")
+
+    

@@ -107,3 +107,5 @@ if __name__ == "__main__":
     print(f"  Tax rate:     {row['PropertyTaxRate Annual']:.2%}   (expect 2.10%)")
     print(f"  Insurance:    ${row['Insurance Yearly']:,.2f}   (expect $1,900.00)")
     print(f"  HOA:          ${row['HOA Monthly']:,.2f}   (expect $200.00)")
+
+    
