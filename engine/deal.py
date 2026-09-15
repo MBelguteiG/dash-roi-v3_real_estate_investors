@@ -62,8 +62,16 @@ def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
     stream[-1] += net_sale
 
     return stream
-
-
+def cash_on_cash(stream):
+    """
+    Year-1 cash-on-cash = Year-1 cash flow / initial cash invested.
+    Matches v2: Cash Flow Projection!N21 (Yr-1 after-CapEx) / Return Analysis!B9.
+    stream[0] is Year-0 outflow (negative); stream[1] is Year-1 cash flow.
+    """
+    initial_invested = -stream[0]
+    year1_cash_flow = stream[1]
+    return year1_cash_flow / initial_invested
+    
 # --- Validation: reproduce v2's -5.14% reference stream automatically ---
 if __name__ == "__main__":
     stream = build_stream(
@@ -78,3 +86,5 @@ if __name__ == "__main__":
     for t, cf in enumerate(stream):
         print(f"  Year {t}: {cf:>14,.2f}")
     print(f"\nIRR: {irr(stream) * 100:.2f}%   (v2 target: -5.14%)")
+print(f"Cash-on-cash (Yr 1): {cash_on_cash(stream) * 100:.2f}%   (v2 target: -0.04%)")
+
