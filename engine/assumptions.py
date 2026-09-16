@@ -44,9 +44,11 @@ def _clean_dollar(series):
 
 
 def load_assumptions(csv_path=CSV_PATH):
+    
     """Load and clean the assumption table. Returns a pandas DataFrame."""
     # utf-8-sig strips the BOM so the first column is 'State', not '\ufeffState'.
     df = pd.read_csv(csv_path, encoding="utf-8-sig")
+    df.columns = df.columns.str.strip()
 
     # Drop the empty spacer rows (all-key-columns blank).
     df = df.dropna(subset=KEY_COLS).reset_index(drop=True)

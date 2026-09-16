@@ -86,5 +86,5 @@ if __name__ == "__main__":
     for t, cf in enumerate(stream):
         print(f"  Year {t}: {cf:>14,.2f}")
     print(f"\nIRR: {irr(stream) * 100:.2f}%   (v2 target: -5.14%)")
-print(f"Cash-on-cash (Yr 1): {cash_on_cash(stream) * 100:.2f}%   (v2 target: -0.04%)")
+    print(f"Cash-on-cash (Yr 1): {cash_on_cash(stream) * 100:.2f}%   (v2 target: -0.04%)")
 
