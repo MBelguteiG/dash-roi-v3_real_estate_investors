@@ -100,6 +100,28 @@ def flip_verdict(net_profit, margin, target_margin):
         return "BUY"
     return "NEGOTIATE"
 
+def max_offer_mao(arv, target_margin, selling_cost_amt, rehab_cost, total_holding,
+                   hm_interest, hm_points_amt, buying_closing_costs_amt):
+    """
+    v2 Main_Dashboard B50, Flip branch. Solves for the highest purchase
+    price that still hits Target Margin, holding every other project
+    cost fixed: ARV x (1 - target_margin) minus every non-purchase-price
+    cost in total_project_cost().
+    """
+    return (arv * (1 - target_margin) - selling_cost_amt - rehab_cost
+             - total_holding - hm_interest - hm_points_amt - buying_closing_costs_amt)
+
+
+def max_offer_seventy_pct(arv, rehab_cost, seventy_pct=0.70):
+    """v2 Main_Dashboard B51: classic flip rule of thumb. 70% is a fixed
+    constant in v2, not a configurable assumption."""
+    return arv * seventy_pct - rehab_cost
+
+
+def over_under_max_offer(purchase_price, mao):
+    """v2 Main_Dashboard B52: positive = overpaying relative to MAO."""
+    return purchase_price - mao
+
 
 # --- Validation against the v2 Flip reference deal ---
 if __name__ == "__main__":
@@ -154,3 +176,12 @@ if __name__ == "__main__":
     print(f"Annualized ROI:  {aroi:.2%}          (v2: 9.80%)")
     print(f"Profit margin:   {margin:.2%}          (v2: 1.21%)")
     print(f"Verdict:         {verdict}   (v2: REJECT)")
+       
+
+    mao = max_offer_mao(ARV, TARGET_MARGIN, sell, REHAB, thc, hm_int, points, closing)
+    mao_70 = max_offer_seventy_pct(ARV, REHAB)
+    over_under = over_under_max_offer(PURCHASE, mao)
+
+    print(f"\nMax Offer (MAO):      ${mao:>12,.2f}   (v2: $555,710.42)")
+    print(f"Max Offer (70% Rule): ${mao_70:>12,.2f}   (v2: $535,000.00)")
+    print(f"Over/(Under) Offer:   ${over_under:>12,.2f}   (v2: $94,289.58)")
