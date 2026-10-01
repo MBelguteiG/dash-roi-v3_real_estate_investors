@@ -1,3 +1,6 @@
+from engine.brrr import brrr_verdict
+from engine.flip import flip_verdict
+
 """
 Decision layer for Dash ROI v3: DSCR, required rent, and verdict.
 Ports v2's Return Analysis DSCR block + Main_Dashboard verdict logic.
@@ -67,6 +70,22 @@ def rental_verdict(irr_value, min_dscr_value, target_irr, rent_cushion,
         return "BUY"
     return "NEGOTIATE"
 
+def verdict(model, **kwargs):
+    """
+    Single entry point for all three models (mirrors v2 Main_Dashboard C42).
+    Routes only - each model's logic stays in its own engine.
+      Rental: irr_value, min_dscr_value, target_irr, rent_cushion
+      BRRR:   raw_irr, cash_left, dscr, target_irr, rent_cushion
+      Flip:   net_profit, margin, target_margin
+    """
+    if model == "Rental":
+        return rental_verdict(**kwargs)
+    if model == "BRRR":
+        return brrr_verdict(**kwargs)
+    if model == "Flip":
+        return flip_verdict(**kwargs)
+    raise ValueError(f"Unknown model: {model}")
+
 # --- Validation against the v2 reference deal ---
 if __name__ == "__main__":
     # NOI per year from v2 Return Analysis (rows 66-70, first 5 years):
@@ -87,3 +106,18 @@ if __name__ == "__main__":
     # Reference deal: IRR -5.14%, min DSCR 1.05, target 15%
     v = rental_verdict(-0.0514, 1.05, 0.15, rent_cushion=0)
     print(f"Verdict:      {v}   (v2: REJECT)")
+
+    # --- Week 13: one call, all three models, against v2 C42 ---
+    print("\n=== verdict() dispatcher: all 3 models ===")
+    r = verdict("Rental", irr_value=-0.0539, min_dscr_value=1.05,
+                target_irr=0.15, rent_cushion=-546.52)
+    b = verdict("BRRR", raw_irr=0.0740, cash_left=92875.00, dscr=0.528,
+                target_irr=0.13, rent_cushion=-2920.79)
+    f = verdict("Flip", net_profit=9710.42, margin=0.0121, target_margin=0.13)
+    print(f"Rental: {r}   (v2: REJECT)")
+    print(f"BRRR:   {b}   (v2: HARD REJECT)")
+    print(f"Flip:   {f}   (v2: REJECT)")
+    try:
+        verdict("Condo")
+    except ValueError as e:
+        print(f"Bad model caught: {e}")
