@@ -38,7 +38,7 @@ def net_sale_proceeds(price, appreciation, selling_pct, loan_balance, exit_year)
 
 def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
                  base_rent, vacancy_rate, tax_rate, base_annual_insurance,
-                 base_hoa, base_maint, mgmt_rate, annual_capex,
+                 base_hoa, base_maint, mgmt_rate, capex_rate,
                  rent_growth, tax_growth, inflation, appreciation,selling_pct):
     """Assemble the Year 0..N investor cash-flow stream for IRR."""
     loan = price - price * down_pct
@@ -53,7 +53,8 @@ def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
                     rent_growth, tax_growth, inflation)
     for y in years:
         interest = annual_interest(loan, annual_rate, y["year"])
-        cf = y["noi_annual"] - interest - annual_capex
+        capex = y["rent"] * 12 * capex_rate
+        cf = y["noi_annual"] - interest - capex
         stream.append(cf)
 
     # Final year: add net sale proceeds
@@ -79,7 +80,7 @@ if __name__ == "__main__":
         annual_rate=0.078, exit_year=5,
         base_rent=2750, vacancy_rate=0.06, tax_rate=0.021,
         base_annual_insurance=1900, base_hoa=200, base_maint=247.50,
-        mgmt_rate=0.08, annual_capex=2310,
+        mgmt_rate=0.08, capex_rate=0.07,
         rent_growth=0.02, tax_growth=0.03, inflation=0.032, appreciation=0.02,selling_pct=0.08,
     )
     print("Assembled stream (Year 0..5):")

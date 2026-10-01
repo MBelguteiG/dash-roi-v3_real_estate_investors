@@ -39,7 +39,7 @@ def analyze_deal(state, property_type, model, scenario,
 
     loan = price - price * down_pct
     debt = annual_debt_service(loan, annual_rate)
-    annual_capex = base_rent * 12 * capex_rate   # capex as % of gross rent
+    
 
     # base Year-1 monthly expense dollars for the stream
     base_maint = base_rent * maint_rate
@@ -50,7 +50,7 @@ def analyze_deal(state, property_type, model, scenario,
         annual_rate=annual_rate, exit_year=exit_year,
         base_rent=base_rent, vacancy_rate=vacancy_rate, tax_rate=tax_rate,
         base_annual_insurance=annual_insurance, base_hoa=hoa,
-        base_maint=base_maint, mgmt_rate=mgmt_rate, annual_capex=annual_capex,
+        base_maint=base_maint, mgmt_rate=mgmt_rate, capex_rate = capex_rate,
         rent_growth=rent_growth, tax_growth=tax_growth,
         inflation=inflation, appreciation=appreciation,selling_pct=selling_pct,
     )
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     )
 
     print("=== FULL RENTAL PARITY CHECK (Illinois/Townhouse/Rental/Conservative) ===\n")
-    print(f"IRR:            {result['irr']*100:>8.2f}%    (v2: -5.14%)")
+    print(f"IRR:            {result['irr']*100:>8.2f}%    (v2: -5.14%; v3 -5.39% w/ documented upgrades)")
     print(f"Cash-on-cash:   {result['cash_on_cash']*100:>8.2f}%    (v2: -0.04%)")
     print(f"Min DSCR:       {result['min_dscr']:>8.2f}     (v2: 1.05)")
     print(f"Required rent:  ${result['required_rent']:>10,.2f} (v2: $3,296.52)")
