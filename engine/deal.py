@@ -39,7 +39,7 @@ def net_sale_proceeds(price, appreciation, selling_pct, loan_balance, exit_year)
 def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
                  base_rent, vacancy_rate, tax_rate, base_annual_insurance,
                  base_hoa, base_maint, mgmt_rate, annual_capex,
-                 rent_growth, tax_growth, inflation, appreciation):
+                 rent_growth, tax_growth, inflation, appreciation,selling_pct):
     """Assemble the Year 0..N investor cash-flow stream for IRR."""
     loan = price - price * down_pct
 
@@ -58,7 +58,7 @@ def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
 
     # Final year: add net sale proceeds
     balance = balance_at(loan, annual_rate, exit_year * 12)
-    net_sale = net_sale_proceeds(price, appreciation, 0.08, balance, exit_year)
+    net_sale = net_sale_proceeds(price, appreciation, selling_pct, balance, exit_year)
     stream[-1] += net_sale
 
     return stream
@@ -80,11 +80,13 @@ if __name__ == "__main__":
         base_rent=2750, vacancy_rate=0.06, tax_rate=0.021,
         base_annual_insurance=1900, base_hoa=200, base_maint=247.50,
         mgmt_rate=0.08, annual_capex=2310,
-        rent_growth=0.02, tax_growth=0.03, inflation=0.032, appreciation=0.02,
+        rent_growth=0.02, tax_growth=0.03, inflation=0.032, appreciation=0.02,selling_pct=0.08,
     )
     print("Assembled stream (Year 0..5):")
     for t, cf in enumerate(stream):
         print(f"  Year {t}: {cf:>14,.2f}")
     print(f"\nIRR: {irr(stream) * 100:.2f}%   (v2 target: -5.14%)")
     print(f"Cash-on-cash (Yr 1): {cash_on_cash(stream) * 100:.2f}%   (v2 target: -0.04%)")
+
+
 

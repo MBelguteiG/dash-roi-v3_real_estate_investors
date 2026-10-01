@@ -52,7 +52,7 @@ def analyze_deal(state, property_type, model, scenario,
         base_annual_insurance=annual_insurance, base_hoa=hoa,
         base_maint=base_maint, mgmt_rate=mgmt_rate, annual_capex=annual_capex,
         rent_growth=rent_growth, tax_growth=tax_growth,
-        inflation=inflation, appreciation=appreciation,
+        inflation=inflation, appreciation=appreciation,selling_pct=selling_pct,
     )
     irr_value = irr(stream)
     coc = cash_on_cash(stream)
