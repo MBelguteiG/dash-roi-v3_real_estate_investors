@@ -1,3 +1,5 @@
+from engine.projection import project
+
 """
 BRRR engine for Dash ROI v3 - refi sizing and cash-out netting.
 SEPARATE from Rental (per engine principles: never retrofit Rental for BRRR).
@@ -136,6 +138,111 @@ def build_brrr_schedule(hm_loan, hm_rate, refi_month, refi_loan_amt, post_refi_r
     return rows
 
 
+
+def sale_price_at_exit(arv, appreciation_rate, years_held):
+    """v2 Property_inputs B30: ARV x (1+appreciation)^years_held_post_refi."""
+    return arv * (1 + appreciation_rate) ** years_held
+
+
+def brrr_selling_cost(sale_price, selling_pct):
+    """v2 Property_inputs B33: Sale Price at Exit x Selling Cost %."""
+    return sale_price * selling_pct
+
+
+def brrr_net_sale_proceeds(sale_price, selling_cost_amt, remaining_balance):
+    """v2 Property_inputs B35: Sale Price - Selling Cost - Remaining Loan Balance."""
+    return sale_price - selling_cost_amt - remaining_balance
+
+
+def build_brrr_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, refi_month,
+                       post_refi_rate, arv, appreciation_rate, exit_year, selling_pct,
+                       cash_invested_amt, base_rent, vacancy_rate, tax_rate,
+                       annual_insurance, hoa, base_maint, mgmt_rate, annual_capex,
+                       rent_growth, tax_growth, inflation):
+    """
+    Annual Year 0..exit_year stream for BRRR IRR - sums the monthly
+    hard-money/post-refi schedule into year buckets, injects cash-out and
+    sale proceeds in the right years. Mirrors deal.py's build_stream().
+    """
+    hm_loan = hard_money_loan(purchase_price, hm_ltv)
+    rl = refi_loan(arv, refi_ltv)
+    pulled = cash_pulled_out(arv, refi_ltv, purchase_price, hm_ltv)
+    exit_month = exit_year * 12
+
+    schedule = build_brrr_schedule(hm_loan, hm_rate, refi_month, rl, post_refi_rate, exit_month)
+    years = project(exit_year, base_rent, vacancy_rate, purchase_price, tax_rate,
+                    annual_insurance, hoa, base_maint, mgmt_rate,
+                    rent_growth, tax_growth, inflation)
+    noi_by_year = {y["year"]: y["noi_annual"] for y in years}
+
+    stream = [-cash_invested_amt]
+    annual_flows = [0.0] * exit_year
+    for row in schedule:
+        year_idx = (row["month"] - 1) // 12
+        if year_idx >= exit_year:
+            continue
+        noi = noi_by_year.get(year_idx + 1, 0)
+        annual_flows[year_idx] += (noi - annual_capex) / 12 - row["payment"]
+        if row["month"] == refi_month:
+            annual_flows[year_idx] += pulled
+
+    yh = years_held_post_refi(exit_year, refi_month)
+    sale_price = sale_price_at_exit(arv, appreciation_rate, yh)
+    sell_cost = brrr_selling_cost(sale_price, selling_pct)
+    remaining_balance = schedule[-1]["balance"] if schedule else rl
+    annual_flows[-1] += brrr_net_sale_proceeds(sale_price, sell_cost, remaining_balance)
+
+    stream.extend(annual_flows)
+    return stream
+
+
+def build_brrr_monthly_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, refi_month,
+                              post_refi_rate, arv, appreciation_rate, exit_year, selling_pct,
+                              cash_invested_amt, base_rent, vacancy_rate, tax_rate,
+                              annual_insurance, hoa, base_maint, mgmt_rate, capex_rate,
+                              rent_growth, tax_growth, inflation):
+    """
+    Monthly Month 0..exit stream (v2 'BRRR Amortization' col H):
+    month 0 = -cash invested; each month = (NOI_year - CapEx)/12 - payment,
+    + cash pulled out in refi month, + net sale proceeds in exit month.
+    """
+    hm_loan = hard_money_loan(purchase_price, hm_ltv)
+    rl = refi_loan(arv, refi_ltv)
+    pulled = cash_pulled_out(arv, refi_ltv, purchase_price, hm_ltv)
+    exit_month = exit_year * 12
+
+    sched = build_brrr_schedule(hm_loan, hm_rate, refi_month, rl, post_refi_rate, exit_month)
+    years = project(exit_year, base_rent, vacancy_rate, purchase_price, tax_rate,
+                    annual_insurance, hoa, base_maint, mgmt_rate,
+                    rent_growth, tax_growth, inflation)
+    noi_by_year = {y["year"]: y["noi_annual"] for y in years}
+    capex_by_year = {y["year"]: y["rent"] * 12 * capex_rate for y in years}
+
+    yh = years_held_post_refi(exit_year, refi_month)
+    sale_price = sale_price_at_exit(arv, appreciation_rate, yh)
+    sell_cost = brrr_selling_cost(sale_price, selling_pct)
+    net_sale = brrr_net_sale_proceeds(sale_price, sell_cost, sched[-1]["balance"])
+
+    stream = [-cash_invested_amt]
+    for row in sched:
+        m = row["month"]
+        year = (m - 1) // 12 + 1
+        cf = (noi_by_year[year] - capex_by_year[year]) / 12 - row["payment"]
+        if m == refi_month:
+            cf += pulled
+        if m == exit_month:
+            cf += net_sale
+        stream.append(cf)
+    return stream
+
+
+def brrr_irr(monthly_stream):
+    """v2 Property_inputs B38: (1 + monthly IRR)^12 - 1."""
+    from engine.irr import irr
+    return (1 + irr(monthly_stream)) ** 12 - 1
+
+
+
 # --- Validation against the v2 BRRR reference deal ---
 if __name__ == "__main__":
     # Inputs (v2 Property_inputs, BRRR mode):
@@ -198,3 +305,90 @@ if __name__ == "__main__":
     print(f"Month 1 (HM phase):   interest ${brrr_sched[0]['interest']:,.2f}   (v2: $1,968.75)")
     print(f"Month 7 (1st post-refi): interest ${brrr_sched[6]['interest']:,.2f}, "
           f"principal ${brrr_sched[6]['principal']:,.2f}   (v2: $2,531.25 / $184.35)")
+
+
+    # --- Full BRRR stream + IRR (current $650K/$800K reference deal) ---
+    from engine.assumptions import get_assumptions
+
+    a = get_assumptions("California", "Townhouse", "BRRR", "Base")
+    vacancy_rate = a["VacancyRate% Annual"]
+    maint_rate = a["Maintenance% Annual"]
+    mgmt_rate = a["Management Fee"]
+    capex_rate = a["CapEx% Annual"]
+    tax_rate_b = a["PropertyTaxRate Annual"]
+    selling_pct_b = a["SellingCost% Annual"]
+    annual_insurance_b = a["Insurance Yearly"]
+    hoa_b = a["HOA Monthly"]
+    rent_growth = a["RentGrowth Annual"]
+    tax_growth = a["Tax Growth"]
+    inflation = a["Inflation Annual"]
+
+    PURCHASE2 = 650000
+    REHAB2 = 25000
+    ARV2 = 800000
+    HM_LTV2 = 0.85
+    HM_RATE2 = 0.12
+    REFI_LTV2 = 0.75
+    REFI_MONTH2 = 6
+    POST_REFI_RATE2 = 0.09
+    BASE_RENT = 4500
+    APPRECIATION = 0.04
+    CASH_INVESTED = 140375.00   # v2 Property_inputs B27
+    base_maint = BASE_RENT * maint_rate
+    annual_capex = BASE_RENT * 12 * capex_rate
+
+    monthly = build_brrr_monthly_stream(
+
+    purchase_price=PURCHASE2, rehab=REHAB2, hm_ltv=HM_LTV2, hm_rate=HM_RATE2,
+    refi_ltv=REFI_LTV2, refi_month=REFI_MONTH2, post_refi_rate=POST_REFI_RATE2,
+    arv=ARV2, appreciation_rate=APPRECIATION, exit_year=5, selling_pct=selling_pct_b,
+    cash_invested_amt=CASH_INVESTED, base_rent=BASE_RENT, vacancy_rate=vacancy_rate,
+    tax_rate=tax_rate_b, annual_insurance=annual_insurance_b, hoa=hoa_b,
+    base_maint=base_maint, mgmt_rate=mgmt_rate, capex_rate=capex_rate,
+    rent_growth=rent_growth, tax_growth=tax_growth, inflation=inflation,
+
+    )
+    print("\n=== BRRR MONTHLY STREAM (current $650K/$800K deal) ===")
+    print(f"Stream length: {len(monthly)}   (v2: 61)")
+    print(f"Months 7-18 sum: ${sum(monthly[7:19]):,.2f}   (v2 B36: -$29,850.95)")
+    print(f"BRRR IRR (monthly, annualized): {brrr_irr(monthly)*100:.2f}%   (v2 B38: 7.42%)")
+
+    pulled2 = cash_pulled_out(ARV2, REFI_LTV2, PURCHASE2, HM_LTV2)
+    coc = sum(monthly[7:19]) / cash_left_in_deal(CASH_INVESTED, pulled2)
+    print(f"Cash-on-cash (post-refi): {coc*100:.2f}%   (v2: -32.14%)")
+
+    yh2 = years_held_post_refi(5, REFI_MONTH2)
+    sp = sale_price_at_exit(ARV2, APPRECIATION, yh2)
+    rl2 = refi_loan(ARV2, REFI_LTV2)
+    sched2 = build_brrr_schedule(hard_money_loan(PURCHASE2, HM_LTV2), HM_RATE2,
+                                 REFI_MONTH2, rl2, POST_REFI_RATE2, exit_month=60)
+    bal = sched2[-1]["balance"]
+    print(f"Sale price at exit: ${sp:,.2f}   (v2: $954,421.06)")
+    print(f"Remaining balance:  ${bal:,.2f}   (v2: $578,767.35)")
+    print(f"Equity at exit:     ${sp - bal:,.2f}   (v2: $375,653.71)")
+
+
+    print("\n=== Monthly checkpoints (compare to v2 BRRR Amortization col H) ===")
+    for m in [1, 6, 7, 13, 19, 25, 37, 49, 59, 60]:
+        print(f"  Month {m:>2}: {monthly[m]:>14,.2f}")
+
+    print("\n=== v3 projection line items ===")
+    for y in project(5, BASE_RENT, vacancy_rate, PURCHASE2, tax_rate_b,
+                     annual_insurance_b, hoa_b, base_maint, mgmt_rate,
+                     rent_growth, tax_growth, inflation):
+        print(y)
+
+        # --- Proof: v2's exact inputs through v3's stream logic -> should be 7.42% ---
+    v2_noi = {1: 30595.00, 2: 32048.76, 3: 33560.99, 4: 35133.98, 5: 36770.10}
+    v2_capex = {1: 3240.00, 2: 3240.00, 3: 3490.92, 4: 3623.57, 5: 3761.27}
+    test = [-CASH_INVESTED]
+    for row in sched2:
+        m = row["month"]
+        yr = (m - 1) // 12 + 1
+        cf = (v2_noi[yr] - v2_capex[yr]) / 12 - row["payment"]
+        if m == REFI_MONTH2:
+            cf += pulled2
+        if m == 60:
+            cf += 308844.24          # v2 B35 net sale proceeds
+        test.append(cf)
+    print(f"\nProof IRR (v2 inputs): {brrr_irr(test)*100:.2f}%   (v2 B38: 7.42%)")

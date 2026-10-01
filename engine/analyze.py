@@ -10,7 +10,7 @@ from engine.projection import project
 from engine.amortization import annual_debt_service
 from engine.deal import build_stream, cash_on_cash
 from engine.irr import irr
-from engine.verdict import dscr_by_year, min_dscr, required_rent, verdict
+from engine.verdict import dscr_by_year, min_dscr, required_rent, rental_verdict
 
 
 def analyze_deal(state, property_type, model, scenario,
@@ -68,7 +68,10 @@ def analyze_deal(state, property_type, model, scenario,
     req_rent = required_rent(debt, tax_rate, price, annual_insurance, hoa,
                              vacancy_rate, maint_rate, mgmt_rate, capex_rate)
 
-    v = verdict(irr_value, min_d, target_irr)
+
+    cushion = base_rent - req_rent
+    v = rental_verdict(irr_value, min_d, target_irr, rent_cushion=cushion)
+    
 
     return {
         "irr": irr_value,
@@ -76,7 +79,7 @@ def analyze_deal(state, property_type, model, scenario,
         "dscr_by_year": dscrs,
         "min_dscr": min_d,
         "required_rent": req_rent,
-        "rent_cushion": base_rent - req_rent,
+        "rent_cushion":  cushion,
         "verdict": v,
     }
 

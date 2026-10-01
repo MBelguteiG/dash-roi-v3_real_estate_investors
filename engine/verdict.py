@@ -43,27 +43,29 @@ def required_rent(annual_debt, tax_rate, price, annual_insurance, hoa,
     return (required_monthly_noi + fixed_monthly) / (1 - rent_based_rate)
 
 
-def verdict(irr_value, min_dscr_value, target_irr, dscr_min=DSCR_LENDER_MIN):
+def rental_verdict(irr_value, min_dscr_value, target_irr, rent_cushion,
+                   dscr_min=DSCR_LENDER_MIN):
     """
-    Investment verdict. v3 tiered DSCR gate (upgraded from v2's single 1.0 line):
-      DSCR < 1.0            -> HARD REJECT (asset can't cover its debt)
+    Rental verdict. v3 tiered DSCR gate (upgraded from v2's single 1.0 line):
+      DSCR < 1.0             -> HARD REJECT (asset can't cover its debt)
       1.0 <= DSCR < dscr_min -> REJECT (works, but not financeable)
       DSCR >= dscr_min:
-        IRR < target*0.5   -> REJECT (returns far too low)
-        IRR >= target       -> STRONG BUY (both gates strong) / BUY
-        otherwise           -> NEGOTIATE
+        IRR < target*0.5                  -> REJECT
+        IRR >= target and rent_cushion > 0 -> STRONG BUY
+        IRR >= target                      -> BUY
+        otherwise                          -> NEGOTIATE
     """
     if min_dscr_value < 1.0:
         return "HARD REJECT"
     if min_dscr_value < dscr_min:
-        return "REJECT"                      # not financeable
-    # DSCR is financeable from here on:
+        return "REJECT"
     if irr_value < target_irr * 0.5:
-        return "REJECT"                      # returns far too low
+        return "REJECT"
+    if irr_value >= target_irr and rent_cushion > 0:
+        return "STRONG BUY"
     if irr_value >= target_irr:
-        return "STRONG BUY"                  # IRR target met AND DSCR >= min
+        return "BUY"
     return "NEGOTIATE"
-
 
 # --- Validation against the v2 reference deal ---
 if __name__ == "__main__":
@@ -83,5 +85,5 @@ if __name__ == "__main__":
     print(f"Required rent: ${rr:,.2f}   (v2: $3,296.52)")
 
     # Reference deal: IRR -5.14%, min DSCR 1.05, target 15%
-    v = verdict(-0.0514, 1.05, 0.15)
+    v = rental_verdict(-0.0514, 1.05, 0.15, rent_cushion=0)
     print(f"Verdict:      {v}   (v2: REJECT)")
