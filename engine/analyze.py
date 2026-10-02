@@ -1,9 +1,10 @@
 
 """
 Deal orchestrator for Dash ROI v3.
-Single entry point that runs the full Rental analysis: takes deal inputs,
-pulls scenario assumptions from the lookup, runs every engine, and returns
-all outputs in one dict. This is what the UI (Phase 5) will call.
+Single entry point (analyze_deal) routes Rental / BRRR / Flip to each model's
+own orchestrator, which pulls scenario assumptions from the lookup, runs that
+model's engine, and returns all outputs in one dict. This is what the UI
+(Phase 5) will call.
 """
 
 from engine.assumptions import get_assumptions
@@ -13,12 +14,19 @@ from engine.deal import build_stream, cash_on_cash
 from engine.irr import irr
 from engine.verdict import dscr_by_year, min_dscr, required_rent, rental_verdict, verdict
 
-from engine.brrr import (hard_money_loan, refi_loan, cash_pulled_out,
+from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_pulled_out,
                          cash_invested as brrr_cash_invested, cash_left_in_deal,
                          post_refi_dscr, post_refi_dscr_with_reserves,
                          build_brrr_schedule, build_brrr_monthly_stream, brrr_irr,
                          years_held_post_refi, sale_price_at_exit,
                          brrr_selling_cost, brrr_net_sale_proceeds)
+
+from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
+                         total_holding_cost, selling_cost, total_project_cost,
+                         net_flip_profit, cash_invested as flip_cash_invested,
+                         roi_on_cash, annualized_roi, profit_margin,
+                         max_offer_mao, max_offer_seventy_pct, over_under_max_offer)
+
 
 
 def analyze_rental(state, property_type, scenario,
@@ -187,6 +195,65 @@ def analyze_brrr(state, property_type, scenario,
         "verdict": v,
     }
 
+def analyze_flip(state, property_type, scenario,
+                 price, rehab, arv, hm_ltv, hm_rate, hold_months, points_pct,
+                 monthly_utilities, monthly_maint_security, target_margin):
+    """
+    Run the full Flip analysis for one deal. Uses only the Flip engine
+    (flip.py) - single-exit model: no cash-flow stream, no DSCR, no IRR.
+    """
+    a = get_assumptions(state, property_type, "Flip", scenario)
+    tax_rate = a["PropertyTaxRate Annual"]
+    annual_insurance = a["Insurance Yearly"]
+    monthly_hoa = a["HOA Monthly"]
+    closing_pct = a["Closing Cost Buying"]
+    selling_pct = a["SellingCost% Annual"]
+
+    # --- project costs ---
+    hm = hard_money_loan(price, hm_ltv)
+    hm_int = hard_money_interest(hm, hm_rate, hold_months)
+    points = hm_points(hm, points_pct)
+    closing = buying_closing_costs(price, closing_pct)
+    mhc = monthly_holding_cost(price, tax_rate, annual_insurance,
+                               monthly_utilities, monthly_hoa, monthly_maint_security)
+    thc = total_holding_cost(mhc, hold_months)
+    sell = selling_cost(arv, selling_pct)
+    tpc = total_project_cost(price, rehab, hm_int, points, closing, thc, sell)
+
+    # --- returns ---
+    profit = net_flip_profit(arv, tpc)
+    ci = flip_cash_invested(tpc, hm)
+    roi = roi_on_cash(profit, ci)
+    aroi = annualized_roi(roi, hold_months)
+    margin = profit_margin(profit, arv)
+
+    # --- max offer ---
+    mao = max_offer_mao(arv, target_margin, sell, rehab, thc, hm_int, points, closing)
+    mao_70 = max_offer_seventy_pct(arv, rehab)
+
+    v = verdict("Flip", net_profit=profit, margin=margin, target_margin=target_margin)
+
+    return {
+        "hm_loan": hm,
+        "hm_interest": hm_int,
+        "hm_points": points,
+        "closing_costs": closing,
+        "monthly_holding": mhc,
+        "total_holding": thc,
+        "selling_cost": sell,
+        "total_project_cost": tpc,
+        "net_profit": profit,
+        "cash_invested": ci,
+        "roi_on_cash": roi,
+        "annualized_roi": aroi,
+        "profit_margin": margin,
+        "max_offer_mao": mao,
+        "max_offer_70pct": mao_70,
+        "over_under_mao": over_under_max_offer(price, mao),
+        "verdict": v,
+    }
+
+
 def analyze_deal(model, **inputs):
     """
     Single entry point for the UI. Routes to each model's own orchestrator -
@@ -197,9 +264,7 @@ def analyze_deal(model, **inputs):
     if model == "BRRR":
         return analyze_brrr(**inputs)
     if model == "Flip":
-        raise NotImplementedError(
-            f"analyze_deal: model '{model}' is not wired yet (Rental only)."
-        )
+        return analyze_flip(**inputs)
     raise ValueError(f"Unknown model: {model}")
 
 # --- Full Rental parity check against the v2 reference deal ---
@@ -209,20 +274,7 @@ if __name__ == "__main__":
         model="Rental", scenario="Conservative",
         price=250000, down_pct=0.30, annual_rate=0.078, rehab=28000,
         base_rent=2750, exit_year=5, target_irr=0.15,
-    )
-
-        # --- Guard check: BRRR must refuse, not silently run Rental math ---
-    try:
-        analyze_deal(state="California", property_type="Townhouse",
-                     model="Flip", scenario="Base",
-                     price=650000, down_pct=0.15, annual_rate=0.071, rehab=25000,
-                     base_rent=4500, exit_year=5, target_irr=0.13)
-        print("\nGUARD FAILED: BRRR ran Rental math")
-    except NotImplementedError as e:
-        print(f"\nGuard works: {e}")
-
-
-
+    )   
     print("=== FULL RENTAL PARITY CHECK (Illinois/Townhouse/Rental/Conservative) ===\n")
     print(f"IRR:            {result['irr']*100:>8.2f}%    (v2: -5.14%; v3 -5.39% w/ documented upgrades)")
     print(f"Cash-on-cash:   {result['cash_on_cash']*100:>8.2f}%    (v2: -0.04%)")
@@ -230,6 +282,15 @@ if __name__ == "__main__":
     print(f"Required rent:  ${result['required_rent']:>10,.2f} (v2: $3,296.52)")
     print(f"Rent cushion:   ${result['rent_cushion']:>10,.2f} (v2: -$546.52)")
     print(f"Verdict:        {result['verdict']:>10}   (v2: REJECT)")
+
+
+        # --- Bad model must fail loudly ---
+    try:
+        analyze_deal(model="Condo")
+        print("\nROUTER FAILED: unknown model accepted")
+    except ValueError as e:
+        print(f"\nBad model caught: {e}")
+
 
         # --- BRRR parity check (CA/Townhouse/BRRR/Base, $650K/$800K) ---
     b = analyze_deal(model="BRRR", state="California", property_type="Townhouse",
@@ -250,3 +311,29 @@ if __name__ == "__main__":
     print(f"Sale price:       ${b['sale_price']:,.2f}   (v2: $954,421.06)")
     print(f"Equity at exit:   ${b['equity_at_exit']:,.2f}   (v2: $375,653.71; v3 $376,140.69 B34 fix)")
     print(f"Verdict:          {b['verdict']}   (v2: HARD REJECT)")
+
+
+    # --- Flip parity check (CA/Townhouse/Flip/Base, $650K/$800K) ---
+    f = analyze_deal(model="Flip", state="California", property_type="Townhouse",
+                     scenario="Base", price=650000, rehab=25000, arv=800000,
+                     hm_ltv=0.85, hm_rate=0.12, hold_months=5, points_pct=0.02,
+                     monthly_utilities=150.00, monthly_maint_security=150.00,
+                     target_margin=0.13)
+    print("\n=== FULL FLIP PARITY CHECK (California/Townhouse/Flip/Base) ===\n")
+    print(f"HM loan:          ${f['hm_loan']:,.2f}   (v2: $552,500.00)")
+    print(f"HM interest:      ${f['hm_interest']:,.2f}   (v2: $27,625.00)")
+    print(f"HM points:        ${f['hm_points']:,.2f}   (v2: $11,050.00)")
+    print(f"Closing costs:    ${f['closing_costs']:,.2f}   (v2: $17,875.00)")
+    print(f"Monthly holding:  ${f['monthly_holding']:,.2f}   (v2: $1,347.92)")
+    print(f"Total holding:    ${f['total_holding']:,.2f}   (v2: $6,739.58)")
+    print(f"Selling cost:     ${f['selling_cost']:,.2f}   (v2: $52,000.00)")
+    print(f"Total cost:       ${f['total_project_cost']:,.2f}   (v2: $790,289.58)")
+    print(f"Net profit:       ${f['net_profit']:,.2f}   (v2: $9,710.42)")
+    print(f"Cash invested:    ${f['cash_invested']:,.2f}   (v2: $237,789.58)")
+    print(f"ROI on cash:      {f['roi_on_cash']:.2%}   (v2: 4.08%)")
+    print(f"Annualized ROI:   {f['annualized_roi']:.2%}   (v2: 9.80%)")
+    print(f"Profit margin:    {f['profit_margin']:.2%}   (v2: 1.21%)")
+    print(f"Max Offer (MAO):  ${f['max_offer_mao']:,.2f}   (v2: $555,710.42)")
+    print(f"Max Offer (70%):  ${f['max_offer_70pct']:,.2f}   (v2: $535,000.00)")
+    print(f"Over/(Under):     ${f['over_under_mao']:,.2f}   (v2: $94,289.58)")
+    print(f"Verdict:          {f['verdict']}   (v2: REJECT)")
