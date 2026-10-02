@@ -1,7 +1,4 @@
 
-
-
-
 """
 Deal orchestrator for Dash ROI v3.
 Single entry point that runs the full Rental analysis: takes deal inputs,
@@ -17,22 +14,19 @@ from engine.irr import irr
 from engine.verdict import dscr_by_year, min_dscr, required_rent, rental_verdict
 
 
-def analyze_deal(state, property_type, model, scenario,
+def analyze_rental(state, property_type, scenario,
                  price, down_pct, annual_rate, rehab, base_rent,
-                 exit_year, target_irr):
+                 exit_year, target_irr):             
+
     """
     Run the full Rental analysis for one deal.
     Deal-specific inputs are passed in; scenario assumptions come from the
     Assumption_DB lookup. Returns a dict of all outputs.
     """
 
-    if model != "Rental":
-        raise NotImplementedError(
-            f"analyze_deal: model '{model}' is not wired yet (Rental only)."
-        )
 
     # --- scenario assumptions from the lookup (the dynamic source) ---
-    a = get_assumptions(state, property_type, model, scenario)
+    a = get_assumptions(state, property_type, "Rental", scenario)
     vacancy_rate = a["VacancyRate% Annual"]
     maint_rate = a["Maintenance% Annual"]
     mgmt_rate = a["Management Fee"]
@@ -93,6 +87,18 @@ def analyze_deal(state, property_type, model, scenario,
         "verdict": v,
     }
 
+def analyze_deal(model, **inputs):
+    """
+    Single entry point for the UI. Routes to each model's own orchestrator -
+    inputs differ by model, so each analyze_* function declares its own.
+    """
+    if model == "Rental":
+        return analyze_rental(**inputs)
+    if model in ("BRRR", "Flip"):
+        raise NotImplementedError(
+            f"analyze_deal: model '{model}' is not wired yet (Rental only)."
+        )
+    raise ValueError(f"Unknown model: {model}")
 
 # --- Full Rental parity check against the v2 reference deal ---
 if __name__ == "__main__":
