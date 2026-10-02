@@ -1,3 +1,7 @@
+
+
+
+
 """
 Deal orchestrator for Dash ROI v3.
 Single entry point that runs the full Rental analysis: takes deal inputs,
@@ -21,6 +25,12 @@ def analyze_deal(state, property_type, model, scenario,
     Deal-specific inputs are passed in; scenario assumptions come from the
     Assumption_DB lookup. Returns a dict of all outputs.
     """
+
+    if model != "Rental":
+        raise NotImplementedError(
+            f"analyze_deal: model '{model}' is not wired yet (Rental only)."
+        )
+
     # --- scenario assumptions from the lookup (the dynamic source) ---
     a = get_assumptions(state, property_type, model, scenario)
     vacancy_rate = a["VacancyRate% Annual"]
@@ -92,6 +102,18 @@ if __name__ == "__main__":
         price=250000, down_pct=0.30, annual_rate=0.078, rehab=28000,
         base_rent=2750, exit_year=5, target_irr=0.15,
     )
+
+        # --- Guard check: BRRR must refuse, not silently run Rental math ---
+    try:
+        analyze_deal(state="California", property_type="Townhouse",
+                     model="BRRR", scenario="Base",
+                     price=650000, down_pct=0.15, annual_rate=0.071, rehab=25000,
+                     base_rent=4500, exit_year=5, target_irr=0.13)
+        print("\nGUARD FAILED: BRRR ran Rental math")
+    except NotImplementedError as e:
+        print(f"\nGuard works: {e}")
+
+
 
     print("=== FULL RENTAL PARITY CHECK (Illinois/Townhouse/Rental/Conservative) ===\n")
     print(f"IRR:            {result['irr']*100:>8.2f}%    (v2: -5.14%; v3 -5.39% w/ documented upgrades)")
