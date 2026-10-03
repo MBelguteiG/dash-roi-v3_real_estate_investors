@@ -100,3 +100,13 @@ if __name__ == "__main__":
     b2 = max_price_irr(brrr, target_irr=0.05)
     print(f"BRRR target 5%:  {b2['status']}  price ${b2['price']:,.2f}  "
           f"IRR there {b2['irr_at_price']*100:.4f}%")
+
+    # Test 7: v2 cross-check - CA Rental $650K deal (v2 B4=Rental: IRR 1.82%, target 13%)
+    ca_rental = dict(model="Rental", state="California", property_type="Townhouse",
+                     scenario="Base", price=650000, down_pct=0.15, annual_rate=0.071,
+                     rehab=25000, base_rent=4500, exit_year=5, target_irr=0.13)
+    base_irr = analyze_deal(**ca_rental)["irr"]
+    print(f"\nCA Rental at $650,000: v3 IRR {base_irr*100:.2f}%   (v2 B27: 1.82%)")
+    r7 = max_price_irr(ca_rental)
+    print(f"CA Rental max price for 13%: {r7['status']}  ${r7['price']:,.2f}  "
+          f"IRR there {r7['irr_at_price']*100:.4f}%")
