@@ -12,57 +12,85 @@ Every price is tested through analyze_deal() - the same path the UI uses.
 """
 
 from engine.analyze import analyze_deal
+from engine.verdict import DSCR_LENDER_MIN
+
+
+def metric_at_price(inputs, price, metric):
+    """Re-run the whole deal at a different purchase price; return one output."""
+    return analyze_deal(**{**inputs, "price": price})[metric]
 
 
 def irr_at_price(inputs, price):
-    """Re-run the whole deal at a different purchase price; return its IRR."""
-    return analyze_deal(**{**inputs, "price": price})["irr"]
+    return metric_at_price(inputs, price, "irr")
 
 
-def max_price_irr(inputs, target_irr=None, tol=0.01, max_iter=200):
+def _solve_max_price(inputs, metric, target, tol=0.01, max_iter=200):
     """
-    inputs: the same dict you would pass to analyze_deal() (must include model).
-    Returns {"status", "price", "irr_at_price", "reason"}.
-    status: SOLVED / REFUSED / NO SOLUTION
+    Shared bracket-expand + bisection. Highest price where metric >= target.
+    Assumes the metric falls as price rises. Returns the price, or None.
     """
-    model = inputs["model"]
-    if model == "Flip":
-        return {"status": "REFUSED", "price": None, "irr_at_price": None,
-                "reason": "Flip has no IRR - use Max Offer (MAO)"}
-
-    target = inputs["target_irr"] if target_irr is None else target_irr
     base = inputs["price"]
-    no_solution = {"status": "NO SOLUTION", "price": None, "irr_at_price": None,
-                   "reason": "no price in search range hits the target"}
-
-    # --- bracket: lo meets the target, hi misses it ---
     lo = hi = base
-    if irr_at_price(inputs, base) >= target:
-        while irr_at_price(inputs, hi) >= target:      # search upward
+    if metric_at_price(inputs, base, metric) >= target:
+        while metric_at_price(inputs, hi, metric) >= target:     # search upward
             lo = hi
             hi *= 1.5
             if hi > base * 100:
-                return no_solution
+                return None
     else:
-        while irr_at_price(inputs, lo) < target:       # search downward
+        while metric_at_price(inputs, lo, metric) < target:      # search downward
             hi = lo
             lo *= 0.5
             if lo < 1000:
-                return no_solution
+                return None
 
-    # --- bisection: halve the gap until it is under one cent ---
     for _ in range(max_iter):
         if hi - lo <= tol:
             break
         mid = (lo + hi) / 2
-        if irr_at_price(inputs, mid) >= target:
+        if metric_at_price(inputs, mid, metric) >= target:
             lo = mid
         else:
             hi = mid
+    return lo
 
-    return {"status": "SOLVED", "price": lo,
-            "irr_at_price": irr_at_price(inputs, lo), "reason": ""}
 
+def _refused(reason):
+    return {"status": "REFUSED", "price": None, "value_at_price": None, "reason": reason}
+
+
+def _no_solution():
+    return {"status": "NO SOLUTION", "price": None, "value_at_price": None,
+            "reason": "no price in search range hits the target"}
+
+
+def max_price_irr(inputs, target_irr=None):
+    """Highest price that still hits the target IRR (v2 Find_Max_Price, Module5)."""
+    if inputs["model"] == "Flip":
+        return _refused("Flip has no IRR - use Max Offer (MAO)")
+    target = inputs["target_irr"] if target_irr is None else target_irr
+    price = _solve_max_price(inputs, "irr", target)
+    if price is None:
+        return _no_solution()
+    return {"status": "SOLVED", "price": price,
+            "value_at_price": irr_at_price(inputs, price), "reason": ""}
+
+
+def max_price_dscr(inputs, dscr_min=DSCR_LENDER_MIN):
+    """
+    Highest price where min DSCR still meets the lender minimum
+    (v2 Find_Max_Price_Lender, Module3). Rental only.
+    """
+    if inputs["model"] == "BRRR":
+        return _refused("BRRR refi is sized off ARV - price can't move post-refi "
+                        "DSCR; use Max Price All-Cash-Out")
+    if inputs["model"] == "Flip":
+        return _refused("Flip has no DSCR - use Max Offer (MAO)")
+    price = _solve_max_price(inputs, "min_dscr", dscr_min)
+    if price is None:
+        return _no_solution()
+    return {"status": "SOLVED", "price": price,
+            "value_at_price": metric_at_price(inputs, price, "min_dscr"), "reason": ""}
 
 # --- Self-consistency tests ---
 if __name__ == "__main__":
@@ -75,12 +103,12 @@ if __name__ == "__main__":
     # Test 1: target ABOVE current IRR -> answer must be BELOW $250,000
     r = max_price_irr(rental, target_irr=0.15)
     print(f"Target 15%:  {r['status']}  price ${r['price']:,.2f}  "
-          f"IRR there {r['irr_at_price']*100:.4f}%")
+          f"IRR there {r['value_at_price']*100:.4f}%")
 
     # Test 2: target BELOW current IRR -> answer must be ABOVE $250,000
     r2 = max_price_irr(rental, target_irr=-0.10)
     print(f"Target -10%: {r2['status']}  price ${r2['price']:,.2f}  "
-          f"IRR there {r2['irr_at_price']*100:.4f}%")
+          f"IRR there {r2['value_at_price']*100:.4f}%")
 
     # Test 3: one dollar more must MISS the target (proves it's the maximum)
     over = irr_at_price(rental, r["price"] + 1)
@@ -94,12 +122,12 @@ if __name__ == "__main__":
     brrr = DEALS["BRRR"]
     b = max_price_irr(brrr, target_irr=0.13)
     print(f"\nBRRR target 13%: {b['status']}  price ${b['price']:,.2f}  "
-          f"IRR there {b['irr_at_price']*100:.4f}%")
+          f"IRR there {b['value_at_price']*100:.4f}%")
 
     # Test 6: BRRR - target BELOW current IRR -> price ABOVE $650,000
     b2 = max_price_irr(brrr, target_irr=0.05)
     print(f"BRRR target 5%:  {b2['status']}  price ${b2['price']:,.2f}  "
-          f"IRR there {b2['irr_at_price']*100:.4f}%")
+          f"IRR there {b2['value_at_price']*100:.4f}%")
 
     # Test 7: v2 cross-check - CA Rental $650K deal (v2 B4=Rental: IRR 1.82%, target 13%)
     ca_rental = dict(model="Rental", state="California", property_type="Townhouse",
@@ -109,4 +137,15 @@ if __name__ == "__main__":
     print(f"\nCA Rental at $650,000: v3 IRR {base_irr*100:.2f}%   (v2 B27: 1.82%)")
     r7 = max_price_irr(ca_rental)
     print(f"CA Rental max price for 13%: {r7['status']}  ${r7['price']:,.2f}  "
-          f"IRR there {r7['irr_at_price']*100:.4f}%")
+          f"IRR there {r7['value_at_price']*100:.4f}%")
+
+        # --- Max Price DSCR ---
+    print("\n=== Max Price DSCR ===\n")
+    d = max_price_dscr(ca_rental)
+    print(f"CA Rental max price for DSCR 1.20: {d['status']}  ${d['price']:,.2f}  "
+          f"min DSCR there {d['value_at_price']:.6f}")
+    over_d = metric_at_price(ca_rental, d["price"] + 1, "min_dscr")
+    print(f"$1 above: min DSCR {over_d:.6f}  (must be < 1.20)")
+    print(f"BRRR: {max_price_dscr(DEALS['BRRR'])['status']}")
+    print(f"Flip: {max_price_dscr(DEALS['Flip'])['status']}")
+    
