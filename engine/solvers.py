@@ -13,6 +13,7 @@ Every price is tested through analyze_deal() - the same path the UI uses.
 
 from engine.analyze import analyze_deal
 from engine.verdict import DSCR_LENDER_MIN
+from engine.assumptions import get_assumptions
 
 
 def metric_at_price(inputs, price, metric):
@@ -92,6 +93,30 @@ def max_price_dscr(inputs, dscr_min=DSCR_LENDER_MIN):
     return {"status": "SOLVED", "price": price,
             "value_at_price": metric_at_price(inputs, price, "min_dscr"), "reason": ""}
 
+def max_price_all_cash_out(inputs):
+    """
+    BRRR only. Highest purchase price where the refi returns ALL invested
+    cash - cash left in deal = 0, using v3's existing BRRR definition:
+        cash left = (price + rehab + closing - HM loan) - (refi loan - HM loan)
+                  = price x (1 + closing %) + rehab - refi loan
+    That is linear in price, so it solves exactly (no bisection needed):
+        price = (ARV x refi LTV - rehab) / (1 + closing %)
+    v2 Main_Dashboard B50 gives $518,450 on the reference deal: it also
+    subtracts Flip-block HM interest (5-mo hold) and points, evaluated at the
+    CURRENT price, so it isn't self-consistent. Documented divergence.
+    """
+    if inputs["model"] != "BRRR":
+        return _refused("All-cash-out applies to BRRR only")
+    a = get_assumptions(inputs["state"], inputs["property_type"], "BRRR",
+                        inputs["scenario"])
+    closing_pct = a["Closing Cost Buying"]
+    price = (inputs["arv"] * inputs["refi_ltv"] - inputs["rehab"]) / (1 + closing_pct)
+    if price <= 0:
+        return _no_solution()
+    return {"status": "SOLVED", "price": price,
+            "value_at_price": metric_at_price(inputs, price, "cash_left"), "reason": ""}
+
+
 # --- Self-consistency tests ---
 if __name__ == "__main__":
     from engine.crosscheck import DEALS
@@ -148,4 +173,15 @@ if __name__ == "__main__":
     print(f"$1 above: min DSCR {over_d:.6f}  (must be < 1.20)")
     print(f"BRRR: {max_price_dscr(DEALS['BRRR'])['status']}")
     print(f"Flip: {max_price_dscr(DEALS['Flip'])['status']}")
+
+
+        # --- Max Price All-Cash-Out (BRRR) ---
+    print("\n=== Max Price All-Cash-Out (BRRR) ===\n")
+    ac = max_price_all_cash_out(DEALS["BRRR"])
+    print(f"BRRR all-cash-out price: {ac['status']}  ${ac['price']:,.2f}  "
+          f"cash left there ${ac['value_at_price']:,.2f}   (v2 B50: $518,450.00 - documented)")
+    over_ac = metric_at_price(DEALS["BRRR"], ac["price"] + 1, "cash_left")
+    print(f"$1 above: cash left ${over_ac:,.2f}  (must be > 0)")
+    print(f"Rental: {max_price_all_cash_out(DEALS['Rental'])['status']}")
+    print(f"Flip:   {max_price_all_cash_out(DEALS['Flip'])['status']}")
     
