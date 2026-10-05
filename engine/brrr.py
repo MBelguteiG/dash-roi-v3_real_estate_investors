@@ -72,6 +72,14 @@ def post_refi_dscr_with_reserves(post_refi_noi, reserve_amt, refi_loan_amt, post
     """
     return (post_refi_noi - reserve_amt) / annual_debt_service(refi_loan_amt, post_refi_rate)
 
+def is_all_cash_out(raw_irr, cash_left):
+    """
+    Dual-signal all-cash-out test (v2 lesson: a deal with $22,125 cash left
+    showed 11,156% IRR - checking cash alone misses it). One rule, used by
+    both brrr_verdict() and the IRR solver guard.
+    """
+    return raw_irr > 1 or cash_left <= 0
+
 
 def brrr_verdict(raw_irr, cash_left, dscr, target_irr, rent_cushion, dscr_min=1.20):
     """
@@ -83,7 +91,7 @@ def brrr_verdict(raw_irr, cash_left, dscr, target_irr, rent_cushion, dscr_min=1.
     coercion on B27's "Initial Investment Recovered" display string; this is
     the explicit version of that same behavior.
     """
-    all_cash_out = (raw_irr > 1) or (cash_left <= 0)
+    all_cash_out = is_all_cash_out(raw_irr, cash_left)
     meets_irr = True if all_cash_out else (raw_irr >= target_irr)
     fails_badly = (not all_cash_out) and (raw_irr < target_irr * 0.5)
 

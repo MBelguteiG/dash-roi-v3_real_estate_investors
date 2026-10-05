@@ -69,6 +69,9 @@ def max_price_irr(inputs, target_irr=None):
     """Highest price that still hits the target IRR (v2 Find_Max_Price, Module5)."""
     if inputs["model"] == "Flip":
         return _refused("Flip has no IRR - use Max Offer (MAO)")
+    if inputs["model"] == "BRRR" and analyze_deal(**inputs)["all_cash_out"]:
+        return _refused("BRRR deal is already all cash out - IRR is effectively "
+                        "infinite; use Max Price All-Cash-Out")    
     target = inputs["target_irr"] if target_irr is None else target_irr
     price = _solve_max_price(inputs, "irr", target)
     if price is None:
@@ -185,3 +188,25 @@ if __name__ == "__main__":
     print(f"Rental: {max_price_all_cash_out(DEALS['Rental'])['status']}")
     print(f"Flip:   {max_price_all_cash_out(DEALS['Flip'])['status']}")
     
+        # --- Week 17: BRRR all-cash-out guard (dual signal) ---
+    from engine.brrr import is_all_cash_out
+    print("\n=== BRRR all-cash-out guard ===\n")
+
+    # Solver wiring: cash signal fires, normal deal still solves
+    for p, why in [(500000, "cash left < 0"),
+                   (650000, "normal deal - must still SOLVE")]:
+        g = max_price_irr({**DEALS["BRRR"], "price": p})
+        print(f"${p:,}  ({why}):  {g['status']}")
+
+    # The rule itself: IRR signal, using v2's real case
+    print(f"\nv2 case ($22,125 left, 11,156% IRR): all cash out = "
+          f"{is_all_cash_out(111.56, 22125)}  (must be True - IRR signal)")
+    print(f"Normal ($92,875 left, 7.40% IRR):    all cash out = "
+          f"{is_all_cash_out(0.074, 92875)}  (must be False)")
+    print(f"Cash out ($-10 left, 50% IRR):       all cash out = "
+          f"{is_all_cash_out(0.50, -10)}  (must be True - cash signal)")
+
+    # Why $560K correctly SOLVES: tiny cash left, but IRR stays modest
+    r560 = analyze_deal(**{**DEALS["BRRR"], "price": 560000})
+    print(f"\n$560,000: cash left ${r560['cash_left']:,.2f}, IRR {r560['irr']*100:.2f}% "
+          f"-> not all cash out, so SOLVED is correct")

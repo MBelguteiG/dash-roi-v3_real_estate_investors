@@ -19,7 +19,8 @@ from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_p
                          post_refi_dscr, post_refi_dscr_with_reserves,
                          build_brrr_schedule, build_brrr_monthly_stream, brrr_irr,
                          years_held_post_refi, sale_price_at_exit,
-                         brrr_selling_cost, brrr_net_sale_proceeds)
+                         brrr_selling_cost, brrr_net_sale_proceeds,
+                        brrr_selling_cost, brrr_net_sale_proceeds, is_all_cash_out)
 
 from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
                          total_holding_cost, selling_cost, total_project_cost,
@@ -192,6 +193,7 @@ def analyze_brrr(state, property_type, scenario,
         "remaining_balance": balance,
         "net_sale_proceeds": net_sale,
         "equity_at_exit": sale - balance,
+        "all_cash_out": is_all_cash_out(irr_value, left),
         "verdict": v,
     }
 
