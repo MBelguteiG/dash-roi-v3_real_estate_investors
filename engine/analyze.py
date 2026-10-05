@@ -7,6 +7,7 @@ model's engine, and returns all outputs in one dict. This is what the UI
 (Phase 5) will call.
 """
 
+from engine.guards import validate_inputs
 from engine.assumptions import get_assumptions
 from engine.projection import project
 from engine.amortization import annual_debt_service
@@ -261,6 +262,12 @@ def analyze_deal(model, **inputs):
     Single entry point for the UI. Routes to each model's own orchestrator -
     inputs differ by model, so each analyze_* function declares its own.
     """
+
+    if model not in ("Rental", "BRRR", "Flip"):
+        raise ValueError(f"Unknown model: {model}")
+    validate_inputs(model, inputs)
+
+
     if model == "Rental":
         return analyze_rental(**inputs)
     if model == "BRRR":
