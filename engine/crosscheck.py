@@ -15,6 +15,7 @@ Note: v2 values are only valid with Main_Dashboard B4 set to that model
 
 import sys
 from engine.analyze import analyze_deal
+from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 
 DEALS = {
     "Rental": dict(model="Rental", state="Illinois", property_type="Townhouse",
@@ -111,6 +112,56 @@ def run():
           f"{counts['FAIL']} FAIL  ({len(CHECKS)} checks)")
     return counts["FAIL"] == 0
 
+# --- Solvers (Phase 3) ---------------------------------------------------
+CA_RENTAL = dict(model="Rental", state="California", property_type="Townhouse",
+                 scenario="Base", price=650000, down_pct=0.15, annual_rate=0.071,
+                 rehab=25000, base_rent=4500, exit_year=5, target_irr=0.13)
+
+SOLVER_TOL = 0.02   # bisection stops within a cent; allow display rounding
+
+# (label, solver call, expected status, locked price or None, label if pass, note)
+SOLVER_CHECKS = [
+    ("Max Price IRR   CA Rental 13%", lambda: max_price_irr(CA_RENTAL),
+     "SOLVED", 416136.53, "DOCUMENTED",
+     "v2 IRR at this price = 13.12% (target 13%); gap = documented upgrades"),
+    ("Max Price IRR   BRRR 13%", lambda: max_price_irr(DEALS["BRRR"]),
+     "SOLVED", 615502.92, "LOCKED",
+     "no v2 equivalent; proven by self-consistency tests"),
+    ("Max Price DSCR  CA Rental 1.20", lambda: max_price_dscr(CA_RENTAL),
+     "SOLVED", 417570.10, "LOCKED",
+     "consistent with v2 (DSCR 1.20 at $416,136.53)"),
+    ("All-Cash-Out    BRRR", lambda: max_price_all_cash_out(DEALS["BRRR"]),
+     "SOLVED", 559610.71, "DOCUMENTED",
+     "v2 B50 $518,450 uses Flip costs at current price"),
+    ("Max Price IRR   Flip", lambda: max_price_irr(DEALS["Flip"]),
+     "REFUSED", None, "MATCH", "v2 refuses too -> MAO"),
+    ("Max Price DSCR  BRRR", lambda: max_price_dscr(DEALS["BRRR"]),
+     "REFUSED", None, "MATCH", "v2 refuses too -> All-Cash-Out"),
+    ("Max Price IRR   BRRR @ $500K", lambda: max_price_irr({**DEALS["BRRR"], "price": 500000}),
+     "REFUSED", None, "MATCH", "v2 dual-signal all-cash-out guard"),
+]
+
+
+def run_solvers():
+    counts = {"MATCH": 0, "DOCUMENTED": 0, "LOCKED": 0, "FAIL": 0}
+    print("\n=== Solvers vs v2 ===\n")
+    for label, call, exp_status, exp_price, pass_label, note in SOLVER_CHECKS:
+        r = call()
+        ok = (r["status"] == exp_status and
+              (exp_price is None or abs(r["price"] - exp_price) <= SOLVER_TOL))
+        status = pass_label if ok else "FAIL"
+        counts[status] += 1
+        shown = f"${r['price']:,.2f}" if r["price"] is not None else r["status"]
+        print(f"{status:<11}{label:<32}{shown:>14}   {note}")
+
+    print(f"\nSolvers: {counts['MATCH']} MATCH, {counts['DOCUMENTED']} DOCUMENTED, "
+          f"{counts['LOCKED']} LOCKED, {counts['FAIL']} FAIL  ({len(SOLVER_CHECKS)} checks)")
+    return counts["FAIL"] == 0
+
+
+
 
 if __name__ == "__main__":
-    sys.exit(0 if run() else 1)
+    engines_ok = run()
+    solvers_ok = run_solvers()
+    sys.exit(0 if engines_ok and solvers_ok else 1)
