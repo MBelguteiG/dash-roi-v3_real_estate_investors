@@ -6,6 +6,11 @@ CASES = {
                  scenario="Base", price=340000, down_pct=0.25,
                  annual_rate=0.0675, rehab=0, base_rent=2300,
                  exit_year=5, target_irr=0.08),
+    "R-01": dict(model="Rental", state="California", property_type="SFH",
+                 scenario="Base", price=500000, down_pct=0.25,
+                 annual_rate=0.0675, rehab=0, base_rent=2400,
+                 exit_year=5, target_irr=0.08),
+
 }
 
 # (case, output key, expected, tolerance)
@@ -16,6 +21,14 @@ CHECKS = [
     ("R-02", "required_rent", 3997.16, 0.01),
     ("R-02", "rent_cushion", -1697.16, 0.01),
     ("R-02", "verdict", "HARD REJECT", None),
+     # R-01: v3-only values, not yet verified against the v2 workbook
+    ("R-01", "irr", -0.00301, 0.00005),
+    ("R-01", "cash_on_cash", -0.09466, 0.00005),
+    ("R-01", "min_dscr", 0.46, 0.005),
+    ("R-01", "required_rent", 4969.16, 0.01),
+    ("R-01", "rent_cushion", -2569.16, 0.01),
+    ("R-01", "verdict", "HARD REJECT", None), 
+
 ]
 
 RESULTS = {name: analyze_deal(**inputs) for name, inputs in CASES.items()}
