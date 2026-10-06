@@ -10,6 +10,10 @@ CASES = {
                  scenario="Base", price=500000, down_pct=0.25,
                  annual_rate=0.0675, rehab=0, base_rent=2400,
                  exit_year=5, target_irr=0.08),
+    "R-03": dict(model="Rental", state="Illinois", property_type="SFH",
+                 scenario="Base", price=300000, down_pct=0.25,
+                 annual_rate=0.0675, rehab=0, base_rent=2400,
+                 exit_year=5, target_irr=0.08),
 
 }
 
@@ -28,6 +32,15 @@ CHECKS = [
     ("R-01", "required_rent", 4969.16, 0.01),
     ("R-01", "rent_cushion", -2569.16, 0.01),
     ("R-01", "verdict", "HARD REJECT", None), 
+    # R-03: DSCR, required rent, verdict match v2; irr and cash_on_cash are v3-only
+    ("R-03", "irr", 0.00094, 0.00005),
+    ("R-03", "cash_on_cash", -0.04223, 0.00005),
+    ("R-03", "min_dscr", 0.77, 0.005),
+    ("R-03", "required_rent", 3552.49, 0.01),
+    ("R-03", "rent_cushion", -1152.49, 0.01),
+    ("R-03", "verdict", "HARD REJECT", None),
+    
+
 
 ]
 
