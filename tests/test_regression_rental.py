@@ -14,6 +14,10 @@ CASES = {
                  scenario="Base", price=300000, down_pct=0.25,
                  annual_rate=0.0675, rehab=0, base_rent=2400,
                  exit_year=5, target_irr=0.08),
+    "R-04": dict(model="Rental", state="California", property_type="SFH",
+                 scenario="Base", price=550000, down_pct=0.20,
+                 annual_rate=0.0675, rehab=0, base_rent=2300,
+                 exit_year=5, target_irr=0.08),
 
 }
 
@@ -39,6 +43,13 @@ CHECKS = [
     ("R-03", "required_rent", 3552.49, 0.01),
     ("R-03", "rent_cushion", -1152.49, 0.01),
     ("R-03", "verdict", "HARD REJECT", None),
+     # R-04: DSCR < 1.2 and HARD REJECT match v2; figures are v3-only
+    ("R-04", "irr", -0.03252, 0.00005),
+    ("R-04", "cash_on_cash", -0.15181, 0.00005),
+    ("R-04", "min_dscr", 0.35, 0.005),
+    ("R-04", "required_rent", 5715.34, 0.01),
+    ("R-04", "rent_cushion", -3415.34, 0.01),
+    ("R-04", "verdict", "HARD REJECT", None),
     
 
 
