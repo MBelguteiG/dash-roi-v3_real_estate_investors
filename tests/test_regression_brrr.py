@@ -16,7 +16,19 @@ CASES = {
                  exit_year=5, target_irr=0.10, arv=620000, hm_ltv=0.90,
                  hm_rate=0.105, refi_ltv=0.70, refi_month=6,
                  post_refi_rate=0.0725),
+
+        # B-04: rent 2300 inferred from v2's recorded IRR of 36.69%
+    "B-04-650": dict(model="BRRR", state="California", property_type="SFH",
+                scenario="Base", price=400000, rehab=60000, base_rent=2300,
+                exit_year=5, target_irr=0.10, arv=650000, hm_ltv=0.90,
+                hm_rate=0.105, refi_ltv=0.80, refi_month=6,
+                post_refi_rate=0.0725),
+
 }
+
+CASES["B-04-750"] = {**CASES["B-04-650"], "arv": 750000}
+
+
 
 # (case, output key, expected, tolerance)
 CHECKS = [
@@ -49,6 +61,22 @@ CHECKS = [
     ("B-03", "sale_price", 739676.32, 0.01),
     ("B-03", "equity_at_exit", 327217.37, 0.01),
     ("B-03", "verdict", "HARD REJECT", None),
+    
+    # B-04 at ARV 650K: v2 showed IRR 36.69% and no guard (its display then
+    # checked IRR > 100% only); v3 flags it because cash left is negative
+    ("B-04-650", "irr", 0.36748, 0.00005),
+    ("B-04-650", "cash_invested", 111000.00, 0.01),
+    ("B-04-650", "cash_pulled_out", 160000.00, 0.01),
+    ("B-04-650", "cash_left", -49000.00, 0.01),
+    ("B-04-650", "all_cash_out", True, None),
+    ("B-04-650", "dscr", 0.3131, 0.0005),
+    ("B-04-650", "verdict", "HARD REJECT", None),
+    # B-04 at ARV 750K: v2 guard fired on IRR > 100%
+    ("B-04-750", "irr", 2.02709, 0.00005),
+    ("B-04-750", "cash_pulled_out", 240000.00, 0.01),
+    ("B-04-750", "cash_left", -129000.00, 0.01),
+    ("B-04-750", "all_cash_out", True, None),
+    ("B-04-750", "verdict", "HARD REJECT", None),
 ]
 
 RESULTS = {name: analyze_deal(**inputs) for name, inputs in CASES.items()}
