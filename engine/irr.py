@@ -22,6 +22,9 @@ def irr(cashflows, low=-0.9999, high=10.0, tol=1e-9, max_iter=200):
     Returns the rate where NPV crosses zero. Assumes one sign change
     (standard for -outflow then +inflows), which holds for these deals.
     """
+    # Keep (1 + low) ** n representable: long monthly streams underflow to 0.0
+    n = len(cashflows) - 1
+    low = max(low, -1 + 10 ** (-250 / max(n, 1)))
     f_low = npv(low, cashflows)
     f_high = npv(high, cashflows)
     if f_low * f_high > 0:
