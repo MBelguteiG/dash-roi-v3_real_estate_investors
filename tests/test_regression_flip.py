@@ -113,3 +113,11 @@ def test_flip_regression(case, key, expected, tol):
         assert actual == expected
     else:
         assert actual == pytest.approx(expected, abs=tol)
+
+# F-03a-d: Flip has no DSCR block, whatever the property type
+@pytest.mark.parametrize("case", ["F-01a", "F-01b", "F-01c", "F-01d"])
+def test_flip_has_no_dscr_block(case):
+    result = RESULTS[case]
+    assert not any("dscr" in key for key in result)
+    assert "required_rent" not in result
+    assert "rent_cushion" not in result
