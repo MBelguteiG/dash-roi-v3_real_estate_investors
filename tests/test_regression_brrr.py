@@ -11,6 +11,11 @@ CASES = {
     "B-01": B01,
     # B-08 was run in v2 with refi LTV at 65% (inferred from its recorded figures)
     "B-08": {**B01, "refi_ltv": 0.65},
+    "B-03": dict(model="BRRR", state="California", property_type="SFH",
+                 scenario="Base", price=450000, rehab=60000, base_rent=3200,
+                 exit_year=5, target_irr=0.10, arv=620000, hm_ltv=0.90,
+                 hm_rate=0.105, refi_ltv=0.70, refi_month=6,
+                 post_refi_rate=0.0725),
 }
 
 # (case, output key, expected, tolerance)
@@ -31,6 +36,19 @@ CHECKS = [
     ("B-08", "equity_at_exit", 178339.74, 0.01),
     ("B-08", "net_sale_proceeds", 147270.08, 0.01),
     ("B-08", "remaining_balance", 210030.94, 0.01),
+    
+
+    # B-03: v2 showed IRR 12.76%, DSCR 0.60, HARD REJECT (strong IRR, fails DSCR gate)
+    ("B-03", "irr", 0.12805, 0.00005),
+    ("B-03", "cash_invested", 117375.00, 0.01),
+    ("B-03", "cash_pulled_out", 29000.00, 0.01),
+    ("B-03", "cash_left", 88375.00, 0.01),
+    ("B-03", "dscr", 0.5954, 0.0005),
+    ("B-03", "required_rent", 6036.77, 0.01),
+    ("B-03", "rent_cushion", -2836.77, 0.01),
+    ("B-03", "sale_price", 739676.32, 0.01),
+    ("B-03", "equity_at_exit", 327217.37, 0.01),
+    ("B-03", "verdict", "HARD REJECT", None),
 ]
 
 RESULTS = {name: analyze_deal(**inputs) for name, inputs in CASES.items()}
