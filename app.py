@@ -51,10 +51,6 @@ scenario = right.segmented_control(
     "Scenario", ["Conservative", "Base", "Aggressive"],
     default="Base", label_visibility="collapsed") or "Base"
 
-if model == "Flip":
-    st.info("Flip inputs come in the next step.")
-    st.stop()
-
 # Input strip
 with st.container(border=True):
     c = st.columns(8)
@@ -71,7 +67,7 @@ with st.container(border=True):
                     scenario=scenario, price=price, down_pct=down_pct / 100,
                     annual_rate=rate / 100, rehab=0, base_rent=rent,
                     exit_year=exit_year, target_irr=target / 100)
-    else:
+    elif model == "BRRR":
         price = c[2].number_input("Price", value=250000, step=5000)
         rehab = c[3].number_input("Rehab", value=45000, step=1000)
         arv = c[4].number_input("ARV", value=340000, step=5000)
@@ -90,16 +86,35 @@ with st.container(border=True):
                     target_irr=target / 100, arv=arv, hm_ltv=hm_ltv / 100,
                     hm_rate=hm_rate / 100, refi_ltv=refi_ltv / 100,
                     refi_month=refi_month, post_refi_rate=post_rate / 100)
+    else:
+        price = c[2].number_input("Price", value=200000, step=5000)
+        rehab = c[3].number_input("Rehab", value=55000, step=1000)
+        arv = c[4].number_input("ARV", value=340000, step=5000)
+        hold = c[5].number_input("Hold months", value=6, min_value=1, step=1)
+        target = c[6].number_input("Target margin %", value=15.0, step=0.5)
+        d = st.columns(8)
+        hm_ltv = d[0].number_input("HM LTV %", value=90.0, step=1.0)
+        hm_rate = d[1].number_input("HM rate %", value=10.5, step=0.25)
+        points = d[2].number_input("Points %", value=2.0, step=0.25)
+        utilities = d[3].number_input("Utilities / mo", value=150, step=25)
+        maint = d[4].number_input("Maint & security / mo", value=150, step=25)
+        deal = dict(model="Flip", state=state, property_type=property_type,
+                    scenario=scenario, price=price, rehab=rehab, arv=arv,
+                    hm_ltv=hm_ltv / 100, hm_rate=hm_rate / 100,
+                    hold_months=hold, points_pct=points / 100,
+                    monthly_utilities=utilities,
+                    monthly_maint_security=maint,
+                    target_margin=target / 100)
 
 result = analyze_deal(**deal)
 verdict = result["verdict"]
-irr_solve = max_price_irr(deal)
 
 # Headline tiles
 t = st.columns(5)
 verdict_tile(t[0], verdict)
 
 if model == "Rental":
+    irr_solve = max_price_irr(deal)
     dscr_solve = max_price_dscr(deal)
     solved = [s["price"] for s in (irr_solve, dscr_solve) if s["status"] == "SOLVED"]
     walk_away = min(solved) if solved else None
@@ -108,7 +123,8 @@ if model == "Rental":
     tile(t[1], "IRR", f"{result['irr']:.2%}", f"target {target:.2f}%")
     tile(t[2], "Min DSCR", f"{dscr_value:.2f}", "lender minimum 1.20")
     tile(t[3], "Cash-on-cash", f"{result['cash_on_cash']:.2%}", "year 1")
-else:
+elif model == "BRRR":
+    irr_solve = max_price_irr(deal)
     aco = max_price_all_cash_out(deal)
     walk_away = irr_solve["price"] if irr_solve["status"] == "SOLVED" else None
     dscr_value = result["dscr"]
@@ -121,10 +137,18 @@ else:
     tile(t[2], "Post-refi DSCR", f"{dscr_value:.2f}", "lender minimum 1.20")
     if result["cash_left"] < 0:
         tile(t[3], "Cash left in deal", "$0",
-            f"refi returns {money(-result['cash_left'])} more than invested")
+             f"refi returns {money(-result['cash_left'])} more than invested")
     else:
         tile(t[3], "Cash left in deal", money(result["cash_left"]),
-            f"of {money(result['cash_invested'])} invested")
+             f"of {money(result['cash_invested'])} invested")
+else:
+    walk_away = result["max_offer_mao"]
+    tile(t[1], "Annualized ROI", f"{result['annualized_roi']:.2%}",
+         f"{hold}-month hold")
+    tile(t[2], "Profit margin", f"{result['profit_margin']:.2%}",
+         f"target {target:.2f}%")
+    tile(t[3], "Net profit", money(result["net_profit"]),
+         f"holding {money(result['monthly_holding'])} / mo")
 
 if walk_away:
     tile(t[4], "Walk-away price", money(walk_away), f"vs {money(price)} asking")
@@ -141,22 +165,39 @@ with inv:
     a, b = st.columns(2)
     with a:
         st.markdown("#### Why this verdict")
-        check(f"Debt check: DSCR {dscr_value:.2f} vs 1.20 minimum",
-              dscr_value >= 1.20)
-        if model == "BRRR" and result["all_cash_out"]:
-            check("Return check: the refi returns all the cash invested", True)
+        if model == "Flip":
+            margin = result["profit_margin"]
+            check(f"Profit check: net profit {money(result['net_profit'])}",
+                  result["net_profit"] > 0)
+            check(f"Margin floor: {margin:.2%} vs 10.00% minimum", margin >= 0.10)
+            check(f"Margin target: {margin:.2%} vs {target:.2f}% target",
+                  margin >= target / 100)
         else:
-            check(f"Return check: IRR {result['irr']:.2%} vs {target:.2f}% target",
-                  irr_ok)
+            check(f"Debt check: DSCR {dscr_value:.2f} vs 1.20 minimum",
+                  dscr_value >= 1.20)
+            if model == "BRRR" and result["all_cash_out"]:
+                check("Return check: the refi returns all the cash invested", True)
+            else:
+                check(f"Return check: IRR {result['irr']:.2%} vs {target:.2f}% target",
+                      irr_ok)
     with b:
         st.markdown("#### What would make it work")
-        st.write(f"Rent needed for 1.20 DSCR: **{money2(result['required_rent'])}**")
-        if irr_solve["status"] == "SOLVED":
-            st.write(f"Max price at {target:.2f}% IRR: **{money(irr_solve['price'])}**")
-        if model == "Rental" and dscr_solve["status"] == "SOLVED":
-            st.write(f"Max price at 1.20 DSCR: **{money(dscr_solve['price'])}**")
-        if model == "BRRR" and aco["status"] == "SOLVED":
-            st.write(f"Price for all cash out at refi: **{money(aco['price'])}**")
+        if model == "Flip":
+            over = result["over_under_mao"]
+            mao = money(result["max_offer_mao"])
+            if over > 0:
+                line = f"Max offer (MAO): **{mao}**, {money(over)} below the asking price"
+            else:
+                line = f"Max offer (MAO): **{mao}**; the price is already {money(-over)} under it"
+            st.write(line.replace("$", "\\$"))
+        else:
+            st.write(f"Rent needed for 1.20 DSCR: **{money2(result['required_rent'])}**")
+            if irr_solve["status"] == "SOLVED":
+                st.write(f"Max price at {target:.2f}% IRR: **{money(irr_solve['price'])}**")
+            if model == "Rental" and dscr_solve["status"] == "SOLVED":
+                st.write(f"Max price at 1.20 DSCR: **{money(dscr_solve['price'])}**")
+            if model == "BRRR" and aco["status"] == "SOLVED":
+                st.write(f"Price for all cash out at refi: **{money(aco['price'])}**")
 
 with lend:
     st.info("Lender view comes in Week 23.")
