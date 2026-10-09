@@ -121,3 +121,18 @@ if __name__ == "__main__":
         verdict("Condo")
     except ValueError as e:
         print(f"Bad model caught: {e}")
+
+def approval_likelihood(model, min_dscr=None, ltv=None, hm_ltv_on_arv=None):
+    """
+    Lender fundability, ported from v2 Main_Dashboard G21.
+    Flip: hard-money loan / ARV must be at or under 75%.
+    Rental/BRRR: STRONG at DSCR >= 1.25 and LTV <= 80%,
+    CONDITIONAL at DSCR >= 1.20, otherwise LIKELY DECLINE.
+    """
+    if model == "Flip":
+        return "LIKELY" if hm_ltv_on_arv <= 0.75 else "UNLIKELY"
+    if min_dscr >= 1.25 and ltv <= 0.80:
+        return "STRONG"
+    if min_dscr >= 1.20:
+        return "CONDITIONAL"
+    return "LIKELY DECLINE"   

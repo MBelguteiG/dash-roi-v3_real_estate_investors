@@ -102,7 +102,14 @@ def analyze_rental(state, property_type, scenario,
         "required_rent": req_rent,
         "rent_cushion":  cushion,
         "verdict": v,
+        "loan_amount": loan,
+        "ltv": loan / price,
+        "noi_y1": noi_by_year[0],
+        "annual_debt_service": debt,
     }
+
+
+
 
 def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
