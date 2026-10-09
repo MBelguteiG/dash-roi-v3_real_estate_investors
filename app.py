@@ -1,6 +1,7 @@
 import streamlit as st
 from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
+from engine.verdict import approval_likelihood
 
 st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
 
@@ -200,7 +201,52 @@ with inv:
                 st.write(f"Price for all cash out at refi: **{money(aco['price'])}**")
 
 with lend:
-    st.info("Lender view comes in Week 23.")
+    if model == "Rental":
+        approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"])
+        l = st.columns(4)
+        tile(l[0], "Loan amount", money(result["loan_amount"]),
+             f"{result['ltv']:.0%} loan-to-value")
+        tile(l[1], "NOI, year 1", money(result["noi_y1"]), "after vacancy and expenses")
+        tile(l[2], "Debt service / yr", money(result["annual_debt_service"]),
+             f"{rate:.3f}% fixed, 30 years")
+        tile(l[3], "Min DSCR", f"{result['min_dscr']:.2f}", "1.20 minimum, 1.25 for strong")
+        note = (f"DSCR {result['min_dscr']:.2f} at {result['ltv']:.0%} LTV. Strong needs "
+                "DSCR 1.25 and LTV 80% or less; conditional needs DSCR 1.20.")
+    elif model == "BRRR":
+        refi = refi_ltv / 100
+        approval = approval_likelihood("BRRR", result["dscr"], refi)
+        l = st.columns(4)
+        tile(l[0], "ARV", money(arv), "refi appraisal basis")
+        tile(l[1], "Refi LTV", f"{refi:.0%}", f"refi at month {refi_month}")
+        tile(l[2], "Cash pulled out", money(result["cash_pulled_out"]), "at refi")
+        tile(l[3], "Post-refi DSCR", f"{result['dscr']:.2f}", "1.20 minimum, 1.25 for strong")
+        note = (f"Post-refi DSCR {result['dscr']:.2f} at {refi:.0%} refi LTV. Strong needs "
+                "DSCR 1.25 and LTV 80% or less; conditional needs DSCR 1.20.")
+    else:
+        hm_ltv_arv = result["hm_loan"] / arv
+        ltc = result["hm_loan"] / (price + rehab)
+        approval = approval_likelihood("Flip", hm_ltv_on_arv=hm_ltv_arv)
+        l = st.columns(4)
+        tile(l[0], "Hard money loan", money(result["hm_loan"]),
+             f"{hm_ltv:.0f}% of purchase price")
+        tile(l[1], "LTV on ARV", f"{hm_ltv_arv:.2%}", "75% ceiling")
+        tile(l[2], "Loan-to-cost", f"{ltc:.2%}", "loan / (price + rehab)")
+        tile(l[3], "Exit timeline", f"{hold} months", "hold period")
+        if approval == "LIKELY":
+            note = (f"HM LTV {hm_ltv_arv:.2%} of ARV, under the 75% ceiling. "
+                    "A hard money lender is likely to fund.")
+        else:
+            note = (f"HM LTV {hm_ltv_arv:.2%} of ARV, over the 75% ceiling. "
+                    "Expect the lender to cut the loan or decline.")
+
+    st.markdown("#### Fundability")
+    if approval in ("STRONG", "LIKELY"):
+        st.success(f"{approval}: {note}")
+    elif approval == "CONDITIONAL":
+        st.warning(f"{approval}: {note}")
+    else:
+        st.error(f"{approval}: {note}")
+        
 with sens:
     st.info("Sensitivity comes in Phase 6.")
 with cf:
