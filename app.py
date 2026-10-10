@@ -2,6 +2,9 @@ import streamlit as st
 from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 from engine.verdict import approval_likelihood
+import plotly.graph_objects as go
+from engine.sensitivity import two_way_irr
+
 
 st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
 
@@ -264,6 +267,35 @@ with lend:
         st.error(f"{approval}: {note}")
 
 with sens:
-    st.info("Sensitivity comes in Phase 6.")
+    if model != "Rental":
+        st.info(f"Sensitivity for {model} comes in Week 26.")
+    else:
+        g = two_way_irr(deal)
+        t_irr = target / 100
+        span = max(abs(v - t_irr) for row in g["irr"] for v in row) or 0.01
+        fig = go.Figure(go.Heatmap(
+            z=g["irr"],
+            x=[money(p) for p in g["prices"]],
+            y=[f"{r:.2%}" for r in g["rates"]],
+            colorscale=[[0, "#e34948"], [0.5, "#f0efec"], [1, "#2a78d6"]],
+            zmin=t_irr - span, zmax=t_irr + span,
+            texttemplate="%{z:.2%}", textfont={"color": "#172036"},
+            hovertemplate="Rate %{y}<br>Price %{x}<br>IRR %{z:.2%}<extra></extra>",
+            xgap=2, ygap=2,
+            colorbar={"title": "IRR", "tickformat": ".0%"},
+        ))
+        fig.update_layout(
+            title=f"IRR by purchase price and interest rate (grey = {target:.2f}% target)",
+            xaxis={"title": "Purchase price", "type": "category"},
+            yaxis={"title": "Interest rate", "type": "category",
+                   "autorange": "reversed"},
+            height=420,
+            margin={"t": 50, "l": 10, "r": 10, "b": 10},
+            plot_bgcolor="#FFFFFF",
+        )
+        st.plotly_chart(fig)
+        st.caption("Blue cells beat your target IRR, red cells miss it. "
+                   "The centre cell is your deal as entered.")
+
 with cf:
-    st.info("Cash flow table comes later.")
+    st.info("Cash flow table comes later.")                   
