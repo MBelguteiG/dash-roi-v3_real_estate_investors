@@ -97,12 +97,14 @@ with st.container(border=True):
         refi_month = d[2].number_input("Refi month", value=6, min_value=1, step=1)
         refi_ltv = d[3].number_input("Refi LTV %", value=75.0, step=1.0)
         post_rate = d[4].number_input("Refi rate %", value=7.25, step=0.125)
+        refi_type = d[5].selectbox("Refi type", ["Cash-Out", "Rate/Term"])
         deal = dict(model="BRRR", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab,
                     base_rent=rent, exit_year=exit_year,
                     target_irr=target / 100, arv=arv, hm_ltv=hm_ltv / 100,
                     hm_rate=hm_rate / 100, refi_ltv=refi_ltv / 100,
-                    refi_month=refi_month, post_refi_rate=post_rate / 100)
+                    refi_month=refi_month, post_refi_rate=post_rate / 100,
+                    refi_type=refi_type)
     else:
         price = c[2].number_input("Price", value=200000, step=5000)
         rehab = c[3].number_input("Rehab", value=55000, step=1000)
@@ -232,11 +234,11 @@ with lend:
         note = (f"DSCR {result['min_dscr']:.2f} at {result['ltv']:.0%} LTV. Strong needs "
                 "DSCR 1.25 and LTV 80% or less; conditional needs DSCR 1.20.")
     elif model == "BRRR":
-        refi = refi_ltv / 100
+        refi = result["refi_ltv_effective"]
         approval = approval_likelihood("BRRR", result["dscr"], refi)
         l = st.columns(4)
-        tile(l[0], "ARV", money(arv), "refi appraisal basis")
-        tile(l[1], "Refi LTV", f"{refi:.0%}", f"refi at month {refi_month}")
+        tile(l[0], "Refi loan", money(result["refi_loan"]), f"on ARV {money(arv)}")
+        tile(l[1], "Refi LTV", f"{refi:.0%}", f"{refi_type}, refi at month {refi_month}")
         tile(l[2], "Cash pulled out", money(result["cash_pulled_out"]), "at refi")
         tile(l[3], "Post-refi DSCR", f"{result['dscr']:.2f}", "1.20 minimum, 1.25 for strong")
         note = (f"Post-refi DSCR {result['dscr']:.2f} at {refi:.0%} refi LTV. Strong needs "

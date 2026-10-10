@@ -66,3 +66,8 @@ def test_irr_solver_rate_term():
     assert r["price"] == pytest.approx(236540.70, abs=0.02)
     at_price = analyze_deal(**{**RT_DEAL, "price": r["price"]})
     assert at_price["irr"] == pytest.approx(0.10, abs=1e-6)
+def test_b01_rate_term_regression():
+    # B-01 with Rate/Term, checked on the page 2026-10-10
+    assert RT["irr"] == pytest.approx(0.0643, abs=0.00005)
+    assert RT["verdict"] == "HARD REJECT"
+    assert RT["refi_ltv_effective"] == pytest.approx(0.6618, abs=0.0001)
