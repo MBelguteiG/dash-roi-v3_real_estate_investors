@@ -3,7 +3,7 @@ from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 from engine.verdict import approval_likelihood
 import plotly.graph_objects as go
-from engine.sensitivity import two_way_irr
+from engine.sensitivity import two_way_irr, tornado_irr
 
 
 st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
@@ -296,6 +296,35 @@ with sens:
         st.plotly_chart(fig)
         st.caption("Blue cells beat your target IRR, red cells miss it. "
                    "The centre cell is your deal as entered.")
+
+        tor = tornado_irr(deal)
+        names = [r["variable"] for r in tor["rows"]]
+        base_irr = tor["base"]
+        fig2 = go.Figure()
+        for label, key, colour in (("Low swing", "low", "#2a78d6"),
+                                   ("High swing", "high", "#eb6834")):
+            values = [r[key] for r in tor["rows"]]
+            fig2.add_trace(go.Bar(
+                name=label, y=names, orientation="h",
+                x=[v - base_irr for v in values], base=[base_irr] * len(values),
+                marker_color=colour, customdata=values,
+                hovertemplate="%{y}<br>" + label + ": IRR %{customdata:.2%}<extra></extra>",
+            ))
+        fig2.add_vline(x=base_irr, line_dash="dot", line_color="#4A5568")
+        fig2.update_layout(
+            title=f"IRR impact by variable (dotted line = your deal, {base_irr:.2%})",
+            barmode="overlay", height=380,
+            xaxis={"title": "IRR", "tickformat": ".1%"},
+            yaxis={"type": "category", "autorange": "reversed"},
+            legend={"orientation": "h", "y": -0.2},
+            margin={"t": 50, "l": 10, "r": 10, "b": 10},
+            plot_bgcolor="#FFFFFF",
+        )
+        st.plotly_chart(fig2)
+        st.caption("Each bar shows IRR when one input moves to its low (blue) or "
+                   "high (orange) swing, all else unchanged. Swings follow v2: price, "
+                   "rent ±10%; rehab ±25%; rate, rent growth ±1 pt; vacancy ±3 pts; "
+                   "appreciation ±1.5 pts.")
 
 with cf:
     st.info("Cash flow table comes later.")                   
