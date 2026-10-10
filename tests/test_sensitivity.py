@@ -64,3 +64,37 @@ def test_overrides_refused_outside_rental():
     from tests.test_regression_brrr import CASES as BRRR
     with pytest.raises(ValueError):
         analyze_deal(**BRRR["B-01"], overrides={"Appreciation Annual": 0.05})
+
+from engine.sensitivity import tornado_irr
+
+TORNADO = tornado_irr(DEAL)
+BY_NAME = {r["variable"]: r for r in TORNADO["rows"]}
+
+
+def test_tornado_has_seven_rows_and_base():
+    assert len(TORNADO["rows"]) == 7
+    assert TORNADO["base"] == pytest.approx(BASE["irr"], abs=1e-12)
+
+
+def test_tornado_sorted_by_width():
+    widths = [abs(r["high"] - r["low"]) for r in TORNADO["rows"]]
+    assert widths == sorted(widths, reverse=True)
+
+
+def test_tornado_directions():
+    base = TORNADO["base"]
+    assert BY_NAME["Purchase price"]["low"] > base > BY_NAME["Purchase price"]["high"]
+    assert BY_NAME["Interest rate"]["low"] > base > BY_NAME["Interest rate"]["high"]
+    assert BY_NAME["Monthly rent"]["low"] < base < BY_NAME["Monthly rent"]["high"]
+    assert BY_NAME["Appreciation"]["low"] < base < BY_NAME["Appreciation"]["high"]
+    assert BY_NAME["Vacancy rate"]["low"] > base > BY_NAME["Vacancy rate"]["high"]
+
+
+def test_rate_bars_match_heatmap():
+    # The tornado's rate swing (+/-1 point) equals the heatmap's outer rows
+    assert BY_NAME["Interest rate"]["low"] == pytest.approx(GRID["irr"][0][2], abs=1e-12)
+    assert BY_NAME["Interest rate"]["high"] == pytest.approx(GRID["irr"][4][2], abs=1e-12)
+
+
+def test_zero_rehab_gives_zero_width():
+    assert BY_NAME["Rehab cost"]["low"] == pytest.approx(BY_NAME["Rehab cost"]["high"])
