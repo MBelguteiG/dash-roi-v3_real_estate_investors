@@ -33,7 +33,7 @@ from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
 
 def analyze_rental(state, property_type, scenario,
                  price, down_pct, annual_rate, rehab, base_rent,
-                 exit_year, target_irr):             
+                 exit_year, target_irr, overrides=None):           
 
     """
     Run the full Rental analysis for one deal.
@@ -44,6 +44,11 @@ def analyze_rental(state, property_type, scenario,
 
     # --- scenario assumptions from the lookup (the dynamic source) ---
     a = get_assumptions(state, property_type, "Rental", scenario)
+    if overrides:
+        unknown = set(overrides) - set(a)
+        if unknown:
+            raise ValueError(f"Unknown assumption(s): {sorted(unknown)}")
+        a = {**a, **overrides}
     vacancy_rate = a["VacancyRate% Annual"]
     maint_rate = a["Maintenance% Annual"]
     mgmt_rate = a["Management Fee"]
@@ -272,11 +277,14 @@ def analyze_deal(model, **inputs):
 
     if model not in ("Rental", "BRRR", "Flip"):
         raise ValueError(f"Unknown model: {model}")
+    overrides = inputs.pop("overrides", None)
+    if overrides and model != "Rental":
+        raise ValueError("Assumption overrides are Rental-only for now")
     validate_inputs(model, inputs)
 
 
     if model == "Rental":
-        return analyze_rental(**inputs)
+        return analyze_rental(**inputs, overrides=overrides)
     if model == "BRRR":
         return analyze_brrr(**inputs)
     if model == "Flip":
