@@ -3,7 +3,7 @@ from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 from engine.verdict import approval_likelihood
 import plotly.graph_objects as go
-from engine.sensitivity import two_way_irr, tornado_irr
+from engine.sensitivity import two_way_irr, tornado_irr, brrr_tornado_irr
 from engine.assumptions import get_assumptions
 
 
@@ -283,9 +283,41 @@ with sens:
                 "profit margin, so check the margin verdict and the max allowable "
                 "offer (MAO) in the Investor view.")
     elif model == "BRRR":
-        st.info("The Rental sensitivity charts don't apply to BRRR. After the refi, "
-                "the loan is sized off the ARV, so the levers that matter are ARV, "
-                "refi LTV and the post-refi rate. A BRRR-specific tornado is planned.")
+        tor = brrr_tornado_irr(deal)
+        if tor["base_all_cash_out"]:
+            st.info("This deal returns all the cash invested at refi, so its IRR is not "
+                    "a meaningful base for a tornado. Lower the ARV or refi LTV to see one.")
+        else:
+            rows = tor["rows"]
+            names = [r["variable"] + (" *" if r["all_cash_out"] else "") for r in rows]
+            base_irr = tor["base"]
+            fig3 = go.Figure()
+            for label, key, colour in (("Low swing", "low", "#2a78d6"),
+                                       ("High swing", "high", "#eb6834")):
+                values = [r[key] for r in rows]
+                fig3.add_trace(go.Bar(
+                    name=label, y=names, orientation="h",
+                    x=[v - base_irr for v in values], base=[base_irr] * len(values),
+                    marker_color=colour, customdata=values,
+                    hovertemplate="%{y}<br>" + label + ": IRR %{customdata:.2%}<extra></extra>",
+                ))
+            fig3.add_vline(x=base_irr, line_dash="dot", line_color="#4A5568")
+            fig3.update_layout(
+                title=f"BRRR: IRR impact by variable (dotted line = your deal, {base_irr:.2%})",
+                barmode="overlay", height=360,
+                xaxis={"title": "IRR", "tickformat": ".1%"},
+                yaxis={"type": "category", "autorange": "reversed"},
+                legend={"orientation": "h", "y": -0.2},
+                margin={"t": 50, "l": 10, "r": 10, "b": 10},
+                plot_bgcolor="#FFFFFF",
+            )
+            st.plotly_chart(fig3)
+            caption = ("Each bar shows IRR when one input moves to its low (blue) or high "
+                       "(orange) swing, all else unchanged. Swings: ARV, rent, price ±10%; "
+                       "rehab ±25%; refi LTV ±5 pts; post-refi rate ±1 pt.")
+            if any(r["all_cash_out"] for r in rows):
+                caption += " * One swing makes the deal all-cash-out, so that bar's IRR is not comparable."
+            st.caption(caption)
     else:
         g = two_way_irr(deal)
         t_irr = target / 100
