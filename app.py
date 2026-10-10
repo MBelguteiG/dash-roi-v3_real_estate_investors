@@ -52,6 +52,19 @@ scenario = right.segmented_control(
     "Scenario", ["Conservative", "Base", "Aggressive"],
     default="Base", label_visibility="collapsed") or "Base"
 
+with st.expander("Quick start"):
+    st.markdown(
+        "1. **Pick a model and scenario** in the top bar: Rental, BRRR or Flip; "
+        "Conservative, Base or Aggressive.\n"
+        "2. **Enter the deal.** Press Enter after typing a number, or use − and +.\n"
+        "3. **Read the verdict.** The tiles give the headline numbers; "
+        "*Investor view* explains the verdict and what would fix it; "
+        "*Lender view* shows how a lender sizes the loan and whether it is likely to fund.\n"
+        "4. **Walk-away price** is the most you can pay and still meet your target "
+        "(for Flip, the max allowable offer)."
+    )
+
+
 # Input strip
 with st.container(border=True):
     c = st.columns(8)
@@ -152,7 +165,10 @@ else:
          f"holding {money(result['monthly_holding'])} / mo")
 
 if walk_away:
-    tile(t[4], "Walk-away price", money(walk_away), f"vs {money(price)} asking")
+    cap = f"vs {money(price)} asking"
+    if model == "BRRR" and dscr_value < 1.20:
+        cap = "IRR target only; price can't fix DSCR"
+    tile(t[4], "Walk-away price", money(walk_away), cap)
 elif model == "BRRR" and result["all_cash_out"]:
     tile(t[4], "Walk-away price", "n/a", "IRR solver skips all-cash-out deals")
 else:
@@ -246,7 +262,7 @@ with lend:
         st.warning(f"{approval}: {note}")
     else:
         st.error(f"{approval}: {note}")
-        
+
 with sens:
     st.info("Sensitivity comes in Phase 6.")
 with cf:
