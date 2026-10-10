@@ -267,8 +267,14 @@ with lend:
         st.error(f"{approval}: {note}")
 
 with sens:
-    if model != "Rental":
-        st.info(f"Sensitivity for {model} comes in Week 26.")
+    if model == "Flip":
+        st.info("Sensitivity charts don't apply to Flip deals. A flip turns on its "
+                "profit margin, so check the margin verdict and the max allowable "
+                "offer (MAO) in the Investor view.")
+    elif model == "BRRR":
+        st.info("The Rental sensitivity charts don't apply to BRRR. After the refi, "
+                "the loan is sized off the ARV, so the levers that matter are ARV, "
+                "refi LTV and the post-refi rate. A BRRR-specific tornado is planned.")
     else:
         g = two_way_irr(deal)
         t_irr = target / 100
