@@ -4,6 +4,7 @@ from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 from engine.verdict import approval_likelihood
 import plotly.graph_objects as go
 from engine.sensitivity import two_way_irr, tornado_irr
+from engine.assumptions import get_assumptions
 
 
 st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
@@ -124,6 +125,14 @@ with st.container(border=True):
                     monthly_utilities=utilities,
                     monthly_maint_security=maint,
                     target_margin=target / 100)
+    default_hoa = get_assumptions(state, property_type, model, scenario)["HOA Monthly"]
+    h = st.columns(8)
+    hoa_in = h[0].number_input(
+        "HOA / mo", value=None, min_value=0.0, step=25.0,
+        placeholder=f"default {money(default_hoa)}",
+        help="Leave blank to use the state and property-type default.")
+    if hoa_in is not None:
+        deal["hoa_override"] = hoa_in
 
 result = analyze_deal(**deal)
 verdict = result["verdict"]
