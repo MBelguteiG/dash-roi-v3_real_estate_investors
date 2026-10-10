@@ -21,7 +21,7 @@ from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_p
                          build_brrr_schedule, build_brrr_monthly_stream, brrr_irr,
                          years_held_post_refi, sale_price_at_exit,
                          brrr_selling_cost, brrr_net_sale_proceeds,
-                        brrr_selling_cost, brrr_net_sale_proceeds, is_all_cash_out)
+                        brrr_selling_cost, brrr_net_sale_proceeds, is_all_cash_out, rate_term_ltv)
 
 from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
                          total_holding_cost, selling_cost, total_project_cost,
@@ -118,7 +118,7 @@ def analyze_rental(state, property_type, scenario,
 
 def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
-                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate):
+                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out"):
     """
     Run the full BRRR analysis for one deal. Uses only the BRRR engine
     (brrr.py) - never retrofits Rental. Monthly stream + annualized IRR
@@ -139,6 +139,11 @@ def analyze_brrr(state, property_type, scenario,
     inflation = a["Inflation Annual"]
     appreciation = a["Appreciation Annual"]
     base_maint = base_rent * maint_rate
+
+    if refi_type not in ("Cash-Out", "Rate/Term"):
+        raise ValueError(f"Unknown refi type: {refi_type}")
+    if refi_type == "Rate/Term":
+        refi_ltv = rate_term_ltv(arv, refi_ltv, price, hm_ltv)
 
     # --- loans + cash (v2 method: the stream already carries HM interest) ---
     hm = hard_money_loan(price, hm_ltv)
@@ -200,6 +205,9 @@ def analyze_brrr(state, property_type, scenario,
         "cash_on_cash": coc,
         "dscr": dscr,
         "dscr_with_reserves": dscr_res,
+        "refi_type": refi_type,
+        "refi_loan": rl,
+        "refi_ltv_effective": refi_ltv,
         "required_rent": req_rent,
         "rent_cushion": cushion,
         "sale_price": sale,

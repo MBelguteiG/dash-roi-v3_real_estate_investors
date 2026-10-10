@@ -35,6 +35,15 @@ def cash_pulled_out(arv, refi_ltv, purchase_price, hm_ltv):
     """Gross cash from refi = refi loan - hard-money principal (v2: B23)."""
     return refi_loan(arv, refi_ltv) - hard_money_loan(purchase_price, hm_ltv)
 
+def rate_term_ltv(arv, refi_ltv, purchase_price, hm_ltv):
+    """
+    Rate/term refi: the new loan only pays off the hard-money principal
+    (no cash out), capped by the lender's max refi LTV. Returned as an
+    effective LTV on ARV so every downstream refi calculation is unchanged.
+    """
+    payoff = hard_money_loan(purchase_price, hm_ltv)
+    return min(refi_ltv, payoff / arv)
+
 
 def cash_invested(purchase_price, rehab, closing_cost, hm_ltv,
                   hm_loan, hm_interest, hm_points, holding_cost,
