@@ -33,7 +33,7 @@ from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
 
 def analyze_rental(state, property_type, scenario,
                  price, down_pct, annual_rate, rehab, base_rent,
-                 exit_year, target_irr, overrides=None):           
+                 exit_year, target_irr, overrides=None,hoa_override=None):           
 
     """
     Run the full Rental analysis for one deal.
@@ -58,6 +58,8 @@ def analyze_rental(state, property_type, scenario,
     selling_pct = a["SellingCost% Annual"]
     annual_insurance = a["Insurance Yearly"]
     hoa = a["HOA Monthly"]
+    if hoa_override is not None:
+        hoa = hoa_override
     rent_growth = a["RentGrowth Annual"]
     tax_growth = a["Tax Growth"]
     inflation = a["Inflation Annual"]
@@ -118,7 +120,7 @@ def analyze_rental(state, property_type, scenario,
 
 def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
-                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out"):
+                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None):
     """
     Run the full BRRR analysis for one deal. Uses only the BRRR engine
     (brrr.py) - never retrofits Rental. Monthly stream + annualized IRR
@@ -134,6 +136,8 @@ def analyze_brrr(state, property_type, scenario,
     selling_pct = a["SellingCost% Annual"]
     annual_insurance = a["Insurance Yearly"]
     hoa = a["HOA Monthly"]
+    if hoa_override is not None:
+        hoa = hoa_override
     rent_growth = a["RentGrowth Annual"]
     tax_growth = a["Tax Growth"]
     inflation = a["Inflation Annual"]
@@ -220,7 +224,7 @@ def analyze_brrr(state, property_type, scenario,
 
 def analyze_flip(state, property_type, scenario,
                  price, rehab, arv, hm_ltv, hm_rate, hold_months, points_pct,
-                 monthly_utilities, monthly_maint_security, target_margin):
+                 monthly_utilities, monthly_maint_security, target_margin,hoa_override=None):
     """
     Run the full Flip analysis for one deal. Uses only the Flip engine
     (flip.py) - single-exit model: no cash-flow stream, no DSCR, no IRR.
@@ -229,6 +233,8 @@ def analyze_flip(state, property_type, scenario,
     tax_rate = a["PropertyTaxRate Annual"]
     annual_insurance = a["Insurance Yearly"]
     monthly_hoa = a["HOA Monthly"]
+    if hoa_override is not None:
+        monthly_hoa = hoa_override
     closing_pct = a["Closing Cost Buying"]
     selling_pct = a["SellingCost% Annual"]
 
@@ -286,17 +292,20 @@ def analyze_deal(model, **inputs):
     if model not in ("Rental", "BRRR", "Flip"):
         raise ValueError(f"Unknown model: {model}")
     overrides = inputs.pop("overrides", None)
+    hoa_override = inputs.pop("hoa_override", None)
+    if hoa_override is not None and hoa_override < 0:
+        raise ValueError("HOA override cannot be negative")
     if overrides and model != "Rental":
         raise ValueError("Assumption overrides are Rental-only for now")
     validate_inputs(model, inputs)
 
 
     if model == "Rental":
-        return analyze_rental(**inputs, overrides=overrides)
+        return analyze_rental(**inputs, overrides=overrides,hoa_override=hoa_override)
     if model == "BRRR":
-        return analyze_brrr(**inputs)
+        return analyze_brrr(**inputs,hoa_override=hoa_override)
     if model == "Flip":
-        return analyze_flip(**inputs)
+        return analyze_flip(**inputs,hoa_override=hoa_override)
     raise ValueError(f"Unknown model: {model}")
 
 # --- Full Rental parity check against the v2 reference deal ---
