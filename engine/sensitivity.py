@@ -61,3 +61,32 @@ def tornado_irr(deal):
         rows.append({"variable": label, "low": irrs[0], "high": irrs[1]})
     rows.sort(key=lambda r: abs(r["high"] - r["low"]), reverse=True)
     return {"base": base, "rows": rows}
+
+# BRRR levers named in v2's sensitivity message box; swings are v3 choices
+BRRR_TORNADO_VARS = [
+    ("ARV", "arv", 0.10, "relative"),
+    ("Refi LTV", "refi_ltv", 0.05, "points"),
+    ("Post-refi rate", "post_refi_rate", 0.01, "points"),
+    ("Monthly rent", "base_rent", 0.10, "relative"),
+    ("Purchase price", "price", 0.10, "relative"),
+    ("Rehab cost", "rehab", 0.25, "relative"),
+]
+
+
+def brrr_tornado_irr(deal):
+    """
+    IRR at the low and high swing of each BRRR lever, sorted by swing
+    width. Rows where either swing makes the deal all-cash-out are
+    flagged, because their IRR is not comparable.
+    """
+    base = analyze_deal(**deal)
+    rows = []
+    for label, key, swing, how in BRRR_TORNADO_VARS:
+        runs = [analyze_deal(**{**deal, key: _shift(deal[key], swing, how, sign)})
+                for sign in (-1, 1)]
+        rows.append({"variable": label,
+                     "low": runs[0]["irr"], "high": runs[1]["irr"],
+                     "all_cash_out": runs[0]["all_cash_out"] or runs[1]["all_cash_out"]})
+    rows.sort(key=lambda r: abs(r["high"] - r["low"]), reverse=True)
+    return {"base": base["irr"], "base_all_cash_out": base["all_cash_out"],
+            "rows": rows}
