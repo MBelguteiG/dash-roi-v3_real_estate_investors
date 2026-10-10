@@ -43,3 +43,26 @@ def test_identical_when_cap_binds_below_payoff():
 def test_unknown_refi_type_rejected():
     with pytest.raises(ValueError):
         analyze_deal(**B01, refi_type="Cash-in")
+
+
+from engine.solvers import max_price_irr, max_price_all_cash_out
+
+RT_DEAL = {**B01, "refi_type": "Rate/Term"}
+
+
+def test_all_cash_out_refused_for_rate_term():
+    r = max_price_all_cash_out(RT_DEAL)
+    assert r["status"] == "REFUSED"
+    assert r["price"] is None
+
+
+def test_all_cash_out_unchanged_for_cash_out():
+    assert max_price_all_cash_out(B01)["price"] == pytest.approx(202409.64, abs=0.02)
+
+
+def test_irr_solver_rate_term():
+    r = max_price_irr(RT_DEAL)
+    assert r["status"] == "SOLVED"
+    assert r["price"] == pytest.approx(236540.70, abs=0.02)
+    at_price = analyze_deal(**{**RT_DEAL, "price": r["price"]})
+    assert at_price["irr"] == pytest.approx(0.10, abs=1e-6)

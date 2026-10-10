@@ -110,6 +110,9 @@ def max_price_all_cash_out(inputs):
     """
     if inputs["model"] != "BRRR":
         return _refused("All-cash-out applies to BRRR only")
+
+    if inputs.get("refi_type", "Cash-Out") == "Rate/Term":
+        return _refused("A rate/term refi returns no cash, so there is no all-cash-out price")
     a = get_assumptions(inputs["state"], inputs["property_type"], "BRRR",
                         inputs["scenario"])
     closing_pct = a["Closing Cost Buying"]
