@@ -134,7 +134,11 @@ with st.container(border=True):
     if hoa_in is not None:
         deal["hoa_override"] = hoa_in
 
-result = analyze_deal(**deal)
+try:
+    result = analyze_deal(**deal)
+except (ValueError, ZeroDivisionError) as e:
+    st.error(f"This deal can't be analysed: {e}. Check the inputs above.")
+    st.stop()
 verdict = result["verdict"]
 
 # Headline tiles
