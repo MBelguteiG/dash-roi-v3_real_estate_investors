@@ -11,7 +11,7 @@ from engine.guards import validate_inputs
 from engine.assumptions import get_assumptions
 from engine.projection import project
 from engine.amortization import annual_debt_service
-from engine.deal import build_stream, cash_on_cash
+from engine.deal import build_stream, build_cash_flow_table, cash_on_cash
 from engine.irr import irr
 from engine.verdict import dscr_by_year, min_dscr, required_rent, rental_verdict, verdict
 
@@ -82,6 +82,16 @@ def analyze_rental(state, property_type, scenario,
         rent_growth=rent_growth, tax_growth=tax_growth,
         inflation=inflation, appreciation=appreciation,selling_pct=selling_pct,
     )
+    table = build_cash_flow_table(
+        price=price, down_pct=down_pct, rehab=rehab, closing_pct=closing_pct,
+        annual_rate=annual_rate, exit_year=exit_year,
+        base_rent=base_rent, vacancy_rate=vacancy_rate, tax_rate=tax_rate,
+        base_annual_insurance=annual_insurance, base_hoa=hoa,
+        base_maint=base_maint, mgmt_rate=mgmt_rate, capex_rate=capex_rate,
+        rent_growth=rent_growth, tax_growth=tax_growth,
+        inflation=inflation, appreciation=appreciation, selling_pct=selling_pct,
+    )
+
     irr_value = irr(stream)
     coc = cash_on_cash(stream)
 
@@ -116,6 +126,7 @@ def analyze_rental(state, property_type, scenario,
         "noi_y1": noi_by_year[0],
         "annual_debt_service": debt,
         "dscr_with_reserves": dscr_res,
+        "cash_flow_table": table,
     }
 
 
