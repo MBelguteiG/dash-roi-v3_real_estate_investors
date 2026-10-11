@@ -92,6 +92,8 @@ def analyze_rental(state, property_type, scenario,
     noi_by_year = [y["noi_annual"] for y in years]
     dscrs = dscr_by_year(noi_by_year, debt)
     min_d = min_dscr(noi_by_year, debt)
+    capex_y1 = base_rent * 12 * capex_rate
+    dscr_res = post_refi_dscr_with_reserves(noi_by_year[0], capex_y1, loan, annual_rate)
 
     req_rent = required_rent(debt, tax_rate, price, annual_insurance, hoa,
                              vacancy_rate, maint_rate, mgmt_rate, capex_rate)
@@ -113,6 +115,7 @@ def analyze_rental(state, property_type, scenario,
         "ltv": loan / price,
         "noi_y1": noi_by_year[0],
         "annual_debt_service": debt,
+        "dscr_with_reserves": dscr_res,
     }
 
 

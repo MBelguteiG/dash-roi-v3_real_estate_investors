@@ -211,6 +211,14 @@ with inv:
             else:
                 check(f"Return check: IRR {result['irr']:.2%} vs {target:.2f}% target",
                       irr_ok)
+            res = result["dscr_with_reserves"]
+            msg = (f"Reserves check (not a lender test): DSCR {res:.2f} "
+                   "after setting aside CapEx reserves")
+            if res >= 1.0:
+                st.info(msg)
+            else:
+                st.warning(msg + ", so the rent doesn't cover the loan plus long-run repairs")
+
     with b:
         st.markdown("#### What would make it work")
         if model == "Flip":
