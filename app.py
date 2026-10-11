@@ -3,6 +3,7 @@ from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 from engine.verdict import approval_likelihood
 import plotly.graph_objects as go
+import pandas as pd
 from engine.sensitivity import two_way_irr, tornado_irr, brrr_tornado_irr
 from engine.assumptions import get_assumptions
 
@@ -388,4 +389,28 @@ with sens:
                    "appreciation ±1.5 pts.")
 
 with cf:
-    st.info("Cash flow table comes later.")                   
+    if model != "Rental":
+        st.info(f"The {model} cash flow table comes next.")
+    else:
+        rows = result["cash_flow_table"]
+        labels = {
+            "gross_rent": "Gross rent",
+            "effective_income": "Effective income (after vacancy)",
+            "operating_expenses": "Operating expenses",
+            "noi": "NOI",
+            "interest": "Interest",
+            "capex_reserve": "CapEx reserve",
+            "cash_flow": "Cash flow (used in IRR)",
+            "principal": "Principal paid (equity)",
+            "sale_proceeds": "Net sale proceeds",
+        }
+        table = pd.DataFrame(
+            {f"Year {r['year']}": [r[k] for k in labels] for r in rows},
+            index=list(labels.values()),
+        )
+        st.dataframe(table.style.format(money), use_container_width=True)
+        dscr_row = "  ·  ".join(f"Y{r['year']}: {r['dscr']:.2f}" for r in rows)
+        st.caption(f"DSCR by year: {dscr_row}")
+        st.caption("Cash flow follows v2: NOI minus interest and CapEx reserve. "
+                   "Principal is shown separately because it builds equity, "
+                   "which you get back at sale.")                 
