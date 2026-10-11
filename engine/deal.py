@@ -35,34 +35,57 @@ def net_sale_proceeds(price, appreciation, selling_pct, loan_balance, exit_year)
     selling_cost = sale_price * selling_pct
     return sale_price - selling_cost - loan_balance
 
+def build_cash_flow_table(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
+                          base_rent, vacancy_rate, tax_rate, base_annual_insurance,
+                          base_hoa, base_maint, mgmt_rate, capex_rate,
+                          rent_growth, tax_growth, inflation, appreciation, selling_pct):
+    """
+    Year-by-year Rental cash-flow rows. build_stream() is derived from this,
+    so the table and the IRR always use the same numbers.
+    """
+    from engine.amortization import annual_debt_service
+    loan = price - price * down_pct
+    debt = annual_debt_service(loan, annual_rate)
+    years = project(exit_year, base_rent, vacancy_rate, price, tax_rate,
+                    base_annual_insurance, base_hoa, base_maint, mgmt_rate,
+                    rent_growth, tax_growth, inflation)
+    rows = []
+    for y in years:
+        interest = annual_interest(loan, annual_rate, y["year"])
+        capex = y["rent"] * 12 * capex_rate
+        rows.append({
+            "year": y["year"],
+            "gross_rent": y["rent"] * 12,
+            "effective_income": y["receipts"] * 12,
+            "operating_expenses": y["disbursements"] * 12,
+            "noi": y["noi_annual"],
+            "interest": interest,
+            "principal": debt - interest,
+            "capex_reserve": capex,
+            "cash_flow": y["noi_annual"] - interest - capex,
+            "dscr": y["noi_annual"] / debt,
+            "sale_proceeds": 0.0,
+        })
+    balance = balance_at(loan, annual_rate, exit_year * 12)
+    rows[-1]["sale_proceeds"] = net_sale_proceeds(price, appreciation, selling_pct,
+                                                  balance, exit_year)
+    return rows
+
 
 def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
                  base_rent, vacancy_rate, tax_rate, base_annual_insurance,
                  base_hoa, base_maint, mgmt_rate, capex_rate,
                  rent_growth, tax_growth, inflation, appreciation,selling_pct):
     """Assemble the Year 0..N investor cash-flow stream for IRR."""
-    loan = price - price * down_pct
-
-    # Year 0: initial investment (negative outflow)
+    rows = build_cash_flow_table(
+        price, down_pct, rehab, closing_pct, annual_rate, exit_year,
+        base_rent, vacancy_rate, tax_rate, base_annual_insurance,
+        base_hoa, base_maint, mgmt_rate, capex_rate,
+        rent_growth, tax_growth, inflation, appreciation, selling_pct)
     stream = [-initial_investment(price, down_pct, rehab, closing_pct)]
-
-    # Years 1..N: investor cash flow = NOI - INTEREST (not full payment) - CapEx.
-    # v2 subtracts interest only; principal paydown is equity, recaptured at sale.
-    years = project(exit_year, base_rent, vacancy_rate, price, tax_rate,
-                    base_annual_insurance, base_hoa, base_maint, mgmt_rate,
-                    rent_growth, tax_growth, inflation)
-    for y in years:
-        interest = annual_interest(loan, annual_rate, y["year"])
-        capex = y["rent"] * 12 * capex_rate
-        cf = y["noi_annual"] - interest - capex
-        stream.append(cf)
-
-    # Final year: add net sale proceeds
-    balance = balance_at(loan, annual_rate, exit_year * 12)
-    net_sale = net_sale_proceeds(price, appreciation, selling_pct, balance, exit_year)
-    stream[-1] += net_sale
-
-    return stream
+    stream += [r["cash_flow"] for r in rows]
+    stream[-1] += rows[-1]["sale_proceeds"]
+    return stream 
 def cash_on_cash(stream):
     """
     Year-1 cash-on-cash = Year-1 cash flow / initial cash invested.
