@@ -408,7 +408,7 @@ with cf:
             {f"Year {r['year']}": [r[k] for k in labels] for r in rows},
             index=list(labels.values()),
         )
-        st.dataframe(table.style.format(money), use_container_width=True)
+        st.dataframe(table.style.format(money), width="stretch")
         dscr_row = "  ·  ".join(f"Y{r['year']}: {r['dscr']:.2f}" for r in rows)
         st.caption(f"DSCR by year: {dscr_row}")
         st.caption("Cash flow follows v2: NOI minus interest and CapEx reserve. "
