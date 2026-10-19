@@ -107,8 +107,9 @@ def analyze_rental(state, property_type, scenario,
 
     req_rent = required_rent(debt, tax_rate, price, annual_insurance, hoa,
                              vacancy_rate, maint_rate, mgmt_rate, capex_rate)
-
-
+    # same formula without the CapEx reserve: the rent for a lender DSCR of 1.20
+    req_rent_lender = required_rent(debt, tax_rate, price, annual_insurance, hoa,
+                                    vacancy_rate, maint_rate, mgmt_rate, 0.0)      
     cushion = base_rent - req_rent
     v = rental_verdict(irr_value, min_d, target_irr, rent_cushion=cushion)
     
@@ -119,6 +120,7 @@ def analyze_rental(state, property_type, scenario,
         "dscr_by_year": dscrs,
         "min_dscr": min_d,
         "required_rent": req_rent,
+        "required_rent_lender": req_rent_lender,
         "rent_cushion":  cushion,
         "verdict": v,
         "loan_amount": loan,
@@ -200,6 +202,8 @@ def analyze_brrr(state, property_type, scenario,
     refi_debt = annual_debt_service(rl, post_refi_rate)
     req_rent = required_rent(refi_debt, tax_rate, price, annual_insurance, hoa,
                              vacancy_rate, maint_rate, mgmt_rate, capex_rate)
+    req_rent_lender = required_rent(refi_debt, tax_rate, price, annual_insurance, hoa,
+                                    vacancy_rate, maint_rate, mgmt_rate, 0.0)
     cushion = base_rent - req_rent
 
     # --- exit ---
@@ -227,6 +231,7 @@ def analyze_brrr(state, property_type, scenario,
         "refi_loan": rl,
         "refi_ltv_effective": refi_ltv,
         "required_rent": req_rent,
+        "required_rent_lender": req_rent_lender,
         "rent_cushion": cushion,
         "sale_price": sale,
         "remaining_balance": balance,
