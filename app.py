@@ -235,7 +235,8 @@ with inv:
                 line = f"Max offer (MAO): **{mao}**; the price is already {money(-over)} under it"
             st.write(line.replace("$", "\\$"))
         else:
-            st.write(f"Rent needed for 1.20 DSCR: **{money2(result['required_rent'])}**")
+            st.write(f"Rent needed for 1.20 DSCR (lender): **{money2(result['required_rent_lender'])}**")
+            st.write(f"Rent needed for 1.20 DSCR after CapEx reserves: **{money2(result['required_rent'])}**")
             if irr_solve["status"] == "SOLVED":
                 st.write(f"Max price at {target:.2f}% IRR: **{money(irr_solve['price'])}**")
             if model == "Rental" and dscr_solve["status"] == "SOLVED":
