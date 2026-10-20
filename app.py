@@ -391,7 +391,25 @@ with sens:
 
 with cf:
     if model == "Flip":
-        st.info("The Flip cost breakdown comes next.")
+        items = [
+            ("Purchase price", price),
+            ("Rehab", rehab),
+            ("Hard-money interest", result["hm_interest"]),
+            ("Hard-money points", result["hm_points"]),
+            ("Buying closing costs", result["closing_costs"]),
+            (f"Holding costs ({hold} months)", result["total_holding"]),
+            ("Selling costs", result["selling_cost"]),
+            ("Total project cost", result["total_project_cost"]),
+            ("Sale price (ARV)", arv),
+            ("Net profit", result["net_profit"]),
+            ("Cash invested", result["cash_invested"]),
+        ]
+        table = pd.DataFrame({"Amount": [v for _, v in items]},
+                             index=[k for k, _ in items])
+        st.dataframe(table.style.format(money), width="content", height=422)
+        st.caption("A flip is one buy and one sale, so this is a cost breakdown "
+                   "rather than a yearly table. Net profit = sale price minus "
+                   "total project cost.")
     elif model == "BRRR":
         rows = result["cash_flow_table"]
         labels = {
