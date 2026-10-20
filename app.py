@@ -390,8 +390,27 @@ with sens:
                    "appreciation ±1.5 pts.")
 
 with cf:
-    if model != "Rental":
-        st.info(f"The {model} cash flow table comes next.")
+    if model == "Flip":
+        st.info("The Flip cost breakdown comes next.")
+    elif model == "BRRR":
+        rows = result["cash_flow_table"]
+        labels = {
+            "noi": "NOI",
+            "debt_service": "Debt service",
+            "capex_reserve": "CapEx reserve",
+            "cash_flow": "Cash flow",
+            "cash_out_at_refi": "Cash pulled out at refi",
+            "sale_proceeds": "Net sale proceeds",
+        }
+        table = pd.DataFrame(
+            {f"Year {r['year']}": [r[k] for k in labels] for r in rows},
+            index=list(labels.values()),
+        )
+        st.dataframe(table.style.format(money), width="stretch")
+        st.caption(f"Months 1 to {refi_month} pay hard-money interest only; the refi "
+                   "loan's payments start after that. Cash flow follows v2: "
+                   "NOI minus debt service and CapEx reserve. These are the monthly "
+                   "figures behind the IRR, added up by year.")
     else:
         rows = result["cash_flow_table"]
         labels = {
