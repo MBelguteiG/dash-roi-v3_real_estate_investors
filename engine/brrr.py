@@ -217,7 +217,7 @@ def build_brrr_monthly_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, 
                               post_refi_rate, arv, appreciation_rate, exit_year, selling_pct,
                               cash_invested_amt, base_rent, vacancy_rate, tax_rate,
                               annual_insurance, hoa, base_maint, mgmt_rate, capex_rate,
-                              rent_growth, tax_growth, inflation):
+                              rent_growth, tax_growth, inflation,return_rows=False):
     """
     Monthly Month 0..exit stream (v2 'BRRR Amortization' col H):
     month 0 = -cash invested; each month = (NOI_year - CapEx)/12 - payment,
@@ -241,16 +241,41 @@ def build_brrr_monthly_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, 
     net_sale = brrr_net_sale_proceeds(sale_price, sell_cost, sched[-1]["balance"])
 
     stream = [-cash_invested_amt]
+    rows = []
     for row in sched:
         m = row["month"]
         year = (m - 1) // 12 + 1
         cf = (noi_by_year[year] - capex_by_year[year]) / 12 - row["payment"]
+        rows.append({
+            "month": m,
+            "year": year,
+            "noi": noi_by_year[year] / 12,
+            "capex_reserve": capex_by_year[year] / 12,
+            "debt_service": row["payment"],
+            "cash_flow": cf,
+            "cash_out_at_refi": pulled if m == refi_month else 0.0,
+            "sale_proceeds": net_sale if m == exit_month else 0.0,
+        })
         if m == refi_month:
             cf += pulled
         if m == exit_month:
             cf += net_sale
         stream.append(cf)
+    if return_rows:
+        return stream, rows
     return stream
+
+
+def brrr_yearly_table(rows):
+    """Sum the monthly BRRR rows into one row per year for the cash flow table."""
+    keys = ("noi", "capex_reserve", "debt_service", "cash_flow",
+            "cash_out_at_refi", "sale_proceeds")
+    years = {}
+    for r in rows:
+        y = years.setdefault(r["year"], {"year": r["year"], **{k: 0.0 for k in keys}})
+        for k in keys:
+            y[k] += r[k]
+    return [years[y] for y in sorted(years)]
 
 
 def brrr_irr(monthly_stream):

@@ -21,7 +21,7 @@ from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_p
                          build_brrr_schedule, build_brrr_monthly_stream, brrr_irr,
                          years_held_post_refi, sale_price_at_exit,
                          brrr_selling_cost, brrr_net_sale_proceeds,
-                        brrr_selling_cost, brrr_net_sale_proceeds, is_all_cash_out, rate_term_ltv)
+                        brrr_selling_cost, brrr_net_sale_proceeds, is_all_cash_out, rate_term_ltv,brrr_yearly_table)
 
 from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
                          total_holding_cost, selling_cost, total_project_cost,
@@ -175,7 +175,7 @@ def analyze_brrr(state, property_type, scenario,
     left = cash_left_in_deal(ci, pulled)
 
     # --- monthly stream + IRR ---
-    monthly = build_brrr_monthly_stream(
+    monthly,mrows = build_brrr_monthly_stream(
         purchase_price=price, rehab=rehab, hm_ltv=hm_ltv, hm_rate=hm_rate,
         refi_ltv=refi_ltv, refi_month=refi_month, post_refi_rate=post_refi_rate,
         arv=arv, appreciation_rate=appreciation, exit_year=exit_year,
@@ -183,7 +183,7 @@ def analyze_brrr(state, property_type, scenario,
         vacancy_rate=vacancy_rate, tax_rate=tax_rate,
         annual_insurance=annual_insurance, hoa=hoa, base_maint=base_maint,
         mgmt_rate=mgmt_rate, capex_rate=capex_rate, rent_growth=rent_growth,
-        tax_growth=tax_growth, inflation=inflation,
+        tax_growth=tax_growth, inflation=inflation,return_rows=True,
     )
     irr_value = brrr_irr(monthly)
     post_refi_cf = sum(monthly[refi_month + 1: refi_month + 13])
@@ -239,6 +239,7 @@ def analyze_brrr(state, property_type, scenario,
         "equity_at_exit": sale - balance,
         "all_cash_out": is_all_cash_out(irr_value, left),
         "verdict": v,
+        "cash_flow_table": brrr_yearly_table(mrows),
     }
 
 def analyze_flip(state, property_type, scenario,
