@@ -65,7 +65,7 @@ with st.expander("Quick start"):
         "3. **Read the verdict.** The tiles give the headline numbers; "
         "*Investor view* explains the verdict and what would fix it; "
         "*Lender view* shows how a lender sizes the loan and whether it is likely to fund.\n"
-        "4. **Walk-away price** is the most you can pay and still meet your target "
+        "4. **Most you should pay** is the most you can pay and still meet your target "
         "(for Flip, the max allowable offer)."
     )
 
@@ -160,8 +160,8 @@ if model == "Rental":
     dscr_value = result["min_dscr"]
     irr_ok = result["irr"] >= target / 100
     tile(t[1], "Yearly return", f"{result['irr']:.2%}", f"your goal {target:.2f}%")
-    tile(t[2], "Min DSCR", f"{dscr_value:.2f}", "lender minimum 1.20")
-    tile(t[3], "Cash-on-cash", f"{result['cash_on_cash']:.2%}", "year 1")
+    tile(t[2], "Rent covers loan", f"{dscr_value:.2f}x", "bank wants 1.20x+")
+    tile(t[3], "First-year cash return", f"{result['cash_on_cash']:.2%}", "of the cash you put in")
 elif model == "BRRR":
     irr_solve = max_price_irr(deal)
     aco = max_price_all_cash_out(deal)
@@ -173,7 +173,7 @@ elif model == "BRRR":
     else:
         tile(t[1], "Yearly return", f"{result['irr']:.2%}", f"your goal {target:.2f}%")
         irr_ok = result["irr"] >= target / 100
-    tile(t[2], "Post-refi DSCR", f"{dscr_value:.2f}", "lender minimum 1.20")
+        tile(t[2], "Rent covers loan", f"{dscr_value:.2f}x", "bank wants 1.20x+")
     if result["cash_left"] < 0:
         tile(t[3], "Cash left in deal", "$0",
              f"refi returns {money(-result['cash_left'])} more than invested")
@@ -182,22 +182,22 @@ elif model == "BRRR":
              f"of {money(result['cash_invested'])} invested")
 else:
     walk_away = result["max_offer_mao"]
-    tile(t[1], "Annualized ROI", f"{result['annualized_roi']:.2%}",
-         f"{hold}-month hold")
-    tile(t[2], "Profit margin", f"{result['profit_margin']:.2%}",
-         f"target {target:.2f}%")
+    tile(t[1], "Yearly return", f"{result['annualized_roi']:.2%}",
+         f"{hold}-month flip, as a yearly rate")
+    tile(t[2], "Profit as % of sale price", f"{result['profit_margin']:.2%}",
+         f"your goal {target:.2f}%")
     tile(t[3], "Net profit", money(result["net_profit"]),
          f"holding {money(result['monthly_holding'])} / mo")
 
 if walk_away:
     cap = f"vs {money(price)} asking"
     if model == "BRRR" and dscr_value < 1.20:
-        cap = "IRR target only; price can't fix DSCR"
-    tile(t[4], "Walk-away price", money(walk_away), cap)
+        cap = "based on your goal; price can't fix the bank test"
+    tile(t[4], "Most you should pay", money(walk_away), cap)
 elif model == "BRRR" and result["all_cash_out"]:
-    tile(t[4], "Walk-away price", "n/a", "IRR solver skips all-cash-out deals")
+    tile(t[4], "Most you should pay", "n/a", "you get all your cash back at refi")
 else:
-    tile(t[4], "Walk-away price", "none", "no price meets the target")
+    tile(t[4], "Most you should pay", "none", "no price meets the target")
 
 if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
     with t[1].popover("What does this mean?"):
@@ -211,6 +211,35 @@ if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
             f"or {money(result['real_total_profit'])} in today's dollars."
         )
         st.markdown(text.replace("$", "\\$"))
+
+if model in ("Rental", "BRRR"):
+    when = "in the worst year" if model == "Rental" else "after the refi"
+    with t[2].popover("What does this mean?"):
+        st.markdown(
+            f"After vacancy and expenses, the rent covers your loan payment "
+            f"**{dscr_value:.2f} times** {when}. Banks want at least **1.20x**, so "
+            "there's a cushion if a tenant leaves or a repair comes up. Below 1.00x, "
+            "you pay part of the loan from your own pocket.")
+
+if model == "Rental":
+    with t[3].popover("What does this mean?"):
+        coc = result["cash_on_cash"]
+        if coc >= 0:
+            msg = (f"In year 1 you keep **{coc:.2%}** of the cash you put in, after the "
+                   "loan, expenses and money set aside for big repairs.")
+        else:
+            msg = (f"In year 1 the rent doesn't cover everything: you add about "
+                   f"**{-coc:.2%}** of the cash you put in, to pay the loan, expenses "
+                   "and money set aside for big repairs.")
+        st.markdown(msg)
+if walk_away:
+    goal = (f"hits your {target:.2f}% goal and passes the bank test"
+            if model == "Rental" else
+            f"still hits your {target:.2f}% goal" if model == "BRRR" else
+            "still leaves your target profit after rehab, loan and selling costs")
+    with t[4].popover("What does this mean?"):
+        st.markdown((f"**{money(walk_away)}** is the highest price that {goal}. "
+                     "Pay more and the numbers stop working.").replace("$", "\\$"))
 
 if model == "Rental" and result.get("points_cost", 0) > 0:
     be = int(-(-result["breakeven_months"] // 1))   # round up
@@ -239,26 +268,26 @@ with inv:
         st.markdown("#### Why this verdict")
         if model == "Flip":
             margin = result["profit_margin"]
-            check(f"Profit check: net profit {money(result['net_profit'])}",
+            check(f"Profit test: {money(result['net_profit'])} after all costs",
                   result["net_profit"] > 0)
-            check(f"Margin floor: {margin:.2%} vs 10.00% minimum", margin >= 0.10)
-            check(f"Margin target: {margin:.2%} vs {target:.2f}% target",
+            check(f"Minimum profit test: {margin:.2%} of the sale price. Needs at least 10%.", margin >= 0.10)
+            check(f"Profit goal: {margin:.2%} of the sale price. Your goal is {target:.2f}%.",
                   margin >= target / 100)
         else:
-            check(f"Debt check: DSCR {dscr_value:.2f} vs 1.20 minimum",
+            check(f"Bank test: rent covers the loan {dscr_value:.2f}x. The bank wants 1.20x.",
                   dscr_value >= 1.20)
             if model == "BRRR" and result["all_cash_out"]:
-                check("Return check: the refi returns all the cash invested", True)
+                check("Return test: the refi gives back all the cash you put in", True)
             else:
-                check(f"Return check: IRR {result['irr']:.2%} vs {target:.2f}% target",
+                check(f"Return test: {result['irr']:.2%} a year. Your goal is {target:.2f}%.",
                       irr_ok)
             res = result["dscr_with_reserves"]
-            msg = (f"Reserves check (not a lender test): DSCR {res:.2f} "
-                   "after setting aside CapEx reserves")
+            msg = (f"Repairs test (yours, not the bank's): after saving for big repairs, "
+                   f"rent covers the loan {res:.2f}x")
             if res >= 1.0:
                 st.info(msg)
             else:
-                st.warning(msg + ", so the rent doesn't cover the loan plus long-run repairs")
+                st.warning(msg + ". Below 1.00x, you'd add your own money for big repairs.")
 
     with b:
         st.markdown("#### What would make it work")
@@ -266,19 +295,19 @@ with inv:
             over = result["over_under_mao"]
             mao = money(result["max_offer_mao"])
             if over > 0:
-                line = f"Max offer (MAO): **{mao}**, {money(over)} below the asking price"
+                line = f"Most you should offer: **{mao}**, {money(over)} below the asking price"
             else:
-                line = f"Max offer (MAO): **{mao}**; the price is already {money(-over)} under it"
+                line = f"Most you should offer: **{mao}**. The asking price is already {money(-over)} under it"
             st.write(line.replace("$", "\\$"))
         else:
-            st.write(f"Rent needed for 1.20 DSCR (lender): **{money2(result['required_rent_lender'])}**")
-            st.write(f"Rent needed for 1.20 DSCR after CapEx reserves: **{money2(result['required_rent'])}**")
+            st.write(f"Rent the bank needs to see: **{money2(result['required_rent_lender'])}**")
+            st.write(f"Rent to also cover big repairs: **{money2(result['required_rent'])}**")
             if irr_solve["status"] == "SOLVED":
-                st.write(f"Max price at {target:.2f}% IRR: **{money(irr_solve['price'])}**")
+                st.write(f"Most you can pay to hit your {target:.2f}% goal: **{money(irr_solve['price'])}**")
             if model == "Rental" and dscr_solve["status"] == "SOLVED":
-                st.write(f"Max price at 1.20 DSCR: **{money(dscr_solve['price'])}**")
+                st.write(f"Most you can pay to pass the bank test: **{money(dscr_solve['price'])}**")
             if model == "BRRR" and aco["status"] == "SOLVED":
-                st.write(f"Price for all cash out at refi: **{money(aco['price'])}**")
+                st.write(f"Price where the refi gives back all your cash: **{money(aco['price'])}**")
 
 with lend:
     if model == "Rental":
@@ -289,7 +318,7 @@ with lend:
         tile(l[1], "NOI, year 1", money(result["noi_y1"]), "after vacancy and expenses")
         tile(l[2], "Debt service / yr", money(result["annual_debt_service"]),
              f"{rate:.3f}% fixed, 30 years")
-        tile(l[3], "Min DSCR", f"{result['min_dscr']:.2f}", "1.20 minimum, 1.25 for strong")
+        tile(l[3], "Rent covers loan", f"{result['min_dscr']:.2f}", "1.20 minimum, 1.25 for strong")
         note = (f"DSCR {result['min_dscr']:.2f} at {result['ltv']:.0%} LTV. Strong needs "
                 "DSCR 1.25 and LTV 80% or less; conditional needs DSCR 1.20.")
     elif model == "BRRR":
