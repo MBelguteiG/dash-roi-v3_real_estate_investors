@@ -33,7 +33,8 @@ from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
 
 def analyze_rental(state, property_type, scenario,
                  price, down_pct, annual_rate, rehab, base_rent,
-                 exit_year, target_irr, overrides=None,hoa_override=None):           
+                 exit_year, target_irr, overrides=None,hoa_override=None,
+                 points=0.0, point_rate_cut=0.0025):           
 
     """
     Run the full Rental analysis for one deal.
@@ -65,8 +66,17 @@ def analyze_rental(state, property_type, scenario,
     inflation = a["Inflation Annual"]
     appreciation = a["Appreciation Annual"]
 
+    
     loan = price - price * down_pct
+    if points < 0:
+        raise ValueError("Points cannot be negative")
+    base_debt = annual_debt_service(loan, annual_rate)
+    points_cost = loan * points / 100
+    annual_rate = annual_rate - points * point_rate_cut
+    if annual_rate <= 0:
+        raise ValueError("Too many points: the rate would drop to zero")
     debt = annual_debt_service(loan, annual_rate)
+    monthly_saving = (base_debt - debt) / 12
     
 
     # base Year-1 monthly expense dollars for the stream
@@ -92,6 +102,9 @@ def analyze_rental(state, property_type, scenario,
         inflation=inflation, appreciation=appreciation, selling_pct=selling_pct,
     )
 
+    stream[0] -= points_cost   # points are paid up front, with the down payment
+
+    
     irr_value = irr(stream)
     real_stream = deflate(stream, inflation)
     real_irr = irr(real_stream)
@@ -135,6 +148,10 @@ def analyze_rental(state, property_type, scenario,
         "real_irr": real_irr,
         "real_total_profit": sum(real_stream),
         "inflation": inflation,
+        "points_cost": points_cost,
+        "rate_used": annual_rate,
+        "monthly_saving": monthly_saving,
+        "breakeven_months": points_cost / monthly_saving if monthly_saving > 0 else None,
     }
 
 
