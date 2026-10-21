@@ -134,6 +134,12 @@ with st.container(border=True):
         help="Leave blank to use the state and property-type default.")
     if hoa_in is not None:
         deal["hoa_override"] = hoa_in
+    if model == "Rental":
+        buy_pts = h[1].number_input(
+            "Points to lower rate", min_value=0.0, max_value=4.0,
+            value=0.0, step=0.5,
+            help="Each point costs 1% of the loan and lowers your rate by about 0.25%.")
+        deal["points"] = buy_pts
 
 try:
     result = analyze_deal(**deal)
@@ -205,6 +211,22 @@ if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
             f"or {money(result['real_total_profit'])} in today's dollars."
         )
         st.markdown(text.replace("$", "\\$"))
+
+if model == "Rental" and result.get("points_cost", 0) > 0:
+    be = int(-(-result["breakeven_months"] // 1))   # round up
+    hold_months = exit_year * 12
+    text = (
+        f"Paying **{money(result['points_cost'])}** lowers your rate from "
+        f"{deal['annual_rate']:.2%} to **{result['rate_used']:.2%}** and saves "
+        f"**{money(result['monthly_saving'])} a month**. The monthly savings pay it "
+        f"back in **{be} months** (you plan to hold {hold_months})."
+    ).replace("$", "\\$")
+    if be <= hold_months:
+        st.success(text + " Worth it.")
+    else:
+        st.warning(text + " The monthly savings alone won't repay it before you sell. "
+                   "A lower rate also pays down more of your loan, so check your "
+                   "Yearly return above to see the full effect.")
 
 
 # Tabs
