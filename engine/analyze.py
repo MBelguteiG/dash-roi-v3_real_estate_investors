@@ -12,7 +12,7 @@ from engine.assumptions import get_assumptions
 from engine.projection import project
 from engine.amortization import annual_debt_service
 from engine.deal import build_stream, build_cash_flow_table, cash_on_cash
-from engine.irr import irr
+from engine.irr import irr, deflate
 from engine.verdict import dscr_by_year, min_dscr, required_rent, rental_verdict, verdict
 
 from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_pulled_out,
@@ -93,6 +93,8 @@ def analyze_rental(state, property_type, scenario,
     )
 
     irr_value = irr(stream)
+    real_stream = deflate(stream, inflation)
+    real_irr = irr(real_stream)
     coc = cash_on_cash(stream)
 
     # --- DSCR + verdict ---
@@ -129,6 +131,10 @@ def analyze_rental(state, property_type, scenario,
         "annual_debt_service": debt,
         "dscr_with_reserves": dscr_res,
         "cash_flow_table": table,
+        "total_profit": sum(stream),
+        "real_irr": real_irr,
+        "real_total_profit": sum(real_stream),
+        "inflation": inflation,
     }
 
 
@@ -186,6 +192,8 @@ def analyze_brrr(state, property_type, scenario,
         tax_growth=tax_growth, inflation=inflation,return_rows=True,
     )
     irr_value = brrr_irr(monthly)
+    real_monthly = deflate(monthly, inflation, periods_per_year=12)
+    real_irr = brrr_irr(real_monthly)
     post_refi_cf = sum(monthly[refi_month + 1: refi_month + 13])
     coc = post_refi_cf / left if left > 0 else None   # all cash out: no denominator
 
@@ -240,6 +248,10 @@ def analyze_brrr(state, property_type, scenario,
         "all_cash_out": is_all_cash_out(irr_value, left),
         "verdict": v,
         "cash_flow_table": brrr_yearly_table(mrows),
+        "total_profit": sum(monthly),
+        "real_irr": real_irr,
+        "real_total_profit": sum(real_monthly),
+        "inflation": inflation,
     }
 
 def analyze_flip(state, property_type, scenario,

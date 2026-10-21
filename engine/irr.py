@@ -58,3 +58,13 @@ if __name__ == "__main__":
     result = irr(stream)
     print(f"IRR: {result * 100:.2f}%")
     print("v2 target: -5.14%")
+
+
+def deflate(stream, inflation, periods_per_year=1):
+    """
+    Real (today's-dollar) cash flows: each flow divided by
+    (1 + inflation) ** years since time 0. Matches v2 Return Analysis col C.
+    periods_per_year=12 for BRRR's monthly stream.
+    """
+    return [cf / (1 + inflation) ** (t / periods_per_year)
+            for t, cf in enumerate(stream)]
