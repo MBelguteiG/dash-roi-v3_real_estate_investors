@@ -153,7 +153,7 @@ if model == "Rental":
     walk_away = min(solved) if solved else None
     dscr_value = result["min_dscr"]
     irr_ok = result["irr"] >= target / 100
-    tile(t[1], "IRR", f"{result['irr']:.2%}", f"target {target:.2f}%")
+    tile(t[1], "Yearly return", f"{result['irr']:.2%}", f"your goal {target:.2f}%")
     tile(t[2], "Min DSCR", f"{dscr_value:.2f}", "lender minimum 1.20")
     tile(t[3], "Cash-on-cash", f"{result['cash_on_cash']:.2%}", "year 1")
 elif model == "BRRR":
@@ -162,10 +162,10 @@ elif model == "BRRR":
     walk_away = irr_solve["price"] if irr_solve["status"] == "SOLVED" else None
     dscr_value = result["dscr"]
     if result["all_cash_out"]:
-        tile(t[1], "IRR", "All cash out", "no cash left in the deal")
+        tile(t[1], "Yearly return", "All cash out", "no cash left in the deal")
         irr_ok = True
     else:
-        tile(t[1], "IRR", f"{result['irr']:.2%}", f"target {target:.2f}%")
+        tile(t[1], "Yearly return", f"{result['irr']:.2%}", f"your goal {target:.2f}%")
         irr_ok = result["irr"] >= target / 100
     tile(t[2], "Post-refi DSCR", f"{dscr_value:.2f}", "lender minimum 1.20")
     if result["cash_left"] < 0:
@@ -192,6 +192,20 @@ elif model == "BRRR" and result["all_cash_out"]:
     tile(t[4], "Walk-away price", "n/a", "IRR solver skips all-cash-out deals")
 else:
     tile(t[4], "Walk-away price", "none", "no price meets the target")
+
+if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
+    with t[1].popover("What does this mean?"):
+        text = (
+            f"**{result['irr']:.2%} a year** is your average yearly return "
+            "on the cash you put in.\n\n"
+            f"**After inflation: {result['real_irr']:.2%} a year.** Prices rise about "
+            f"{result['inflation']:.1%} a year, so future dollars buy less. This is "
+            "what your return is worth in today's money.\n\n"
+            f"**Total profit over {exit_year} years:** {money(result['total_profit'])}, "
+            f"or {money(result['real_total_profit'])} in today's dollars."
+        )
+        st.markdown(text.replace("$", "\\$"))
+
 
 # Tabs
 inv, lend, sens, cf = st.tabs(
