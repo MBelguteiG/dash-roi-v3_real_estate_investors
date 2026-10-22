@@ -105,7 +105,7 @@ with st.container(border=True):
             help="When you plan to sell.")
         target = c[7].number_input("Return goal %", value=10.0, step=0.5,
             help="The yearly return you want on the cash you put in.")
-        d = st.columns(8)
+        d = st.columns([1, 1, 1, 1, 1, 1, 2])
         hm_ltv = d[0].number_input("Short-term loan %", value=90.0, step=1.0,
             help="The short-term (hard money) loan as a % of the price.")
         hm_rate = d[1].number_input("Short-term rate %", value=10.5, step=0.25,
@@ -137,7 +137,7 @@ with st.container(border=True):
             help="From buying to selling.")
         target = c[6].number_input("Profit goal %", value=15.0, step=0.5,
             help="The profit you want, as a % of the sale price.")
-        d = st.columns(8)
+        d = st.columns([1, 1, 1, 1, 1, 3])
         hm_ltv = d[0].number_input("Short-term loan %", value=90.0, step=1.0,
             help="The short-term (hard money) loan as a % of the price.")
         hm_rate = d[1].number_input("Short-term rate %", value=10.5, step=0.25,
@@ -156,7 +156,7 @@ with st.container(border=True):
                     monthly_maint_security=maint,
                     target_margin=target / 100)
     default_hoa = get_assumptions(state, property_type, model, scenario)["HOA Monthly"]
-    h = st.columns(8)
+    h = st.columns([1, 1, 6])
     hoa_in = h[0].number_input(
         "HOA / mo", value=None, min_value=0.0, step=25.0,
         placeholder=f"default {money(default_hoa)}",
