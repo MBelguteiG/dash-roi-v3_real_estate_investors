@@ -428,7 +428,7 @@ with sens:
                 ))
             fig3.add_vline(x=base_irr, line_dash="dot", line_color="#4A5568")
             fig3.update_layout(
-                title=f"What moves your yearly return most (dotted line = your deal, {base_irr:.2%})",
+                title=f"What moves your yearly return most<br><sup>Dotted line = your deal, {base_irr:.2%}</sup>",
                 barmode="overlay", height=360,
                 xaxis={"title": "Yearly return", "tickformat": ".1%"},
                 yaxis={"type": "category", "autorange": "reversed"},
@@ -487,7 +487,7 @@ with sens:
             ))
         fig2.add_vline(x=base_irr, line_dash="dot", line_color="#4A5568")
         fig2.update_layout(
-            title=f"What moves your yearly return most (dotted line = your deal, {base_irr:.2%})",
+            title=f"What moves your yearly return most<br><sup>Dotted line = your deal, {base_irr:.2%}</sup>",
             barmode="overlay", height=380,
             xaxis={"title": "Yearly return", "tickformat": ".1%"},
             yaxis={"type": "category", "autorange": "reversed"},
