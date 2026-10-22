@@ -76,30 +76,49 @@ with st.container(border=True):
     state = c[0].selectbox("State", ["Illinois", "California"])
     property_type = c[1].selectbox("Type", ["SFH", "Condo", "Townhouse", "Duplex"])
     if model == "Rental":
-        price = c[2].number_input("Price", value=340000, step=5000)
-        down_pct = c[3].number_input("Down %", value=25.0, step=1.0)
-        rate = c[4].number_input("Rate %", value=6.75, step=0.125)
-        rent = c[5].number_input("Rent / mo", value=2300, step=50)
-        exit_year = c[6].number_input("Exit year", value=5, min_value=1, step=1)
-        target = c[7].number_input("Target IRR %", value=8.0, step=0.5)
+        price = c[2].number_input("Price", value=340000, step=5000,
+            help="What you pay for the property.")
+        down_pct = c[3].number_input("Down payment %", value=25.0, step=1.0,
+            help="Cash you put down, as a % of the price. The rest is the loan.")
+        rate = c[4].number_input("Loan rate %", value=6.75, step=0.125,
+            help="Yearly interest rate on the loan, before any points.")
+        rent = c[5].number_input("Rent / mo", value=2300, step=50,
+            help="Monthly rent you expect to collect.")
+        exit_year = c[6].number_input("Years you'll own it", value=5, min_value=1, step=1,
+            help="When you plan to sell.")
+        target = c[7].number_input("Return goal %", value=8.0, step=0.5,
+            help="The yearly return you want on the cash you put in.")
         deal = dict(model="Rental", state=state, property_type=property_type,
                     scenario=scenario, price=price, down_pct=down_pct / 100,
                     annual_rate=rate / 100, rehab=0, base_rent=rent,
                     exit_year=exit_year, target_irr=target / 100)
     elif model == "BRRR":
-        price = c[2].number_input("Price", value=250000, step=5000)
-        rehab = c[3].number_input("Rehab", value=45000, step=1000)
-        arv = c[4].number_input("ARV", value=340000, step=5000)
-        rent = c[5].number_input("Rent / mo", value=2400, step=50)
-        exit_year = c[6].number_input("Exit year", value=5, min_value=1, step=1)
-        target = c[7].number_input("Target IRR %", value=10.0, step=0.5)
+        price = c[2].number_input("Price", value=250000, step=5000,
+            help="What you pay for the property before repairs.")
+        rehab = c[3].number_input("Repair budget", value=45000, step=1000,
+            help="What you expect to spend fixing it up.")
+        arv = c[4].number_input("Value after repairs", value=340000, step=5000,
+            help="What it should be worth once fixed up (ARV).")
+        rent = c[5].number_input("Rent / mo", value=2400, step=50,
+            help="Monthly rent once it's fixed up and rented.")
+        exit_year = c[6].number_input("Years you'll own it", value=5, min_value=1, step=1,
+            help="When you plan to sell.")
+        target = c[7].number_input("Return goal %", value=10.0, step=0.5,
+            help="The yearly return you want on the cash you put in.")
         d = st.columns(8)
-        hm_ltv = d[0].number_input("HM LTV %", value=90.0, step=1.0)
-        hm_rate = d[1].number_input("HM rate %", value=10.5, step=0.25)
-        refi_month = d[2].number_input("Refi month", value=6, min_value=1, step=1)
-        refi_ltv = d[3].number_input("Refi LTV %", value=75.0, step=1.0)
-        post_rate = d[4].number_input("Refi rate %", value=7.25, step=0.125)
-        refi_type = d[5].selectbox("Refi type", ["Cash-Out", "Rate/Term"])
+        hm_ltv = d[0].number_input("Short-term loan %", value=90.0, step=1.0,
+            help="The short-term (hard money) loan as a % of the price.")
+        hm_rate = d[1].number_input("Short-term rate %", value=10.5, step=0.25,
+            help="Yearly interest on the short-term loan. You pay interest only.")
+        refi_month = d[2].number_input("Months to refinance", value=6, min_value=1, step=1,
+            help="When you swap the short-term loan for a regular 30-year loan.")
+        refi_ltv = d[3].number_input("New loan % of value", value=75.0, step=1.0,
+            help="The new 30-year loan as a % of the value after repairs.")
+        post_rate = d[4].number_input("New loan rate %", value=7.25, step=0.125,
+            help="Yearly interest rate on the new 30-year loan.")
+        refi_type = d[5].selectbox("Refinance type", ["Cash-Out", "Rate/Term"],
+            help="Cash-Out: borrow the full % and take cash back out. "
+                 "Rate/Term: borrow only enough to pay off the short-term loan.")
         deal = dict(model="BRRR", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab,
                     base_rent=rent, exit_year=exit_year,
@@ -108,17 +127,27 @@ with st.container(border=True):
                     refi_month=refi_month, post_refi_rate=post_rate / 100,
                     refi_type=refi_type)
     else:
-        price = c[2].number_input("Price", value=200000, step=5000)
-        rehab = c[3].number_input("Rehab", value=55000, step=1000)
-        arv = c[4].number_input("ARV", value=340000, step=5000)
-        hold = c[5].number_input("Hold months", value=6, min_value=1, step=1)
-        target = c[6].number_input("Target margin %", value=15.0, step=0.5)
+        price = c[2].number_input("Price", value=200000, step=5000,
+            help="What you pay for the property before repairs.")
+        rehab = c[3].number_input("Repair budget", value=55000, step=1000,
+            help="What you expect to spend fixing it up.")
+        arv = c[4].number_input("Sale price after repairs", value=340000, step=5000,
+            help="What you expect to sell it for once fixed up (ARV).")
+        hold = c[5].number_input("Months to fix and sell", value=6, min_value=1, step=1,
+            help="From buying to selling.")
+        target = c[6].number_input("Profit goal %", value=15.0, step=0.5,
+            help="The profit you want, as a % of the sale price.")
         d = st.columns(8)
-        hm_ltv = d[0].number_input("HM LTV %", value=90.0, step=1.0)
-        hm_rate = d[1].number_input("HM rate %", value=10.5, step=0.25)
-        points = d[2].number_input("Points %", value=2.0, step=0.25)
-        utilities = d[3].number_input("Utilities / mo", value=150, step=25)
-        maint = d[4].number_input("Maint & security / mo", value=150, step=25)
+        hm_ltv = d[0].number_input("Short-term loan %", value=90.0, step=1.0,
+            help="The short-term (hard money) loan as a % of the price.")
+        hm_rate = d[1].number_input("Short-term rate %", value=10.5, step=0.25,
+            help="Yearly interest on the short-term loan. You pay interest only.")
+        points = d[2].number_input("Lender fee %", value=2.0, step=0.25,
+            help="Up-front fee (points) the short-term lender charges, as a % of the loan.")
+        utilities = d[3].number_input("Utilities / mo", value=150, step=25,
+            help="Power, water and gas while you own it.")
+        maint = d[4].number_input("Upkeep & security / mo", value=150, step=25,
+            help="Lawn, cleaning, locks and alarms while it's empty.")
         deal = dict(model="Flip", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab, arv=arv,
                     hm_ltv=hm_ltv / 100, hm_rate=hm_rate / 100,
