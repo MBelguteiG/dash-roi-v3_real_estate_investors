@@ -347,7 +347,7 @@ with lend:
         tile(l[1], "Rent left after expenses", money(result["noi_y1"]),
              "year 1, before the loan payment")
         tile(l[2], "Loan payments / yr", money(result["annual_debt_service"]),
-             f"{rate:.3f}% fixed, 30 years")
+            f"{result['rate_used']:.3%} fixed, 30 years")
         tile(l[3], "Rent covers loan", f"{result['min_dscr']:.2f}x",
              "bank wants 1.20x, 1.25x for strong")
         note = (f"Rent covers the loan {result['min_dscr']:.2f}x and the loan is "
