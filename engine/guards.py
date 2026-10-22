@@ -11,29 +11,54 @@ the v2 B9/B21 unit trap (whole number vs decimal).
 """
 
 
+LABELS = {
+    "price": "Price",
+    "rehab": "Repair budget",
+    "base_rent": "Rent / mo",
+    "down_pct": "Down payment %",
+    "annual_rate": "Loan rate %",
+    "exit_year": "Years you'll own it",
+    "arv": "Value after repairs",
+    "hm_ltv": "Short-term loan %",
+    "hm_rate": "Short-term rate %",
+    "refi_ltv": "New loan % of value",
+    "post_refi_rate": "New loan rate %",
+    "refi_month": "Months to refinance",
+    "points_pct": "Lender fee %",
+    "hold_months": "Months to fix and sell",
+    "monthly_utilities": "Utilities / mo",
+    "monthly_maint_security": "Upkeep & security / mo",
+    "target_margin": "Profit goal %",
+}
+
+
+def _label(key):
+    return LABELS.get(key, key)
+
+
 def _positive(inputs, key):
     if inputs[key] <= 0:
-        raise ValueError(f"{key} must be greater than 0 (got {inputs[key]})")
+        raise ValueError(f"{_label(key)} must be more than 0.")
 
 
 def _non_negative(inputs, key):
     if inputs[key] < 0:
-        raise ValueError(f"{key} cannot be negative (got {inputs[key]})")
+        raise ValueError(f"{_label(key)} can't be negative.")
 
 
 def _fraction(inputs, key, allow_zero=True):
     v = inputs[key]
     low_ok = v >= 0 if allow_zero else v > 0
     if not (low_ok and v < 1):
-        raise ValueError(f"{key} must be a decimal between 0 and 1, "
-                         f"e.g. 0.071 for 7.1% (got {v})")
+        low = "0% or more" if allow_zero else "more than 0%"
+        raise ValueError(f"{_label(key)} must be {low} and less than 100% "
+                         f"(you entered {v * 100:g}%).")
 
 
 def _whole_at_least(inputs, key, minimum):
     v = inputs[key]
     if v != int(v) or v < minimum:
-        raise ValueError(f"{key} must be a whole number >= {minimum} (got {v})")
-
+        raise ValueError(f"{_label(key)} must be a whole number, {minimum} or more.")
 
 def validate_inputs(model, inputs):
     """Raise ValueError on the first impossible input; return None if all good."""
@@ -56,8 +81,8 @@ def validate_inputs(model, inputs):
         _whole_at_least(inputs, "exit_year", 1)
         _whole_at_least(inputs, "refi_month", 1)
         if inputs["refi_month"] >= inputs["exit_year"] * 12:
-            raise ValueError(f"refi_month ({inputs['refi_month']}) must come before "
-                             f"the exit (month {inputs['exit_year'] * 12})")
+            raise ValueError(f"Months to refinance ({inputs['refi_month']}) must be "
+                             f"before you sell (month {inputs['exit_year'] * 12}).")
 
     elif model == "Flip":
         _positive(inputs, "arv")

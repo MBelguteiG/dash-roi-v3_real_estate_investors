@@ -173,7 +173,7 @@ with st.container(border=True):
 try:
     result = analyze_deal(**deal)
 except (ValueError, ZeroDivisionError) as e:
-    st.error(f"This deal can't be analysed: {e}. Check the inputs above.")
+    st.error(f"{e} Fix that box above and the numbers will update.")
     st.stop()
 verdict = result["verdict"]
 
