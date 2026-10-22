@@ -562,3 +562,6 @@ with cf:
         st.caption("Cash flow is rent left after expenses, minus loan interest and money "
                    "saved for big repairs. The loan you pay down is shown separately, "
                    "because you get it back when you sell.")
+st.divider()
+st.caption("For education and deal screening only. Not financial, lending, tax or "
+           "investment advice. Check every number with your own lender and advisors.")
