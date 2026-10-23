@@ -80,7 +80,7 @@ with st.container(border=True):
             help="What you pay for the property.")
         down_pct = c[3].number_input("Down payment %", value=25.0, step=1.0,
             help="Cash you put down, as a % of the price. The rest is the loan.")
-        rate = c[4].number_input("Loan rate %", value=6.75, step=0.125,
+        rate = c[4].number_input("Loan rate %", value=6.75, step=0.125,format="%.3f",
             help="Yearly interest rate on the loan, before any points.")
         rent = c[5].number_input("Rent / mo", value=2300, step=50,
             help="Monthly rent you expect to collect.")
@@ -220,6 +220,9 @@ else:
 
 if walk_away:
     cap = f"vs {money(price)} asking"
+    if model == "Rental":
+        bank_limit = dscr_solve["status"] == "SOLVED" and walk_away == dscr_solve["price"]
+        cap = ("the bank test sets this" if bank_limit else "your goal sets this") + f" · asking {money(price)}"
     if model == "BRRR" and dscr_value < 1.20:
         cap = "based on your goal; price can't fix the bank test"
     tile(t[4], "Most you should pay", money(walk_away), cap)
@@ -275,7 +278,7 @@ if model == "Rental" and result.get("points_cost", 0) > 0:
     hold_months = exit_year * 12
     text = (
         f"Paying **{money(result['points_cost'])}** lowers your rate from "
-        f"{deal['annual_rate']:.2%} to **{result['rate_used']:.2%}** and saves "
+        f"{round(deal['annual_rate'] * 100, 3):g}% to **{round(result['rate_used'] * 100, 3):g}%** and saves "
         f"**{money(result['monthly_saving'])} a month**. The monthly savings pay it "
         f"back in **{be} months** (you plan to hold {hold_months})."
     ).replace("$", "\\$")
@@ -347,7 +350,7 @@ with lend:
         tile(l[1], "Rent left after expenses", money(result["noi_y1"]),
              "year 1, before the loan payment")
         tile(l[2], "Loan payments / yr", money(result["annual_debt_service"]),
-            f"{result['rate_used']:.3%} fixed, 30 years")
+            f"{round(result['rate_used'] * 100, 3):g}% fixed, 30 years")
         tile(l[3], "Rent covers loan", f"{result['min_dscr']:.2f}x",
              "bank wants 1.20x, 1.25x for strong")
         note = (f"Rent covers the loan {result['min_dscr']:.2f}x and the loan is "
