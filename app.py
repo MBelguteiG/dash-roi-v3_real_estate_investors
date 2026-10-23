@@ -46,6 +46,14 @@ def check(text, ok):
     else:
         st.error(text)
 
+def driver_note(rows, base, names):
+    top = next((r for r in rows if not r.get("all_cash_out")), None)
+    if top is None:
+        return
+    name = names.get(top["variable"], top["variable"]).lower()
+    lo, hi = sorted((top["low"], top["high"]))
+    st.markdown(f"**Biggest driver: {name}.** Within the changes tested below, your "
+                f"yearly return ranges from **{lo:.2%}** to **{hi:.2%}** (your deal: {base:.2%}).")
 
 # Top bar: name, model, scenario
 left, mid, right = st.columns([2, 2, 3])
@@ -405,7 +413,7 @@ with sens:
              "Vacancy": "Empty months", "Rent growth": "Rent increases",
              "Appreciation": "Home value growth",
              "Vacancy rate": "Empty months", "Rehab cost": "Repair budget"}
-    swings = (("Input goes down", "low", "#2a78d6"), ("Input goes up", "high", "#eb6834"))
+    swings = (("If this is lower", "low", "#2a78d6"), ("If this is higher", "high", "#eb6834"))
     if model == "Flip":
         st.info("These charts are for rentals. A flip is judged on its profit, so check "
                 "the profit tests and Most you should offer in the Investor view.")
@@ -420,6 +428,7 @@ with sens:
             names = [plain.get(r["variable"], r["variable"]) + (" *" if r["all_cash_out"] else "")
                      for r in rows]
             base_irr = tor["base"]
+            driver_note(rows, base_irr, plain)
             fig3 = go.Figure()
             for label, key, colour in swings:
                 values = [r[key] for r in rows]
@@ -440,22 +449,29 @@ with sens:
                 plot_bgcolor="#FFFFFF",
             )
             st.plotly_chart(fig3)
-            caption = ("Each bar shows your yearly return when one input goes down (blue) or up "
-                       "(orange), with everything else the same. Changes: value after repairs, "
-                       "rent and price ±10%; repairs ±25%; new loan % ±5 points; new loan "
-                       "rate ±1 point.")
+            caption = ("Each bar shows your yearly return if one input is lower (blue) or higher "
+                       "(orange), with everything else the same. Changes tested: value after repairs, "
+                       "rent and price ±10%; repairs ±25%; new loan % ±5%; new loan rate ±1%.")
             if any(r["all_cash_out"] for r in rows):
                 caption += (" * At that change you'd get all your cash back at the refinance, "
                             "so that bar isn't comparable.")
             st.caption(caption)
     else:
+        if irr_solve["status"] == "SOLVED":
+            typed = round(deal["annual_rate"] * 100, 3)
+            used = round(result["rate_used"] * 100, 3)
+            rate_txt = f"{typed:g}%" + (f" ({used:g}% after points)" if used != typed else "")
+            st.markdown((f"**At your {rate_txt} rate, you reach your {target:.2f}% goal "
+                         f"if you pay {money(irr_solve['price'])} or less.**").replace("$", "\\$"))
+        else:
+            st.markdown(f"**No price in this range reaches your {target:.2f}% goal at this rate.**")
         g = two_way_irr(deal)
         t_irr = target / 100
         span = max(abs(v - t_irr) for row in g["irr"] for v in row) or 0.01
         fig = go.Figure(go.Heatmap(
             z=g["irr"],
             x=[money(p) for p in g["prices"]],
-            y=[f"{r:.2%}" for r in g["rates"]],
+            y=[f"{round(r * 100, 3):g}%" for r in g["rates"]],
             colorscale=[[0, "#e34948"], [0.5, "#f0efec"], [1, "#2a78d6"]],
             zmin=t_irr - span, zmax=t_irr + span,
             texttemplate="%{z:.2%}", textfont={"color": "#172036"},
@@ -472,13 +488,15 @@ with sens:
             plot_bgcolor="#FFFFFF",
         )
         st.plotly_chart(fig)
-        st.caption("Blue cells beat your goal, red cells miss it. "
+        st.caption("How to read this: each cell is your yearly return if you paid that price "
+                   "(across) at that loan rate (down). Blue beats your goal, red misses it. "
                    "The middle cell is your deal as entered.")
 
         tor = tornado_irr(deal)
         tor["rows"] = [r for r in tor["rows"] if r["low"] != r["high"]]
         names = [plain.get(r["variable"], r["variable"]) for r in tor["rows"]]
         base_irr = tor["base"]
+        driver_note(tor["rows"], base_irr, plain)
         fig2 = go.Figure()
         for label, key, colour in swings:
             values = [r[key] for r in tor["rows"]]
@@ -499,10 +517,9 @@ with sens:
             plot_bgcolor="#FFFFFF",
         )
         st.plotly_chart(fig2)
-        st.caption("Each bar shows your yearly return when one input goes down (blue) or up "
-                   "(orange), with everything else the same. Changes: price and rent ±10%; "
-                   "loan rate and rent increases ±1 point; empty months "
-                   "±3 points; home value growth ±1.5 points.")
+        st.caption("Each bar shows your yearly return if one input is lower (blue) or higher "
+                   "(orange), with everything else the same. Changes tested: price and rent ±10%; "
+                   "loan rate and rent increases ±1%; empty months ±3%; home value growth ±1.5%.")
 
 with cf:
     if model == "Flip":
