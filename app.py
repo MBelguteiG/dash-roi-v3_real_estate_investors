@@ -55,6 +55,36 @@ def driver_note(rows, base, names):
     st.markdown(f"**Biggest driver: {name}.** Within the changes tested below, your "
                 f"yearly return ranges from **{lo:.2%}** to **{hi:.2%}** (your deal: {base:.2%}).")
 
+def tornado_chart(names, rows, base, height):
+    fig = go.Figure()
+    for label, pick, colour in (("Helps your return", max, "#2a78d6"),
+                                ("Hurts your return", min, "#A0AEC0")):
+        values, moves = [], []
+        for r in rows:
+            v = pick(r["low"], r["high"])
+            values.append(v)
+            moves.append("lower" if v == r["low"] else "higher")
+        fig.add_trace(go.Bar(
+            name=label, y=names, orientation="h",
+            x=[v - base for v in values], base=[base] * len(values),
+            marker_color=colour, customdata=list(zip(values, moves)),
+            hovertemplate="If %{y} is %{customdata[1]}: yearly return "
+                          "%{customdata[0]:.2%}<extra></extra>",
+        ))
+    fig.add_vline(x=base, line_dash="dot", line_color="#4A5568")
+    fig.update_layout(
+        title=f"What moves your yearly return most<br><sup>Dotted line = your deal, {base:.2%}</sup>",
+        barmode="overlay", height=height,
+        xaxis={"title": "Yearly return", "tickformat": ".1%"},
+        yaxis={"type": "category", "autorange": "reversed"},
+        legend={"orientation": "h", "y": -0.2},
+        margin={"t": 50, "l": 10, "r": 10, "b": 10},
+        plot_bgcolor="#FFFFFF",
+    )
+    return fig
+
+
+
 # Top bar: name, model, scenario
 left, mid, right = st.columns([2, 2, 3])
 left.markdown("### Dash ROI Pro")
@@ -413,7 +443,7 @@ with sens:
              "Vacancy": "Empty months", "Rent growth": "Rent increases",
              "Appreciation": "Home value growth",
              "Vacancy rate": "Empty months", "Rehab cost": "Repair budget"}
-    swings = (("If this is lower", "low", "#2a78d6"), ("If this is higher", "high", "#eb6834"))
+    
     if model == "Flip":
         st.info("These charts are for rentals. A flip is judged on its profit, so check "
                 "the profit tests and Most you should offer in the Investor view.")
@@ -429,28 +459,9 @@ with sens:
                      for r in rows]
             base_irr = tor["base"]
             driver_note(rows, base_irr, plain)
-            fig3 = go.Figure()
-            for label, key, colour in swings:
-                values = [r[key] for r in rows]
-                fig3.add_trace(go.Bar(
-                    name=label, y=names, orientation="h",
-                    x=[v - base_irr for v in values], base=[base_irr] * len(values),
-                    marker_color=colour, customdata=values,
-                    hovertemplate="%{y}<br>" + label + ": yearly return %{customdata:.2%}<extra></extra>",
-                ))
-            fig3.add_vline(x=base_irr, line_dash="dot", line_color="#4A5568")
-            fig3.update_layout(
-                title=f"What moves your yearly return most<br><sup>Dotted line = your deal, {base_irr:.2%}</sup>",
-                barmode="overlay", height=360,
-                xaxis={"title": "Yearly return", "tickformat": ".1%"},
-                yaxis={"type": "category", "autorange": "reversed"},
-                legend={"orientation": "h", "y": -0.2},
-                margin={"t": 50, "l": 10, "r": 10, "b": 10},
-                plot_bgcolor="#FFFFFF",
-            )
-            st.plotly_chart(fig3)
-            caption = ("Each bar shows your yearly return if one input is lower (blue) or higher "
-                       "(orange), with everything else the same. Changes tested: value after repairs, "
+            st.plotly_chart(tornado_chart(names, rows, base_irr, 360))    
+            caption = ("Blue bars help your return, grey bars hurt it. Each bar changes one input up or down, "
+                       "with everything else the same. Changes tested: value after repairs, "
                        "rent and price ±10%; repairs ±25%; new loan % ±5%; new loan rate ±1%.")
             if any(r["all_cash_out"] for r in rows):
                 caption += (" * At that change you'd get all your cash back at the refinance, "
@@ -497,30 +508,11 @@ with sens:
         names = [plain.get(r["variable"], r["variable"]) for r in tor["rows"]]
         base_irr = tor["base"]
         driver_note(tor["rows"], base_irr, plain)
-        fig2 = go.Figure()
-        for label, key, colour in swings:
-            values = [r[key] for r in tor["rows"]]
-            fig2.add_trace(go.Bar(
-                name=label, y=names, orientation="h",
-                x=[v - base_irr for v in values], base=[base_irr] * len(values),
-                marker_color=colour, customdata=values,
-                hovertemplate="%{y}<br>" + label + ": yearly return %{customdata:.2%}<extra></extra>",
-            ))
-        fig2.add_vline(x=base_irr, line_dash="dot", line_color="#4A5568")
-        fig2.update_layout(
-            title=f"What moves your yearly return most<br><sup>Dotted line = your deal, {base_irr:.2%}</sup>",
-            barmode="overlay", height=380,
-            xaxis={"title": "Yearly return", "tickformat": ".1%"},
-            yaxis={"type": "category", "autorange": "reversed"},
-            legend={"orientation": "h", "y": -0.2},
-            margin={"t": 50, "l": 10, "r": 10, "b": 10},
-            plot_bgcolor="#FFFFFF",
-        )
-        st.plotly_chart(fig2)
-        st.caption("Each bar shows your yearly return if one input is lower (blue) or higher "
-                   "(orange), with everything else the same. Changes tested: price and rent ±10%; "
+        st.plotly_chart(tornado_chart(names, tor["rows"], base_irr, 380))
+        st.caption("Green bars help your return, red bars hurt it. Each bar changes one input up "
+                   "or down, with everything else the same. Changes tested: price and rent ±10%; "
                    "loan rate and rent increases ±1%; empty months ±3%; home value growth ±1.5%.")
-
+        
 with cf:
     if model == "Flip":
         items = [
