@@ -382,7 +382,7 @@ with inv:
 with lend:
     if model == "Rental":
         approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"])
-        l = st.columns(4)
+        l = st.columns(5)
         tile(l[0], "Loan amount", money(result["loan_amount"]),
              f"{result['ltv']:.0%} of the price")
         tile(l[1], "Rent left after expenses", money(result["noi_y1"]),
@@ -394,6 +394,16 @@ with lend:
         note = (f"Rent covers the loan {result['min_dscr']:.2f}x and the loan is "
                 f"{result['ltv']:.0%} of the price. Strong needs 1.25x and 80% or less; "
                 "conditional needs 1.20x.")
+        cap_rate = result["noi_y1"] / price
+        tile(l[4], "Cap rate", f"{cap_rate:.2%}", "rent left after expenses ÷ price")
+        with l[4].popover("What does this mean?"):
+            st.markdown((
+                f"If you paid **all cash** with no loan, you'd earn **{cap_rate:.2%}** a year "
+                f"from rent: {money(result['noi_y1'])} left after expenses ÷ "
+                f"{money(price)} price.\n\n"
+                "It ignores the loan, so you can compare properties side by side. "
+                "Compare it with similar rentals in the same area: higher means more "
+                "income for the price.").replace("$", "\\$"))
     elif model == "BRRR":
         refi = result["refi_ltv_effective"]
         approval = approval_likelihood("BRRR", result["dscr"], refi)
