@@ -201,11 +201,11 @@ with st.container(border=True):
         help="Leave blank to use the state and property-type default.")
     if hoa_in is not None:
         deal["hoa_override"] = hoa_in
-    if model == "Rental":
+    if model in ("Rental", "BRRR"):
         buy_pts = h[1].number_input(
             "Points to lower rate", min_value=0.0, max_value=4.0,
             value=0.0, step=0.5,
-            help="Each point costs 1% of the loan and lowers your rate by about 0.25%.")
+            help="Each point costs 1% of the loan (for BRRR, the new loan) and lowers your rate by about 0.25%.")
         deal["points"] = buy_pts
 
 try:
@@ -310,13 +310,14 @@ if walk_away:
     with t[4].popover("What does this mean?"):
         st.markdown((f"**{money(walk_away)}** is the highest price that {goal}. "
                      "Pay more and the numbers stop working.").replace("$", "\\$"))
-
-if model == "Rental" and result.get("points_cost", 0) > 0:
+if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
     be = int(-(-result["breakeven_months"] // 1))   # round up
-    hold_months = exit_year * 12
+    hold_months = exit_year * 12 - (refi_month if model == "BRRR" else 0)
+    typed_rate = deal["annual_rate"] if model == "Rental" else deal["post_refi_rate"]
+
     text = (
         f"Paying **{money(result['points_cost'])}** lowers your rate from "
-        f"{round(deal['annual_rate'] * 100, 3):g}% to **{round(result['rate_used'] * 100, 3):g}%** and saves "
+        f"{round(typed_rate * 100, 3):g}% to **{round(result['rate_used'] * 100, 3):g}%** and saves "
         f"**{money(result['monthly_saving'])} a month**. The monthly savings pay it "
         f"back in **{be} months** (you plan to hold {hold_months})."
     ).replace("$", "\\$")
