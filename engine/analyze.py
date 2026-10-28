@@ -159,7 +159,7 @@ def analyze_rental(state, property_type, scenario,
 
 def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
-                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None):
+                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None,points=0.0, point_rate_cut=0.0025):
     """
     Run the full BRRR analysis for one deal. Uses only the BRRR engine
     (brrr.py) - never retrofits Rental. Monthly stream + annualized IRR
@@ -195,6 +195,15 @@ def analyze_brrr(state, property_type, scenario,
     ci = brrr_cash_invested(price, rehab, closing, hm_ltv, hm, 0, 0, 0,
                             include_carrying=False)
     pulled = cash_pulled_out(arv, refi_ltv, price, hm_ltv)
+    if points < 0:
+        raise ValueError("Points cannot be negative")
+    base_refi_debt = annual_debt_service(rl, post_refi_rate)
+    points_cost = rl * points / 100
+    post_refi_rate = post_refi_rate - points * point_rate_cut
+    if post_refi_rate <= 0:
+        raise ValueError("Too many points: the rate would drop to zero")
+    monthly_saving = (base_refi_debt - annual_debt_service(rl, post_refi_rate)) / 12
+    pulled -= points_cost   # points are paid out of the refinance cash
     left = cash_left_in_deal(ci, pulled)
 
     # --- monthly stream + IRR ---
@@ -208,6 +217,11 @@ def analyze_brrr(state, property_type, scenario,
         mgmt_rate=mgmt_rate, capex_rate=capex_rate, rent_growth=rent_growth,
         tax_growth=tax_growth, inflation=inflation,return_rows=True,
     )
+    monthly[refi_month] -= points_cost   # points are paid at the refinance
+    for row in mrows:
+        if row["month"] == refi_month:
+            row["cash_out_at_refi"] -= points_cost
+
     irr_value = brrr_irr(monthly)
     real_monthly = deflate(monthly, inflation, periods_per_year=12)
     real_irr = brrr_irr(real_monthly)
@@ -269,6 +283,10 @@ def analyze_brrr(state, property_type, scenario,
         "real_irr": real_irr,
         "real_total_profit": sum(real_monthly),
         "inflation": inflation,
+        "points_cost": points_cost,
+        "rate_used": post_refi_rate,
+        "monthly_saving": monthly_saving,
+        "breakeven_months": points_cost / monthly_saving if monthly_saving > 0 else None,
     }
 
 def analyze_flip(state, property_type, scenario,
