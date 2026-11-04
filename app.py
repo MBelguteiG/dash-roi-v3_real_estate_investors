@@ -7,6 +7,10 @@ import pandas as pd
 from engine.sensitivity import two_way_irr, tornado_irr, brrr_tornado_irr
 from engine.assumptions import get_assumptions
 
+from i18n import tr, LANG_NAMES
+
+
+
 
 st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
 
@@ -19,7 +23,7 @@ def money2(x):
     return f"-${abs(x):,.2f}" if x < 0 else f"${x:,.2f}"
 
 
-def verdict_tile(col, verdict):
+def verdict_tile(col, verdict, label, shown):
     if "REJECT" in verdict:
         bg = "#8A1C12"
     elif verdict == "NEGOTIATE":
@@ -29,8 +33,8 @@ def verdict_tile(col, verdict):
     col.markdown(
         f'<div style="background:{bg};color:#FFFFFF;border-radius:10px;'
         f'padding:14px 18px"><div style="font-size:13px;letter-spacing:0.08em;'
-        f'text-transform:uppercase">Verdict</div>'
-        f'<div style="font-size:24px;font-weight:700">{verdict}</div></div>',
+        f'text-transform:uppercase">{label}</div>'
+        f'<div style="font-size:24px;font-weight:700">{shown}</div></div>',
         unsafe_allow_html=True)
 
 
@@ -83,80 +87,88 @@ def tornado_chart(names, rows, base, height):
     )
     return fig
 
-
-
-# Top bar: name, model, scenario
-left, mid, right = st.columns([2, 2, 3])
+# Top bar: name, model, scenario, language
+left, mid, right, lang_col = st.columns([2, 2, 3, 1.5])
+lang = lang_col.segmented_control(
+    "Language", ["en", "mn"], format_func=lambda k: LANG_NAMES[k],
+    default="en", label_visibility="collapsed") or "en"
+T = tr(lang)
 left.markdown("### Dash ROI Pro")
 model = mid.segmented_control(
-    "Model", ["Rental", "BRRR", "Flip"],
-    default="Rental", label_visibility="collapsed") or "Rental"
+    T("strategy"), ["Rental", "BRRR", "Flip"], format_func=lambda m: T("model_" + m),
+    default="Rental", key="model") or "Rental"
 scenario = right.segmented_control(
-    "Scenario", ["Conservative", "Base", "Aggressive"],
-    default="Base", label_visibility="collapsed") or "Base"
+    T("scenario"), ["Conservative", "Base", "Aggressive"], format_func=lambda s: T("sc_" + s),
+    default="Base", key="scenario") or "Base"
+with st.expander(T("quick_start")):
+    st.markdown(T("quick_body"))
 
-with st.expander("Quick start"):
-    st.markdown(
-        "1. **Pick a model and scenario** in the top bar: Rental, BRRR or Flip; "
-        "Conservative, Base or Aggressive.\n"
-        "2. **Enter the deal.** Press Enter after typing a number, or use − and +.\n"
-        "3. **Read the verdict.** The tiles give the headline numbers; "
-        "*Investor view* explains the verdict and what would fix it; "
-        "*Lender view* shows how a lender sizes the loan and whether it is likely to fund.\n"
-        "4. **Most you should pay** is the most you can pay and still meet your target "
-        "(for Flip, the max allowable offer)."
-    )
+
+def K(name):
+    """Widget key per model, so values survive a language switch."""
+    return f"{model}_{name}"
 
 
 # Input strip
 with st.container(border=True):
     c = st.columns(8)
-    state = c[0].selectbox("State", ["Illinois", "California"])
-    property_type = c[1].selectbox("Type", ["SFH", "Condo", "Townhouse", "Duplex"])
+    STATES = ["Illinois", "California"]
+    TYPES = ["SFH", "Condo", "Townhouse", "Duplex"]
+    state = c[0].selectbox(T("state"), STATES,
+                           index=STATES.index(st.session_state.get("state_val", "Illinois")),
+                           format_func=lambda s: T("st_" + s), key=f"state_{lang}")
+    property_type = c[1].selectbox(T("type"), TYPES,
+                                   index=TYPES.index(st.session_state.get("ptype_val", "SFH")),
+                                   format_func=lambda p: T("pt_" + p), key=f"ptype_{lang}")
+    st.session_state["state_val"] = state
+    st.session_state["ptype_val"] = property_type
     if model == "Rental":
-        price = c[2].number_input("Price", value=340000, step=5000,
-            help="What you pay for the property.")
-        down_pct = c[3].number_input("Down payment %", value=25.0, step=1.0,
-            help="Cash you put down, as a % of the price. The rest is the loan.")
-        rate = c[4].number_input("Loan rate %", value=6.75, step=0.125,format="%.3f",
-            help="Yearly interest rate on the loan, before any points.")
-        rent = c[5].number_input("Rent / mo", value=2300, step=50,
-            help="Monthly rent you expect to collect.")
-        exit_year = c[6].number_input("Years you'll own it", value=5, min_value=1, step=1,
-            help="When you plan to sell.")
-        target = c[7].number_input("Return goal %", value=8.0, step=0.5,
-            help="The yearly return you want on the cash you put in.")
+        price = c[2].number_input(T("price"), value=340000, step=5000,
+                                  help=T("h_price"), key=K("price"))
+        down_pct = c[3].number_input(T("down"), value=25.0, step=1.0,
+                                     help=T("h_down"), key=K("down"))
+        rate = c[4].number_input(T("rate"), value=6.75, step=0.125, format="%.3f",
+                                 help=T("h_rate"), key=K("rate"))
+        rent = c[5].number_input(T("rent"), value=2300, step=50,
+                                 help=T("h_rent"), key=K("rent"))
+        exit_year = c[6].number_input(T("years"), value=5, min_value=1, step=1,
+                                      help=T("h_years"), key=K("years"))
+        target = c[7].number_input(T("goal"), value=8.0, step=0.5,
+                                   help=T("h_goal"), key=K("goal"))
         deal = dict(model="Rental", state=state, property_type=property_type,
                     scenario=scenario, price=price, down_pct=down_pct / 100,
                     annual_rate=rate / 100, rehab=0, base_rent=rent,
                     exit_year=exit_year, target_irr=target / 100)
     elif model == "BRRR":
-        price = c[2].number_input("Price", value=250000, step=5000,
-            help="What you pay for the property before repairs.")
-        rehab = c[3].number_input("Repair budget", value=45000, step=1000,
-            help="What you expect to spend fixing it up.")
-        arv = c[4].number_input("Value after repairs", value=340000, step=5000,
-            help="What it should be worth once fixed up (ARV).")
-        rent = c[5].number_input("Rent / mo", value=2400, step=50,
-            help="Monthly rent once it's fixed up and rented.")
-        exit_year = c[6].number_input("Years you'll own it", value=5, min_value=1, step=1,
-            help="When you plan to sell.")
-        target = c[7].number_input("Return goal %", value=10.0, step=0.5,
-            help="The yearly return you want on the cash you put in.")
+        price = c[2].number_input(T("price"), value=250000, step=5000,
+                                  help=T("h_price_before"), key=K("price"))
+        rehab = c[3].number_input(T("rehab"), value=45000, step=1000,
+                                  help=T("h_rehab"), key=K("rehab"))
+        arv = c[4].number_input(T("arv"), value=340000, step=5000,
+                                help=T("h_arv"), key=K("arv"))
+        rent = c[5].number_input(T("rent"), value=2400, step=50,
+                                 help=T("h_rent_brrr"), key=K("rent"))
+        exit_year = c[6].number_input(T("years"), value=5, min_value=1, step=1,
+                                      help=T("h_years"), key=K("years"))
+        target = c[7].number_input(T("goal"), value=10.0, step=0.5,
+                                   help=T("h_goal"), key=K("goal"))
         d = st.columns([1, 1, 1, 1, 1, 1, 2])
-        hm_ltv = d[0].number_input("Short-term loan %", value=90.0, step=1.0,
-            help="The short-term (hard money) loan as a % of the price.")
-        hm_rate = d[1].number_input("Short-term rate %", value=10.5, step=0.25,
-            help="Yearly interest on the short-term loan. You pay interest only.")
-        refi_month = d[2].number_input("Months to refinance", value=6, min_value=1, step=1,
-            help="When you swap the short-term loan for a regular 30-year loan.")
-        refi_ltv = d[3].number_input("New loan % of value", value=75.0, step=1.0,
-            help="The new 30-year loan as a % of the value after repairs.")
-        post_rate = d[4].number_input("New loan rate %", value=7.25, step=0.125,
-            help="Yearly interest rate on the new 30-year loan.")
-        refi_type = d[5].selectbox("Refinance type", ["Cash-Out", "Rate/Term"],
-            help="Cash-Out: borrow the full % and take cash back out. "
-                 "Rate/Term: borrow only enough to pay off the short-term loan.")
+        hm_ltv = d[0].number_input(T("hm_ltv"), value=90.0, step=1.0,
+                                   help=T("h_hm_ltv"), key=K("hm_ltv"))
+        hm_rate = d[1].number_input(T("hm_rate"), value=10.5, step=0.25,
+                                    help=T("h_hm_rate"), key=K("hm_rate"))
+        refi_month = d[2].number_input(T("refi_month"), value=6, min_value=1, step=1,
+                                       help=T("h_refi_month"), key=K("refi_month"))
+        refi_ltv = d[3].number_input(T("refi_ltv"), value=75.0, step=1.0,
+                                     help=T("h_refi_ltv"), key=K("refi_ltv"))
+        post_rate = d[4].number_input(T("post_rate"), value=7.25, step=0.125,
+                                      help=T("h_post_rate"), key=K("post_rate"))
+        REFI = ["Cash-Out", "Rate/Term"]
+        refi_type = d[5].selectbox(T("refi_type"), REFI,
+                                   index=REFI.index(st.session_state.get("refi_val", "Cash-Out")),
+                                   format_func=lambda r: T("rt_" + r),
+                                   help=T("h_refi_type"), key=f"refi_{lang}")
+        st.session_state["refi_val"] = refi_type
         deal = dict(model="BRRR", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab,
                     base_rent=rent, exit_year=exit_year,
@@ -165,27 +177,27 @@ with st.container(border=True):
                     refi_month=refi_month, post_refi_rate=post_rate / 100,
                     refi_type=refi_type)
     else:
-        price = c[2].number_input("Price", value=200000, step=5000,
-            help="What you pay for the property before repairs.")
-        rehab = c[3].number_input("Repair budget", value=55000, step=1000,
-            help="What you expect to spend fixing it up.")
-        arv = c[4].number_input("Sale price after repairs", value=340000, step=5000,
-            help="What you expect to sell it for once fixed up (ARV).")
-        hold = c[5].number_input("Months to fix and sell", value=6, min_value=1, step=1,
-            help="From buying to selling.")
-        target = c[6].number_input("Profit goal %", value=15.0, step=0.5,
-            help="The profit you want, as a % of the sale price.")
+        price = c[2].number_input(T("price"), value=200000, step=5000,
+                                  help=T("h_price_before"), key=K("price"))
+        rehab = c[3].number_input(T("rehab"), value=55000, step=1000,
+                                  help=T("h_rehab"), key=K("rehab"))
+        arv = c[4].number_input(T("arv_flip"), value=340000, step=5000,
+                                help=T("h_arv_flip"), key=K("arv"))
+        hold = c[5].number_input(T("hold"), value=6, min_value=1, step=1,
+                                 help=T("h_hold"), key=K("hold"))
+        target = c[6].number_input(T("profit_goal"), value=15.0, step=0.5,
+                                   help=T("h_profit_goal"), key=K("goal"))
         d = st.columns([1, 1, 1, 1, 1, 3])
-        hm_ltv = d[0].number_input("Short-term loan %", value=90.0, step=1.0,
-            help="The short-term (hard money) loan as a % of the price.")
-        hm_rate = d[1].number_input("Short-term rate %", value=10.5, step=0.25,
-            help="Yearly interest on the short-term loan. You pay interest only.")
-        points = d[2].number_input("Lender fee %", value=2.0, step=0.25,
-            help="Up-front fee (points) the short-term lender charges, as a % of the loan.")
-        utilities = d[3].number_input("Utilities / mo", value=150, step=25,
-            help="Power, water and gas while you own it.")
-        maint = d[4].number_input("Upkeep & security / mo", value=150, step=25,
-            help="Lawn, cleaning, locks and alarms while it's empty.")
+        hm_ltv = d[0].number_input(T("hm_ltv"), value=90.0, step=1.0,
+                                   help=T("h_hm_ltv"), key=K("hm_ltv"))
+        hm_rate = d[1].number_input(T("hm_rate"), value=10.5, step=0.25,
+                                    help=T("h_hm_rate"), key=K("hm_rate"))
+        points = d[2].number_input(T("lender_fee"), value=2.0, step=0.25,
+                                   help=T("h_lender_fee"), key=K("lender_fee"))
+        utilities = d[3].number_input(T("utilities"), value=150, step=25,
+                                      help=T("h_utilities"), key=K("utilities"))
+        maint = d[4].number_input(T("upkeep"), value=150, step=25,
+                                  help=T("h_upkeep"), key=K("upkeep"))
         deal = dict(model="Flip", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab, arv=arv,
                     hm_ltv=hm_ltv / 100, hm_rate=hm_rate / 100,
@@ -196,17 +208,18 @@ with st.container(border=True):
     default_hoa = get_assumptions(state, property_type, model, scenario)["HOA Monthly"]
     h = st.columns([1, 1, 6])
     hoa_in = h[0].number_input(
-        "HOA / mo", value=None, min_value=0.0, step=25.0,
-        placeholder=f"default {money(default_hoa)}",
-        help="Leave blank to use the state and property-type default.")
+        T("hoa"), value=None, min_value=0.0, step=25.0,
+        placeholder=T("hoa_default", x=money(default_hoa)),
+        help=T("h_hoa"), key=K("hoa"))
     if hoa_in is not None:
         deal["hoa_override"] = hoa_in
     if model in ("Rental", "BRRR"):
         buy_pts = h[1].number_input(
-            "Points to lower rate", min_value=0.0, max_value=4.0,
-            value=0.0, step=0.5,
-            help="Each point costs 1% of the loan (for BRRR, the new loan) and lowers your rate by about 0.25%.")
+            T("points"), min_value=0.0, max_value=4.0,
+            value=0.0, step=0.5, help=T("h_points"), key=K("points"))
         deal["points"] = buy_pts
+
+
 
 try:
     result = analyze_deal(**deal)
@@ -217,7 +230,7 @@ verdict = result["verdict"]
 
 # Headline tiles
 t = st.columns(5)
-verdict_tile(t[0], verdict)
+verdict_tile(t[0], verdict, T("verdict"), T("v_" + verdict, default=verdict))
 
 if model == "Rental":
     irr_solve = max_price_irr(deal)
@@ -226,159 +239,133 @@ if model == "Rental":
     walk_away = min(solved) if solved else None
     dscr_value = result["min_dscr"]
     irr_ok = result["irr"] >= target / 100
-    tile(t[1], "Yearly return", f"{result['irr']:.2%}", f"your goal {target:.2f}%")
-    tile(t[2], "Rent covers loan", f"{dscr_value:.2f}x", "bank wants 1.20x+")
-    tile(t[3], "First-year cash return", f"{result['cash_on_cash']:.2%}", "of the cash you put in")
+    tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
+    tile(t[2], T("t_dscr"), f"{dscr_value:.2f}x", T("c_bank"))
+    tile(t[3], T("t_coc"), f"{result['cash_on_cash']:.2%}", T("c_coc"))
 elif model == "BRRR":
     irr_solve = max_price_irr(deal)
     aco = max_price_all_cash_out(deal)
     walk_away = irr_solve["price"] if irr_solve["status"] == "SOLVED" else None
     dscr_value = result["dscr"]
     if result["all_cash_out"]:
-        tile(t[1], "Yearly return", "All cash out", "no cash left in the deal")
+        tile(t[1], T("t_return"), T("all_cash_out"), T("c_no_cash_left"))
         irr_ok = True
     else:
-        tile(t[1], "Yearly return", f"{result['irr']:.2%}", f"your goal {target:.2f}%")
+        tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
         irr_ok = result["irr"] >= target / 100
-    tile(t[2], "Rent covers loan", f"{dscr_value:.2f}x", "bank wants 1.20x+")
+    tile(t[2], T("t_dscr"), f"{dscr_value:.2f}x", T("c_bank"))
     if result["cash_left"] < 0:
-        tile(t[3], "Cash left in deal", "$0",
-             f"refi returns {money(-result['cash_left'])} more than invested")
+        tile(t[3], T("t_cash_left"), "$0", T("c_refi_more", x=money(-result["cash_left"])))
     else:
-        tile(t[3], "Cash left in deal", money(result["cash_left"]),
-             f"of {money(result['cash_invested'])} invested")
+        tile(t[3], T("t_cash_left"), money(result["cash_left"]),
+             T("c_of_invested", x=money(result["cash_invested"])))
 else:
     walk_away = result["max_offer_mao"]
-    tile(t[1], "Yearly return", f"{result['annualized_roi']:.2%}",
-         f"{hold}-month flip, as a yearly rate")
-    tile(t[2], "Profit as % of sale price", f"{result['profit_margin']:.2%}",
-         f"your goal {target:.2f}%")
-    tile(t[3], "Net profit", money(result["net_profit"]),
-         f"holding {money(result['monthly_holding'])} / mo")
+    tile(t[1], T("t_return"), f"{result['annualized_roi']:.2%}", T("c_flip_months", n=hold))
+    tile(t[2], T("t_margin"), f"{result['profit_margin']:.2%}", T("c_goal", x=f"{target:.2f}"))
+    tile(t[3], T("t_net_profit"), money(result["net_profit"]),
+         T("c_holding", x=money(result["monthly_holding"])))
 
 if walk_away:
-    cap = f"vs {money(price)} asking"
+    cap = T("c_vs_asking", x=money(price))
     if model == "Rental":
         bank_limit = dscr_solve["status"] == "SOLVED" and walk_away == dscr_solve["price"]
-        cap = ("the bank test sets this" if bank_limit else "your goal sets this") + f" · asking {money(price)}"
+        cap = T("c_bank_sets" if bank_limit else "c_goal_sets", x=money(price))
     if model == "BRRR" and dscr_value < 1.20:
-        cap = "based on your goal; price can't fix the bank test"
-    tile(t[4], "Most you should pay", money(walk_away), cap)
+        cap = T("c_price_cant_fix")
+    tile(t[4], T("t_max_pay"), money(walk_away), cap)
 elif model == "BRRR" and result["all_cash_out"]:
-    tile(t[4], "Most you should pay", "n/a", "you get all your cash back at refi")
+    tile(t[4], T("t_max_pay"), T("na"), T("c_all_back"))
 else:
-    tile(t[4], "Most you should pay", "none", "no price meets the target")
+    tile(t[4], T("t_max_pay"), T("none"), T("c_no_price"))
 
 if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
-    with t[1].popover("What does this mean?"):
-        text = (
-            f"**{result['irr']:.2%} a year** is your average yearly return "
-            "on the cash you put in.\n\n"
-            f"**After inflation: {result['real_irr']:.2%} a year.** Prices rise about "
-            f"{result['inflation']:.1%} a year, so future dollars buy less. This is "
-            "what your return is worth in today's money.\n\n"
-            f"**Total profit over {exit_year} years:** {money(result['total_profit'])}, "
-            f"or {money(result['real_total_profit'])} in today's dollars."
-        )
-        st.markdown(text.replace("$", "\\$"))
+    with t[1].popover(T("what_mean")):
+        st.markdown(T("p_return", irr=f"{result['irr']:.2%}", real=f"{result['real_irr']:.2%}",
+                      infl=f"{result['inflation']:.1%}", years=exit_year,
+                      profit=money(result["total_profit"]),
+                      real_profit=money(result["real_total_profit"])).replace("$", "\\$"))
 
 if model in ("Rental", "BRRR"):
-    when = "in the worst year" if model == "Rental" else "after the refi"
-    with t[2].popover("What does this mean?"):
-        st.markdown(
-            f"After vacancy and expenses, the rent covers your loan payment "
-            f"**{dscr_value:.2f} times** {when}. Banks want at least **1.20x**, so "
-            "there's a cushion if a tenant leaves or a repair comes up. Below 1.00x, "
-            "you pay part of the loan from your own pocket.")
+    when = T("when_rental") if model == "Rental" else T("when_brrr")
+    with t[2].popover(T("what_mean")):
+        st.markdown(T("p_dscr", x=f"{dscr_value:.2f}", when=when))
 
 if model == "Rental":
-    with t[3].popover("What does this mean?"):
+    with t[3].popover(T("what_mean")):
         coc = result["cash_on_cash"]
         if coc >= 0:
-            msg = (f"In year 1 you keep **{coc:.2%}** of the cash you put in, after the "
-                   "loan, expenses and money set aside for big repairs.")
+            st.markdown(T("p_coc_pos", x=f"{coc:.2%}"))
         else:
-            msg = (f"In year 1 the rent doesn't cover everything: you add about "
-                   f"**{-coc:.2%}** of the cash you put in, to pay the loan, expenses "
-                   "and money set aside for big repairs.")
-        st.markdown(msg)
+            st.markdown(T("p_coc_neg", x=f"{-coc:.2%}"))
+
 if walk_away:
-    goal = (f"hits your {target:.2f}% goal and passes the bank test"
-            if model == "Rental" else
-            f"still hits your {target:.2f}% goal" if model == "BRRR" else
-            "still leaves your target profit after repairs, loan and selling costs")
-    with t[4].popover("What does this mean?"):
-        st.markdown((f"**{money(walk_away)}** is the highest price that {goal}. "
-                     "Pay more and the numbers stop working.").replace("$", "\\$"))
+    goal = (T("g_rental", x=f"{target:.2f}") if model == "Rental" else
+            T("g_brrr", x=f"{target:.2f}") if model == "BRRR" else T("g_flip"))
+    with t[4].popover(T("what_mean")):
+        st.markdown(T("p_max", price=money(walk_away), goal=goal).replace("$", "\\$"))
+
 if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
     be = int(-(-result["breakeven_months"] // 1))   # round up
     hold_months = exit_year * 12 - (refi_month if model == "BRRR" else 0)
     typed_rate = deal["annual_rate"] if model == "Rental" else deal["post_refi_rate"]
-
-    text = (
-        f"Paying **{money(result['points_cost'])}** lowers your rate from "
-        f"{round(typed_rate * 100, 3):g}% to **{round(result['rate_used'] * 100, 3):g}%** and saves "
-        f"**{money(result['monthly_saving'])} a month**. The monthly savings pay it "
-        f"back in **{be} months** (you plan to hold {hold_months})."
-    ).replace("$", "\\$")
+    text = T("p_points", cost=money(result["points_cost"]),
+             frm=f"{round(typed_rate * 100, 3):g}",
+             to=f"{round(result['rate_used'] * 100, 3):g}",
+             save=money(result["monthly_saving"]), be=be,
+             hold=hold_months).replace("$", "\\$")
     if be <= hold_months:
-        st.success(text + " Worth it.")
+        st.success(text + T("p_worth"))
     else:
-        st.warning(text + " The monthly savings alone won't repay it before you sell. "
-                   "A lower rate also pays down more of your loan, so check your "
-                   "Yearly return above to see the full effect.")
+        st.warning(text + T("p_not_worth"))
 
 
 # Tabs
 inv, lend, sens, cf = st.tabs(
-    ["Investor view", "Lender view", "Sensitivity", "Cash flow table"])
+    [T("tab_inv"), T("tab_lend"), T("tab_sens"), T("tab_cf")])
 
 with inv:
     a, b = st.columns(2)
     with a:
-        st.markdown("#### Why this verdict")
+        st.markdown("#### " + T("why"))
         if model == "Flip":
             margin = result["profit_margin"]
-            check(f"Profit test: {money(result['net_profit'])} after all costs",
-                  result["net_profit"] > 0)
-            check(f"Minimum profit test: {margin:.2%} of the sale price. Needs at least 10%.", margin >= 0.10)
-            check(f"Profit goal: {margin:.2%} of the sale price. Your goal is {target:.2f}%.",
+            check(T("k_profit", x=money(result["net_profit"])), result["net_profit"] > 0)
+            check(T("k_min_profit", x=f"{margin:.2%}"), margin >= 0.10)
+            check(T("k_profit_goal", x=f"{margin:.2%}", goal=f"{target:.2f}"),
                   margin >= target / 100)
         else:
-            check(f"Bank test: rent covers the loan {dscr_value:.2f}x. The bank wants 1.20x.",
-                  dscr_value >= 1.20)
+            check(T("k_bank", x=f"{dscr_value:.2f}"), dscr_value >= 1.20)
             if model == "BRRR" and result["all_cash_out"]:
-                check("Return test: the refi gives back all the cash you put in", True)
+                check(T("k_return_aco"), True)
             else:
-                check(f"Return test: {result['irr']:.2%} a year. Your goal is {target:.2f}%.",
-                      irr_ok)
+                check(T("k_return", x=f"{result['irr']:.2%}", goal=f"{target:.2f}"), irr_ok)
             res = result["dscr_with_reserves"]
-            msg = (f"Repairs test (yours, not the bank's): after saving for big repairs, "
-                   f"rent covers the loan {res:.2f}x")
+            msg = T("k_repairs", x=f"{res:.2f}")
             if res >= 1.0:
                 st.info(msg)
             else:
-                st.warning(msg + ". Below 1.00x, you'd add your own money for big repairs.")
+                st.warning(msg + T("k_repairs_low"))
 
     with b:
-        st.markdown("#### What would make it work")
+        st.markdown("#### " + T("fix"))
         if model == "Flip":
             over = result["over_under_mao"]
             mao = money(result["max_offer_mao"])
             if over > 0:
-                line = f"Most you should offer: **{mao}**, {money(over)} below the asking price"
+                line = T("f_mao_below", mao=mao, x=money(over))
             else:
-                line = f"Most you should offer: **{mao}**. The asking price is already {money(-over)} under it"
+                line = T("f_mao_under", mao=mao, x=money(-over))
             st.write(line.replace("$", "\\$"))
         else:
-            st.write(f"Rent the bank needs to see: **{money2(result['required_rent_lender'])}**")
-            st.write(f"Rent to also cover big repairs: **{money2(result['required_rent'])}**")
+            st.write(T("f_rent_bank", x=money2(result["required_rent_lender"])))
+            st.write(T("f_rent_repairs", x=money2(result["required_rent"])))
             if irr_solve["status"] == "SOLVED":
-                st.write(f"Most you can pay to hit your {target:.2f}% goal: **{money(irr_solve['price'])}**")
+                st.write(T("f_max_goal", goal=f"{target:.2f}", x=money(irr_solve["price"])))
             if model == "Rental" and dscr_solve["status"] == "SOLVED":
-                st.write(f"Most you can pay to pass the bank test: **{money(dscr_solve['price'])}**")
+                st.write(T("f_max_bank", x=money(dscr_solve["price"])))
             if model == "BRRR" and aco["status"] == "SOLVED":
-                st.write(f"Price where the refi gives back all your cash: **{money(aco['price'])}**")
+                st.write(T("f_aco", x=money(aco["price"])))
 
 with lend:
     if model == "Rental":
@@ -520,7 +507,7 @@ with sens:
         base_irr = tor["base"]
         driver_note(tor["rows"], base_irr, plain)
         st.plotly_chart(tornado_chart(names, tor["rows"], base_irr, 380))
-        st.caption("Green bars help your return, red bars hurt it. Each bar changes one input up "
+        st.caption("Blue bars help your return, grey bars hurt it. Each bar changes one input up "
                    "or down, with everything else the same. Changes tested: price and rent ±10%; "
                    "loan rate and rent increases ±1%; empty months ±3%; home value growth ±1.5%.")
         
