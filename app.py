@@ -54,38 +54,50 @@ def driver_note(rows, base, names):
     top = next((r for r in rows if not r.get("all_cash_out")), None)
     if top is None:
         return
-    name = names.get(top["variable"], top["variable"]).lower()
+    name = var_name(top["variable"]).lower()
     lo, hi = sorted((top["low"], top["high"]))
-    st.markdown(f"**Biggest driver: {name}.** Within the changes tested below, your "
-                f"yearly return ranges from **{lo:.2%}** to **{hi:.2%}** (your deal: {base:.2%}).")
+    st.markdown(T("s_driver", name=name, lo=f"{lo:.2%}", hi=f"{hi:.2%}", base=f"{base:.2%}"))
 
 def tornado_chart(names, rows, base, height):
     fig = go.Figure()
-    for label, pick, colour in (("Helps your return", max, "#2a78d6"),
-                                ("Hurts your return", min, "#A0AEC0")):
+    for label, pick, colour in ((T("s_helps"), max, "#2a78d6"),
+                                (T("s_hurts"), min, "#A0AEC0")):
         values, moves = [], []
         for r in rows:
             v = pick(r["low"], r["high"])
             values.append(v)
-            moves.append("lower" if v == r["low"] else "higher")
+            moves.append(T("s_lower") if v == r["low"] else T("s_higher"))
         fig.add_trace(go.Bar(
             name=label, y=names, orientation="h",
             x=[v - base for v in values], base=[base] * len(values),
             marker_color=colour, customdata=list(zip(values, moves)),
-            hovertemplate="If %{y} is %{customdata[1]}: yearly return "
-                          "%{customdata[0]:.2%}<extra></extra>",
+            hovertemplate=T("s_hover"),
         ))
     fig.add_vline(x=base, line_dash="dot", line_color="#4A5568")
     fig.update_layout(
-        title=f"What moves your yearly return most<br><sup>Dotted line = your deal, {base:.2%}</sup>",
+        title=T("s_title", base=f"{base:.2%}"),
         barmode="overlay", height=height,
-        xaxis={"title": "Yearly return", "tickformat": ".1%"},
+        xaxis={"title": T("t_return"), "tickformat": ".1%"},
         yaxis={"type": "category", "autorange": "reversed"},
         legend={"orientation": "h", "y": -0.2},
         margin={"t": 50, "l": 10, "r": 10, "b": 10},
         plot_bgcolor="#FFFFFF",
     )
     return fig
+
+
+PLAIN = {"ARV": "Value after repairs", "Rehab": "Repair budget",
+         "Refi LTV": "New loan % of value", "Post-refi rate": "New loan rate",
+         "Rate": "Loan rate", "Interest rate": "Loan rate",
+         "Vacancy": "Empty months", "Rent growth": "Rent increases",
+         "Appreciation": "Home value growth",
+         "Vacancy rate": "Empty months", "Rehab cost": "Repair budget"}
+
+
+def var_name(v):
+    """Chart row name: engine name -> plain English -> chosen language."""
+    en = PLAIN.get(v, v)
+    return T("var_" + en, default=en)
 
 # Top bar: name, model, scenario, language
 left, mid, right, lang_col = st.columns([2, 2, 3, 1.5])
@@ -289,21 +301,27 @@ if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
 if model in ("Rental", "BRRR"):
     when = T("when_rental") if model == "Rental" else T("when_brrr")
     with t[2].popover(T("what_mean")):
-        st.markdown(T("p_dscr", x=f"{dscr_value:.2f}", when=when))
+        st.markdown(T("p_dscr", x=f"{dscr_value:.2f}", pct=f"{dscr_value:.0%}", when=when))
 
 if model == "Rental":
     with t[3].popover(T("what_mean")):
         coc = result["cash_on_cash"]
+        amt = money(abs(result["cash_flow_table"][0]["cash_flow"]))
         if coc >= 0:
-            st.markdown(T("p_coc_pos", x=f"{coc:.2%}"))
+                st.markdown(T("p_coc_pos", x=f"{coc:.2%}", amt=amt).replace("$", "\\$"))
         else:
-            st.markdown(T("p_coc_neg", x=f"{-coc:.2%}"))
+                st.markdown(T("p_coc_neg", x=f"{-coc:.2%}", amt=amt).replace("$", "\\$"))
 
 if walk_away:
-    goal = (T("g_rental", x=f"{target:.2f}") if model == "Rental" else
-            T("g_brrr", x=f"{target:.2f}") if model == "BRRR" else T("g_flip"))
+    if model == "Rental":
+        pm_key = "pm_bank" if bank_limit else "pm_goal"
+    elif model == "BRRR":
+        pm_key = "pm_goal"
+    else:
+        pm_key = "pm_flip"
     with t[4].popover(T("what_mean")):
-        st.markdown(T("p_max", price=money(walk_away), goal=goal).replace("$", "\\$"))
+        st.markdown(T(pm_key, price=money(walk_away), asking=money(price),
+                      goal=f"{target:.2f}").replace("$", "\\$"))
 
 if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
     be = int(-(-result["breakeven_months"] // 1))   # round up
@@ -371,109 +389,77 @@ with lend:
     if model == "Rental":
         approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"])
         l = st.columns(5)
-        tile(l[0], "Loan amount", money(result["loan_amount"]),
-             f"{result['ltv']:.0%} of the price")
-        tile(l[1], "Rent left after expenses", money(result["noi_y1"]),
-             "year 1, before the loan payment")
-        tile(l[2], "Loan payments / yr", money(result["annual_debt_service"]),
-            f"{round(result['rate_used'] * 100, 3):g}% fixed, 30 years")
-        tile(l[3], "Rent covers loan", f"{result['min_dscr']:.2f}x",
-             "bank wants 1.20x, 1.25x for strong")
-        note = (f"Rent covers the loan {result['min_dscr']:.2f}x and the loan is "
-                f"{result['ltv']:.0%} of the price. Strong needs 1.25x and 80% or less; "
-                "conditional needs 1.20x.")
+        tile(l[0], T("l_loan"), money(result["loan_amount"]),
+             T("c_of_price", x=f"{result['ltv']:.0%}"))
+        tile(l[1], T("l_noi"), money(result["noi_y1"]), T("c_noi"))
+        tile(l[2], T("l_debt"), money(result["annual_debt_service"]),
+             T("c_fixed", x=f"{round(result['rate_used'] * 100, 3):g}"))
+        tile(l[3], T("t_dscr"), f"{result['min_dscr']:.2f}x", T("c_bank_strong"))
+        note = T("note_rental", d=f"{result['min_dscr']:.2f}", ltv=f"{result['ltv']:.0%}")
         cap_rate = result["noi_y1"] / price
-        tile(l[4], "Cap rate", f"{cap_rate:.2%}", "rent left after expenses ÷ price")
-        with l[4].popover("What does this mean?"):
-            st.markdown((
-                f"If you paid **all cash** with no loan, you'd earn **{cap_rate:.2%}** a year "
-                f"from rent: {money(result['noi_y1'])} left after expenses ÷ "
-                f"{money(price)} price.\n\n"
-                "It ignores the loan, so you can compare properties side by side. "
-                "Compare it with similar rentals in the same area: higher means more "
-                "income for the price.").replace("$", "\\$"))
+        tile(l[4], T("l_cap"), f"{cap_rate:.2%}", T("c_cap"))
+        with l[4].popover(T("what_mean")):
+            st.markdown(T("p_cap", x=f"{cap_rate:.2%}", noi=money(result["noi_y1"]),
+                          price=money(price)).replace("$", "\\$"))
     elif model == "BRRR":
         refi = result["refi_ltv_effective"]
         approval = approval_likelihood("BRRR", result["dscr"], refi)
         l = st.columns(4)
-        tile(l[0], "New loan", money(result["refi_loan"]),
-             f"on a value after repairs of {money(arv)}")
-        tile(l[1], "New loan % of value", f"{refi:.0%}",
-             f"{refi_type}, refinance at month {refi_month}")
-        tile(l[2], "Cash back at refinance", money(result["cash_pulled_out"]),
-             "after paying off the short-term loan")
-        tile(l[3], "Rent covers loan", f"{result['dscr']:.2f}x",
-             "bank wants 1.20x, 1.25x for strong")
-        note = (f"After the refinance, rent covers the loan {result['dscr']:.2f}x and the "
-                f"new loan is {refi:.0%} of the value. Strong needs 1.25x and 80% or less; "
-                "conditional needs 1.20x.")
+        tile(l[0], T("l_new_loan"), money(result["refi_loan"]), T("c_on_arv", x=money(arv)))
+        tile(l[1], T("l_refi_ltv"), f"{refi:.0%}",
+             T("c_refi_at", type=T("rt_" + refi_type), m=refi_month))
+        tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]), T("c_after_hm"))
+        tile(l[3], T("t_dscr"), f"{result['dscr']:.2f}x", T("c_bank_strong"))
+        note = T("note_brrr", d=f"{result['dscr']:.2f}", ltv=f"{refi:.0%}")
     else:
         hm_ltv_arv = result["hm_loan"] / arv
         ltc = result["hm_loan"] / (price + rehab)
         approval = approval_likelihood("Flip", hm_ltv_on_arv=hm_ltv_arv)
         l = st.columns(4)
-        tile(l[0], "Short-term loan", money(result["hm_loan"]),
-             f"{hm_ltv:.0f}% of the price")
-        tile(l[1], "Loan % of sale price", f"{hm_ltv_arv:.2%}",
-             "lenders cap this at 75%")
-        tile(l[2], "Loan % of total cost", f"{ltc:.2%}",
-             "loan ÷ (price + repairs)")
-        tile(l[3], "Time to sell", f"{hold} months", "from buying to selling")
+        tile(l[0], T("l_hm_loan"), money(result["hm_loan"]), T("c_pct_price", x=f"{hm_ltv:.0f}"))
+        tile(l[1], T("l_ltv_arv"), f"{hm_ltv_arv:.2%}", T("c_cap75"))
+        tile(l[2], T("l_ltc"), f"{ltc:.2%}", T("c_ltc"))
+        tile(l[3], T("l_time"), T("v_months", n=hold), T("c_buy_sell"))
         if approval == "LIKELY":
-            note = (f"The loan is {hm_ltv_arv:.2%} of the sale price, under the 75% cap. "
-                    "A short-term lender is likely to fund.")
+            note = T("note_flip_ok", x=f"{hm_ltv_arv:.2%}")
         else:
-            note = (f"The loan is {hm_ltv_arv:.2%} of the sale price, over the 75% cap. "
-                    "Expect the lender to lower the loan or say no.")
+            note = T("note_flip_bad", x=f"{hm_ltv_arv:.2%}")
 
-    st.markdown("#### Will a lender fund it?")
+    st.markdown("#### " + T("fund"))
+    shown = T("a_" + approval, default=approval)
     if approval in ("STRONG", "LIKELY"):
-        st.success(f"{approval}: {note}")
+        st.success(f"{shown}: {note}")
     elif approval == "CONDITIONAL":
-        st.warning(f"{approval}: {note}")
+        st.warning(f"{shown}: {note}")
     else:
-        st.error(f"{approval}: {note}")
+        st.error(f"{shown}: {note}")
 
 with sens:
-    plain = {"ARV": "Value after repairs", "Rehab": "Repair budget",
-             "Refi LTV": "New loan % of value", "Post-refi rate": "New loan rate",
-             "Rate": "Loan rate", "Interest rate": "Loan rate",
-             "Vacancy": "Empty months", "Rent growth": "Rent increases",
-             "Appreciation": "Home value growth",
-             "Vacancy rate": "Empty months", "Rehab cost": "Repair budget"}
-    
     if model == "Flip":
-        st.info("These charts are for rentals. A flip is judged on its profit, so check "
-                "the profit tests and Most you should offer in the Investor view.")
+        st.info(T("s_flip_info"))
     elif model == "BRRR":
         tor = brrr_tornado_irr(deal)
         if tor["base_all_cash_out"]:
-            st.info("This deal gives back all the cash you put in at the refinance, so there's "
-                    "no yearly return to compare. Lower the value after repairs or the new "
-                    "loan % to see this chart.")
+            st.info(T("s_brrr_aco_info"))
         else:
             rows = tor["rows"]
-            names = [plain.get(r["variable"], r["variable"]) + (" *" if r["all_cash_out"] else "")
-                     for r in rows]
+            names = [var_name(r["variable"]) + (" *" if r["all_cash_out"] else "") for r in rows]
             base_irr = tor["base"]
-            driver_note(rows, base_irr, plain)
-            st.plotly_chart(tornado_chart(names, rows, base_irr, 360))    
-            caption = ("Blue bars help your return, grey bars hurt it. Each bar changes one input up or down, "
-                       "with everything else the same. Changes tested: value after repairs, "
-                       "rent and price ±10%; repairs ±25%; new loan % ±5%; new loan rate ±1%.")
+            driver_note(rows, base_irr, PLAIN)
+            st.plotly_chart(tornado_chart(names, rows, base_irr, 360))
+            caption = T("s_cap_brrr")
             if any(r["all_cash_out"] for r in rows):
-                caption += (" * At that change you'd get all your cash back at the refinance, "
-                            "so that bar isn't comparable.")
+                caption += T("s_aco_star")
             st.caption(caption)
     else:
         if irr_solve["status"] == "SOLVED":
             typed = round(deal["annual_rate"] * 100, 3)
             used = round(result["rate_used"] * 100, 3)
-            rate_txt = f"{typed:g}%" + (f" ({used:g}% after points)" if used != typed else "")
-            st.markdown((f"**At your {rate_txt} rate, you reach your {target:.2f}% goal "
-                         f"if you pay {money(irr_solve['price'])} or less.**").replace("$", "\\$"))
+            rate_txt = f"{typed:g}%" + (T("s_after_points", x=f"{used:g}") if used != typed else "")
+            st.markdown(T("s_reach", rate=rate_txt, goal=f"{target:.2f}",
+                          price=money(irr_solve["price"])).replace("$", "\\$"))
         else:
-            st.markdown(f"**No price in this range reaches your {target:.2f}% goal at this rate.**")
+            st.markdown(T("s_no_price", goal=f"{target:.2f}"))
         g = two_way_irr(deal)
         t_irr = target / 100
         span = max(abs(v - t_irr) for row in g["irr"] for v in row) or 0.01
@@ -484,94 +470,69 @@ with sens:
             colorscale=[[0, "#e34948"], [0.5, "#f0efec"], [1, "#2a78d6"]],
             zmin=t_irr - span, zmax=t_irr + span,
             texttemplate="%{z:.2%}", textfont={"color": "#172036"},
-            hovertemplate="Loan rate %{y}<br>Price %{x}<br>Yearly return %{z:.2%}<extra></extra>",
+            hovertemplate=T("s_heat_hover"),
             xgap=2, ygap=2,
-            colorbar={"title": "Return", "tickformat": ".0%"},
+            colorbar={"title": T("s_return_short"), "tickformat": ".0%"},
         ))
         fig.update_layout(
-            title=f"Yearly return by price and loan rate (grey = your {target:.2f}% goal)",
-            xaxis={"title": "Price", "type": "category"},
-            yaxis={"title": "Loan rate", "type": "category", "autorange": "reversed"},
+            title=T("s_heat_title", goal=f"{target:.2f}"),
+            xaxis={"title": T("price"), "type": "category"},
+            yaxis={"title": T("s_loan_rate"), "type": "category", "autorange": "reversed"},
             height=420,
             margin={"t": 50, "l": 10, "r": 10, "b": 10},
             plot_bgcolor="#FFFFFF",
         )
         st.plotly_chart(fig)
-        st.caption("How to read this: each cell is your yearly return if you paid that price "
-                   "(across) at that loan rate (down). Blue beats your goal, red misses it. "
-                   "The middle cell is your deal as entered.")
+        st.caption(T("s_heat_cap"))
 
         tor = tornado_irr(deal)
         tor["rows"] = [r for r in tor["rows"] if r["low"] != r["high"]]
-        names = [plain.get(r["variable"], r["variable"]) for r in tor["rows"]]
+        names = [var_name(r["variable"]) for r in tor["rows"]]
         base_irr = tor["base"]
-        driver_note(tor["rows"], base_irr, plain)
+        driver_note(tor["rows"], base_irr, PLAIN)
         st.plotly_chart(tornado_chart(names, tor["rows"], base_irr, 380))
-        st.caption("Blue bars help your return, grey bars hurt it. Each bar changes one input up "
-                   "or down, with everything else the same. Changes tested: price and rent ±10%; "
-                   "loan rate and rent increases ±1%; empty months ±3%; home value growth ±1.5%.")
-        
+        st.caption(T("s_cap_rental"))
+
 with cf:
     if model == "Flip":
         items = [
-            ("Purchase price", price),
-            ("Repairs", rehab),
-            ("Short-term loan interest", result["hm_interest"]),
-            ("Short-term lender fee", result["hm_points"]),
-            ("Buying closing costs", result["closing_costs"]),
-            (f"Holding costs ({hold} months)", result["total_holding"]),
-            ("Selling costs", result["selling_cost"]),
-            ("Total cost", result["total_project_cost"]),
-            ("Sale price", arv),
-            ("Net profit", result["net_profit"]),
-            ("Cash you put in", result["cash_invested"]),
+            (T("cf_price"), price),
+            (T("cf_repairs"), rehab),
+            (T("cf_hm_interest"), result["hm_interest"]),
+            (T("cf_hm_fee"), result["hm_points"]),
+            (T("cf_closing"), result["closing_costs"]),
+            (T("cf_holding", n=hold), result["total_holding"]),
+            (T("cf_selling"), result["selling_cost"]),
+            (T("cf_total"), result["total_project_cost"]),
+            (T("cf_sale"), arv),
+            (T("t_net_profit"), result["net_profit"]),
+            (T("cf_cash_in"), result["cash_invested"]),
         ]
-        table = pd.DataFrame({"Amount": [v for _, v in items]},
+        table = pd.DataFrame({T("cf_amount"): [v for _, v in items]},
                              index=[k for k, _ in items])
         st.dataframe(table.style.format(money), width=420, height=422)
-        st.caption("A flip is one buy and one sale, so this is a cost list rather than a "
-                   "yearly table. Net profit = sale price minus total cost.")
+        st.caption(T("cf_cap_flip"))
     elif model == "BRRR":
         rows = result["cash_flow_table"]
-        labels = {
-            "noi": "Rent left after expenses",
-            "debt_service": "Loan payments",
-            "capex_reserve": "Saved for big repairs",
-            "cash_flow": "Cash flow",
-            "cash_out_at_refi": "Cash back at refinance",
-            "sale_proceeds": "Cash from sale",
-        }
+        keys = ["noi", "debt_service", "capex_reserve", "cash_flow", "cash_out_at_refi",
+                "sale_proceeds"]
         table = pd.DataFrame(
-            {f"Year {r['year']}": [r[k] for k in labels] for r in rows},
-            index=list(labels.values()),
+            {T("cf_year", n=r["year"]): [r[k] for k in keys] for r in rows},
+            index=[T("cf_" + k) for k in keys],
         )
         st.dataframe(table.style.format(money), width="stretch")
-        st.caption(f"Months 1 to {refi_month}: you pay only interest on the short-term loan. "
-                   "After that, the new 30-year loan's payments start. Cash flow is rent left "
-                   "after expenses, minus loan payments and money saved for big repairs.")
+        st.caption(T("cf_cap_brrr", m=refi_month))
     else:
         rows = result["cash_flow_table"]
-        labels = {
-            "gross_rent": "Rent charged",
-            "effective_income": "Rent after empty months",
-            "operating_expenses": "Running costs",
-            "noi": "Rent left after expenses",
-            "interest": "Loan interest",
-            "capex_reserve": "Saved for big repairs",
-            "cash_flow": "Cash flow",
-            "principal": "Loan paid down (yours at sale)",
-            "sale_proceeds": "Cash from sale",
-        }
+        keys = ["gross_rent", "effective_income", "operating_expenses", "noi", "interest",
+                "capex_reserve", "cash_flow", "principal", "sale_proceeds"]
         table = pd.DataFrame(
-            {f"Year {r['year']}": [r[k] for k in labels] for r in rows},
-            index=list(labels.values()),
+            {T("cf_year", n=r["year"]): [r[k] for k in keys] for r in rows},
+            index=[T("cf_" + k) for k in keys],
         )
         st.dataframe(table.style.format(money), width="stretch")
-        dscr_row = "  ·  ".join(f"Y{r['year']}: {r['dscr']:.2f}x" for r in rows)
-        st.caption(f"Rent covers loan, by year: {dscr_row}")
-        st.caption("Cash flow is rent left after expenses, minus loan interest and money "
-                   "saved for big repairs. The loan you pay down is shown separately, "
-                   "because you get it back when you sell.")
+        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'])}: {r['dscr']:.2f}x" for r in rows)
+        st.caption(T("cf_dscr_by_year", x=dscr_row))
+        st.caption(T("cf_cap_rental"))
 st.divider()
-st.caption("For education and deal screening only. Not financial, lending, tax or "
-           "investment advice. Check every number with your own lender and advisors.")
+st.caption(T("disclaimer"))

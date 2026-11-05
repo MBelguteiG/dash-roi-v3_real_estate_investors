@@ -27,14 +27,14 @@ TEXT = {
         "1. **Хөрөнгө оруулалтын стратеги болон хувилбараа сонгоно уу** (дээд мөрөнд): "
         "Түрээсийн байр, АЗТД (Авах → Засах → Түрээслүүлэх → Дахин санхүүжүүлэх) "
         "эсвэл Засаад зарах; Гутранги, Суурь эсвэл Өөдрөг.\n"
-        "2. **Гэрээний мэдээллээ оруулна уу.** Тоо бичсний дараа Enter дарах, "
+        "2. **Үл хөдлөх эд хөрөнгийн мэдээллээ оруулна уу.** Мэдээлэлээ бичсэний дараа Enter дарах, "
         "эсвэл − болон + товч ашиглана.\n"
-        "3. **Шийдвэрийг уншина уу.** Дээрх талбарууд гол тоонуудыг харуулна; "
-        "*Хөрөнгө оруулагчийн хувьд* шийдвэрийн шалтгаан болон юуг өөрчилбөл "
-        "болохыг тайлбарлана; *Зээлдүүлэгчийн хувьд* банк зээлийг хэрхэн тооцож, "
-        "олгох магадлалтайг харуулна.\n"
-        "4. **Төлж болох дээд үнэ** нь зорилгоо хангасаар төлж болох хамгийн өндөр үнэ "
-        "(Засаад зарах үед санал болгох дээд үнэ).",
+        "3. **Шийдвэрийг уншина уу.** Танд санхүүгийн үзүүлэлтүүдийг харуулна; "
+        "*Хөрөнгө оруулагчийн хувьд* шийдвэрийн шалтгаан болон мөн ямар хүчин зүйлийг өөрчилбөл "
+        "та хөрөнгө оруулалтын зорилгодоо хүрэхийг тайлбарлана; *Зээлдүүлэгчийн хувьд* банк зээлийг хэрхэн тооцож, "
+        "зээл олгох магадлалыг харуулна.\n"
+        "4. **Төлж болох дээд үнэ** нь таны хүсэж байгаа хөрөнгө оруулалтын өгөөжийн зорилгыг хангах дээд үнэ "
+        "(Засаад зарах үед: засвар, зээл, эзэмших болон борлуулалтын зардлын дараа ашгийн зорилгодоо хүрэхийн тулд худалдагчид санал болгох хамгийн өндөр үнэ).",
     ),
 
     # --- dropdown options ---
@@ -44,8 +44,8 @@ TEXT = {
     "pt_Condo": ("Condo", "Кондо (орон сууц)"),
     "pt_Townhouse": ("Townhouse", "Таунхаус"),
     "pt_Duplex": ("Duplex", "Хоёр айлын байшин"),
-    "rt_Cash-Out": ("Cash-Out", "Бэлэн мөнгө авах"),
-    "rt_Rate/Term": ("Rate/Term", "Хүү/хугацаа солих"),
+    "rt_Cash-Out": ("Cash-Out", "Дахин санхүүжилт (бэлэн мөнгө гаргаж авах)"),
+    "rt_Rate/Term": ("Rate/Term", "Дахин санхүүжилт (зөвхөн зээлийн нөхцөл солих)"),
 
     # --- input labels ---
     "state": ("State", "Муж"),
@@ -108,8 +108,8 @@ TEXT = {
                     "Шинэ 30 жилийн зээлийн жилийн хүү."),
     "h_refi_type": ("Cash-Out: borrow the full % and take cash back out. "
                     "Rate/Term: borrow only enough to pay off the short-term loan.",
-                    "Бэлэн мөнгө авах: зээлийг бүтэн хувиар авч, бэлэн мөнгө буцааж авна. "
-                    "Хүү/хугацаа солих: зөвхөн богино хугацааны зээлээ төлөх хэмжээгээр зээлнэ."),
+                    "Дахин санхүүжилт (бэлэн мөнгө гаргаж авах): зээлийг бүтэн хувиар авч, бэлэн мөнгө буцааж авна. "
+                    "Дахин санхүүжилт (зөвхөн зээлийн нөхцөл солих): зөвхөн богино хугацааны зээлээ төлөх хэмжээгээр зээлнэ."),
     "h_hold": ("From buying to selling.", "Худалдаж авснаас зарах хүртэлх хугацаа."),
     "h_profit_goal": ("The profit you want, as a % of the sale price.",
                       "Зарах үнийн хувиар хүсч буй ашиг."),
@@ -151,10 +151,9 @@ TEXT = {
     "c_flip_months": ("{n}-month flip, as a yearly rate", "{n} сарын засаад зарах, жилийн хувиар"),
     "c_holding": ("holding {x} / mo", "эзэмших зардал {x} / сар"),
     "c_vs_asking": ("vs {x} asking", "худалдагчийн зарах үнэ {x}"),
-    "c_bank_sets": ("the bank test sets this · asking {x}",
-                    "банкны шалгуураар тогтсон · худалдагчийн зарах үнэ {x}"),
-    "c_goal_sets": ("your goal sets this · asking {x}",
-                    "таны зорилгоор тогтсон · худалдагчийн зарах үнэ {x}"),
+    "c_bank_sets": ("the bank test sets this · asking {x}", "худалдагчийн зарах үнэ {x}"),
+    "c_goal_sets": ("your goal sets this · asking {x}", "худалдагчийн зарах үнэ {x}"),
+                 
     "c_price_cant_fix": ("based on your goal; price can't fix the bank test",
                          "зорилгод үндэслэсэн; үнээр банкны шалгуурыг засах боломжгүй"),
     "na": ("n/a", "Хамаарахгүй"),
@@ -171,7 +170,7 @@ TEXT = {
         "dollars buy less. This is what your return is worth in today's money.\n\n"
         "**Total profit over {years} years:** {profit}, or {real_profit} in today's dollars.",
         "**Жилд {irr}** нь таны оруулсан бэлэн мөнгөний дундаж жилийн өгөөж.\n\n"
-        "**Инфляцийн дараа: жилд {real}.** Үнэ жилд ойролцоогоор {infl}-иар өсдөг тул "
+        "**Инфляцийн дараа: жилд {real}.** Үнэ жилд ойролцоогоор {infl}-иар өсөх тул "
         "ирээдүйн доллараар бага зүйл худалдан авна. Энэ нь таны өгөөжийн өнөөгийн "
         "мөнгөөр илэрхийлсэн үнэ цэнэ.\n\n"
         "**{years} жилийн нийт ашиг:** {profit}, өнөөгийн мөнгөөр {real_profit}.",
@@ -182,22 +181,22 @@ TEXT = {
         "After vacancy and expenses, the rent covers your loan payment **{x} times** {when}. "
         "Banks want at least **1.20x**, so there's a cushion if a tenant leaves or a repair "
         "comes up. Below 1.00x, you pay part of the loan from your own pocket.",
-        "Түрээслэгчгүй байх хугацаа болон зардлын дараа түрээсийн орлого {when} зээлийн төлбөрийг "
-        "**{x} дахин** нөхөж байна. Банк дор хаяж **1.20x** шаарддаг тул түрээслэгч гарах "
-        "эсвэл засвар гарах үед нөөц үлдэнэ. 1.00x-ээс доош бол зээлийн төлбөрийн нэг "
-        "хэсгийг өөрийн мөнгөөр төлнө.",
+        "Холбогдох зардлыг хассаны дараах түрээсийн орлого {when} зээлийн төлбөрийн **{pct}**-ийг "
+        "төлөхөд хүрч байна. Банк дор хаяж **120%** (1.20x) шаарддаг. 100%-иас бага бол "
+        "зээлийн төлбөрийн дутуу хэсгийг өөрийн мөнгөөр төлнө.",
     ),
     "p_coc_pos": (
         "In year 1 you keep **{x}** of the cash you put in, after the loan, expenses and "
         "money set aside for big repairs.",
-        "Эхний жилд зээл, зардал болон томоохон засварын зардалын дараа оруулсан бэлэн "
-        "мөнгөнийхөө **{x}**-ийг гартаа авна.",
+        "Эхний жилд зээлийн төлбөр, холбогдох зардал болон засварын нөөцийг хассаны дараа "
+        "танд ойролцоогоор **{amt}** үлдэнэ. Энэ нь таны оруулсан бэлэн мөнгөний **{x}** юм.",
     ),
     "p_coc_neg": (
         "In year 1 the rent doesn't cover everything: you add about **{x}** of the cash you "
         "put in, to pay the loan, expenses and money set aside for big repairs.",
-        "Эхний жилд түрээс бүх зардлыг нөхөхгүй: зээл, зардал, томоохон засварын нөөцөд "
-        "оруулсан бэлэн мөнгөнийхөө ойролцоогоор **{x}**-тэй тэнцэх мөнгийг нэмж төлнө.",
+        "Эхний жилд түрээсийн орлого зээлийн төлбөр, холбогдох зардал болон засварын нөөцийг "
+        "нөхөхгүй тул та өөрийн мөнгөнөөс ойролцоогоор **{amt}** нэмж төлнө. Энэ нь таны оруулсан "
+        "бэлэн мөнгөний **{x}** юм.",
     ),
     "g_rental": ("hits your {x}% goal and passes the bank test",
                  "таны {x}% зорилгод хүрч, банкны шалгуурыг давах"),
@@ -206,6 +205,21 @@ TEXT = {
                "засвар, зээл, борлуулалтын зардлын дараа зорилтот ашгаа хадгалах"),
     "p_max": ("**{price}** is the highest price that {goal}. Pay more and the numbers stop working.",
               "**{price}** бол {goal} хамгийн өндөр үнэ. Үүнээс илүү төлбөл тооцоо таарахгүй."),
+    "pm_goal": ("The seller is asking **{asking}**. Don't pay more than **{price}**: above that, "
+                "your yearly return falls below your **{goal}%** goal.",
+                "Худалдагчийн зарах үнэ **{asking}**. Та **{price}**-аас илүү төлөх ёсгүй: "
+                "үүнээс их төлбөл жилийн өгөөж таны **{goal}%** зорилгод хүрэхгүй."),
+    "pm_bank": ("The seller is asking **{asking}**. Don't pay more than **{price}**: above that, "
+                "the loan gets too big and fails the bank test (rent must cover the loan 1.20x).",
+                "Худалдагчийн зарах үнэ **{asking}**. Та **{price}**-аас илүү төлөх ёсгүй: "
+                "үүнээс их төлбөл зээл томорч, банкны шалгуурыг (түрээс / зээлийн төлбөрийн "
+                "харьцаа 1.20x) давахгүй."),
+    "pm_flip": ("The seller is asking **{asking}**. Don't offer more than **{price}**: above that, "
+                "after repairs, loan, holding and selling costs your profit falls below your "
+                "**{goal}%** goal.",
+                "Худалдагчийн зарах үнэ **{asking}**. Та **{price}**-аас илүү санал болгох ёсгүй: "
+                "үүнээс их төлбөл засвар, зээл, эзэмших болон борлуулалтын зардлын дараа ашиг "
+                "таны **{goal}%** зорилгод хүрэхгүй."),
 
     # --- points sentence ---
     "p_points": (
@@ -218,7 +232,7 @@ TEXT = {
     "p_not_worth": (
         " The monthly savings alone won't repay it before you sell. A lower rate also pays "
         "down more of your loan, so check your Yearly return above to see the full effect.",
-        "Та зарахаасаа өмнө оноонд төлсөн мөнгөө сарын хэмнэлтээр буцааж олж амжихгүй. "
+        " Та зарахаасаа өмнө оноонд төлсөн мөнгөө сарын хэмнэлтээр буцааж олж амжихгүй. "
         "Гэхдээ зарах үед зээлийн үлдэгдэл бага байх тул Жилийн өгөөжийг харна уу.",
     ),
 
@@ -245,7 +259,7 @@ TEXT = {
                 "Өгөөж зорилгод хүрсэн эсэх: жилд {x}. Таны зорилго {goal}%."),
     "k_repairs": ("Repairs test (yours, not the bank's): after saving for big repairs, "
                   "rent covers the loan {x}x",
-                  "Засварын зардалыг даах эсэх (банкных биш, таных): томоохон засварт мөнгө "
+                  "Засварын зардлыг даах эсэх (банкных биш, таных): томоохон засварт мөнгө "
                   "хуримтлуулсны дараа түрээс зээлийг {x}x нөхөнө"),
     "k_repairs_low": (". Below 1.00x, you'd add your own money for big repairs.",
                       ". 1.00x-ээс доош бол томоохон засварт өөрийн мөнгө нэмнэ."),
@@ -262,6 +276,187 @@ TEXT = {
                    "Банкны шалгуурыг давах дээд үнэ: **{x}**"),
     "f_aco": ("Price where the refi gives back all your cash: **{x}**",
               "Дахин санхүүжилтээр бүх мөнгөө буцааж авах үнэ: **{x}**"),
+
+# --- lender view ---
+    "l_loan": ("Loan amount", "Зээлийн дүн"),
+    "c_of_price": ("{x} of the price", "үнийн {x}"),
+    "l_noi": ("Rent left after expenses", "Зардлын дараах түрээсийн орлого"),
+    "c_noi": ("year 1, before the loan payment", "эхний жил, зээлийн төлбөрөөс өмнө"),
+    "l_debt": ("Loan payments / yr", "Зээлийн төлбөр / жил"),
+    "c_fixed": ("{x}% fixed, 30 years", "{x}% тогтмол хүү, 30 жил"),
+    "c_bank_strong": ("bank wants 1.20x, 1.25x for strong",
+                      "банк 1.20x шаарддаг, 1.25x бол сайн"),
+    "note_rental": ("Rent covers the loan {d}x and the loan is {ltv} of the price. "
+                    "Strong needs 1.25x and 80% or less; conditional needs 1.20x.",
+                    "Түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {d}x, зээл үнийн {ltv}. "
+                    "Сайн үнэлгээнд 1.25x ба 80%-иас бага; нөхцөлтэйд 1.20x шаардлагатай."),
+    "l_cap": ("Cap rate", "Капиталжуулалтын түвшин"),
+    "c_cap": ("rent left after expenses ÷ price", "зардлын дараах түрээсийн орлого ÷ үнэ"),
+    "p_cap": (
+        "If you paid **all cash** with no loan, you'd earn **{x}** a year from rent: "
+        "{noi} left after expenses ÷ {price} price.\n\n"
+        "It ignores the loan, so you can compare properties side by side. Compare it with "
+        "similar rentals in the same area: higher means more income for the price.",
+        "Зээлгүйгээр **бүхэлд нь бэлнээр** төлсөн бол түрээсээс жилд **{x}** олно: "
+        "зардлын дараах {noi} ÷ {price} үнэ.\n\n"
+        "Зээлийг тооцдоггүй тул үл хөдлөх хөрөнгүүдийг хооронд нь харьцуулж болно. "
+        "Ижил бүсийн түрээсийн байртай харьцуулаарай: өндөр байх тусам үнэдээ илүү орлоготой.",
+    ),
+    "l_new_loan": ("New loan", "Шинэ зээл"),
+    "c_on_arv": ("on a value after repairs of {x}", "засварын дараах {x} үнэ цэнэд"),
+    "l_refi_ltv": ("New loan % of value", "Зээл, байрны үнэлгээний харьцаа"),
+    "c_refi_at": ("{type}, refinance at month {m}", "{type}, {m} дахь сард"),
+    "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр авах бэлэн мөнгө"),
+    "c_after_hm": ("after paying off the short-term loan",
+                   "богино хугацааны зээлээ төлсний дараа"),
+    "note_brrr": ("After the refinance, rent covers the loan {d}x and the new loan is {ltv} "
+                  "of the value. Strong needs 1.25x and 80% or less; conditional needs 1.20x.",
+                  "Дахин санхүүжилтийн дараа түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {d}x, "
+                  "шинэ зээл үнэлгээний {ltv}. Сайн үнэлгээнд 1.25x ба 80%-иас бага; "
+                  "нөхцөлтэйд 1.20x шаардлагатай."),
+    "l_hm_loan": ("Short-term loan", "Богино хугацааны зээл"),
+    "c_pct_price": ("{x}% of the price", "үнийн {x}%"),
+    "l_ltv_arv": ("Loan % of sale price", "Зээл, зарах үнийн %"),
+    "c_cap75": ("lenders cap this at 75%", "зээлдүүлэгчид үүнийг 75%-иар хязгаарладаг"),
+    "l_ltc": ("Loan % of total cost", "Зээл, нийт зардлын %"),
+    "c_ltc": ("loan ÷ (price + repairs)", "зээл ÷ (үнэ + засвар)"),
+    "l_time": ("Time to sell", "Зарах хугацаа"),
+    "v_months": ("{n} months", "{n} сар"),
+    "c_buy_sell": ("from buying to selling", "худалдаж авснаас зарах хүртэл"),
+    "note_flip_ok": ("The loan is {x} of the sale price, under the 75% cap. "
+                     "A short-term lender is likely to fund.",
+                     "Зээл зарах үнийн {x}, 75%-ийн хязгаараас бага. "
+                     "Богино хугацааны зээлдүүлэгч санхүүжүүлэх магадлалтай."),
+    "note_flip_bad": ("The loan is {x} of the sale price, over the 75% cap. "
+                      "Expect the lender to lower the loan or say no.",
+                      "Зээл зарах үнийн {x}, 75%-ийн хязгаараас их. "
+                      "Зээлдүүлэгч зээлийг бууруулах эсвэл татгалзаж болзошгүй."),
+    "fund": ("Will a lender fund it?", "Зээлдүүлэгч санхүүжүүлэх үү?"),
+    "a_STRONG": ("STRONG", "Сайн"),
+    "a_LIKELY": ("LIKELY", "Магадлалтай"),
+    "a_CONDITIONAL": ("CONDITIONAL", "Нөхцөлтэй"),
+    "a_LIKELY DECLINE": ("LIKELY DECLINE", "Татгалзах магадлалтай"),
+    "a_DECLINE": ("DECLINE", "Татгалзана"),
+
+    # --- sensitivity ---
+    "var_Purchase price": ("Purchase price", "Худалдан авах үнэ"),
+    "var_Value after repairs": ("Value after repairs", "Засварын дараах үнэ цэнэ"),
+    "var_Repair budget": ("Repair budget", "Засварын төсөв"),
+    "var_Monthly rent": ("Monthly rent", "Сарын түрээс"),
+    "var_New loan rate": ("New loan rate", "Шинэ зээлийн хүү"),
+    "var_New loan % of value": ("New loan % of value", "Зээл, байрны үнэлгээний харьцаа"),
+    "var_Home value growth": ("Home value growth", "Байрны үнийн өсөлт"),
+    "var_Loan rate": ("Loan rate", "Зээлийн хүү"),
+    "var_Empty months": ("Empty months", "Түрээслэгчгүй байх хугацаа"),
+    "var_Rent increases": ("Rent increases", "Түрээсийн өсөлт"),
+    "s_driver": ("**Biggest driver: {name}.** Within the changes tested below, your yearly "
+                 "return ranges from **{lo}** to **{hi}** (your deal: {base}).",
+                 "**Хамгийн их нөлөөлөх хүчин зүйл: {name}.** Доорх өөрчлөлтүүдийн хүрээнд "
+                 "таны жилийн өгөөж **{lo}**-аас **{hi}** хооронд байна (таны тооцоо: {base})."),
+    "s_helps": ("Helps your return", "Өгөөжийг нэмэгдүүлнэ"),
+    "s_hurts": ("Hurts your return", "Өгөөжийг бууруулна"),
+    "s_lower": ("lower", "бага"),
+    "s_higher": ("higher", "өндөр"),
+    "s_hover": ("If %{y} is %{customdata[1]}: yearly return %{customdata[0]:.2%}<extra></extra>",
+                "%{y} %{customdata[1]} бол: жилийн өгөөж %{customdata[0]:.2%}<extra></extra>"),
+    "s_title": ("What moves your yearly return most<br><sup>Dotted line = your deal, {base}</sup>",
+                "Жилийн өгөөжид юу хамгийн их нөлөөлөх вэ<br><sup>Тасархай шугам = таны тооцоо, {base}</sup>"),
+    "s_flip_info": ("These charts are for rentals. A flip is judged on its profit, so check the "
+                    "profit tests and Most you should offer in the Investor view.",
+                    "Эдгээр график түрээсийн байранд зориулагдсан. Засаад зарах хөрөнгө оруулалтыг "
+                    "ашгаар нь үнэлдэг тул Хөрөнгө оруулагчийн хувьд хэсгийн ашгийн шалгуур болон "
+                    "санал болгох дээд үнийг харна уу."),
+    "s_brrr_aco_info": ("This deal gives back all the cash you put in at the refinance, so there's "
+                        "no yearly return to compare. Lower the value after repairs or the new "
+                        "loan % to see this chart.",
+                        "Дахин санхүүжилтээр оруулсан бүх мөнгөө буцааж авах тул харьцуулах жилийн "
+                        "өгөөж байхгүй. Графикийг харахын тулд засварын дараах үнэ цэнэ эсвэл "
+                        "зээл, байрны үнэлгээний харьцааг бууруулна уу."),
+    "s_cap_brrr": ("Blue bars help your return, grey bars hurt it. Each bar changes one input up "
+                   "or down, with everything else the same. Changes tested: value after repairs, "
+                   "rent and price ±10%; repairs ±25%; new loan % ±5%; new loan rate ±1%.",
+                   "Цэнхэр нь өгөөжийг нэмэгдүүлж, саарал нь бууруулна. Бусдыг нь хэвээр үлдээж, "
+                   "нэг үзүүлэлтийг өсгөж эсвэл бууруулсан. Шалгасан өөрчлөлт: засварын дараах "
+                   "үнэ цэнэ, түрээс, үнэ ±10%; засвар ±25%; зээлийн харьцаа ±5%; шинэ зээлийн хүү ±1%."),
+    "s_aco_star": (" * At that change you'd get all your cash back at the refinance, so that bar "
+                   "isn't comparable.",
+                   " * Энэ өөрчлөлтөөр дахин санхүүжилтээр бүх мөнгөө буцааж авах тул тухайн "
+                   "баганыг харьцуулах боломжгүй."),
+    "s_cap_rental": ("Blue bars help your return, grey bars hurt it. Each bar changes one input up "
+                     "or down, with everything else the same. Changes tested: price and rent ±10%; "
+                     "loan rate and rent increases ±1%; empty months ±3%; home value growth ±1.5%.",
+                     "Цэнхэр нь өгөөжийг нэмэгдүүлж, саарал нь бууруулна. Бусдыг нь хэвээр үлдээж, "
+                     "нэг үзүүлэлтийг өсгөж эсвэл бууруулсан. Шалгасан өөрчлөлт: үнэ, түрээс ±10%; "
+                     "зээлийн хүү, түрээсийн өсөлт ±1%; түрээслэгчгүй хугацаа ±3%; байрны үнийн өсөлт ±1.5%."),
+    "s_after_points": (" ({x}% after points)", " (оноо авсны дараа {x}%)"),
+    "s_reach": ("**At your {rate} rate, you reach your {goal}% goal if you pay {price} or less.**",
+                "**{rate} хүүтэй үед {price} буюу түүнээс бага төлбөл {goal}% зорилгодоо хүрнэ.**"),
+    "s_no_price": ("**No price in this range reaches your {goal}% goal at this rate.**",
+                   "**Энэ хүүгээр энэ хүрээний аль ч үнээр {goal}% зорилгод хүрэхгүй.**"),
+    "s_heat_hover": ("Loan rate %{y}<br>Price %{x}<br>Yearly return %{z:.2%}<extra></extra>",
+                     "Зээлийн хүү %{y}<br>Үнэ %{x}<br>Жилийн өгөөж %{z:.2%}<extra></extra>"),
+    "s_return_short": ("Return", "Өгөөж"),
+    "s_heat_title": ("Yearly return by price and loan rate (grey = your {goal}% goal)",
+                     "Үнэ болон зээлийн хүүгээр жилийн өгөөж (саарал = таны {goal}% зорилго)"),
+    "s_loan_rate": ("Loan rate", "Зээлийн хүү"),
+    "s_heat_cap": ("How to read this: each cell is your yearly return if you paid that price "
+                   "(across) at that loan rate (down). Blue beats your goal, red misses it. "
+                   "The middle cell is your deal as entered.",
+                   "Хэрхэн унших вэ: нүд бүр тухайн үнээр (хэвтээ) болон зээлийн хүүгээр (босоо) "
+                   "авбал гарах жилийн өгөөжийг харуулна. Цэнхэр нь зорилгоос давсан, улаан нь "
+                   "хүрээгүй. Голын нүд нь таны оруулсан тооцоо."),
+
+    # --- cash flow table ---
+    "cf_amount": ("Amount", "Дүн"),
+    "cf_price": ("Purchase price", "Худалдан авах үнэ"),
+    "cf_repairs": ("Repairs", "Засвар"),
+    "cf_hm_interest": ("Short-term loan interest", "Богино хугацааны зээлийн хүү"),
+    "cf_hm_fee": ("Short-term lender fee", "Богино хугацааны зээлдүүлэгчийн шимтгэл"),
+    "cf_closing": ("Buying closing costs", "Худалдан авах үеийн хаалтын зардал"),
+    "cf_holding": ("Holding costs ({n} months)", "Эзэмших зардал ({n} сар)"),
+    "cf_selling": ("Selling costs", "Борлуулалтын зардал"),
+    "cf_total": ("Total cost", "Нийт зардал"),
+    "cf_sale": ("Sale price", "Зарах үнэ"),
+    "cf_cash_in": ("Cash you put in", "Оруулсан бэлэн мөнгө"),
+    "cf_cap_flip": ("A flip is one buy and one sale, so this is a cost list rather than a yearly "
+                    "table. Net profit = sale price minus total cost.",
+                    "Засаад зарах нь нэг удаа авч, нэг удаа зарах тул жилийн хүснэгт биш, зардлын "
+                    "жагсаалт байна. Цэвэр ашиг = зарах үнэ хасах нийт зардал."),
+    "cf_year": ("Year {n}", "{n}-р жил"),
+    "cf_year_short": ("Y{n}", "{n}-р жил"),
+    "cf_gross_rent": ("Rent charged", "Түрээсийн орлого"),
+    "cf_effective_income": ("Rent after empty months", "Түрээслэгчгүй хугацааны дараах түрээс"),
+    "cf_operating_expenses": ("Running costs", "Үйл ажиллагааны зардал"),
+    "cf_noi": ("Rent left after expenses", "Зардлын дараах түрээсийн орлого"),
+    "cf_interest": ("Loan interest", "Хүүгийн төлбөр"),
+    "cf_debt_service": ("Loan payments", "Зээлийн төлбөр"),
+    "cf_capex_reserve": ("Saved for big repairs", "Засварт зориулсан нөөц"),
+    "cf_cash_flow": ("Cash flow", "Мөнгөн гүйлгээ"),
+    "cf_principal": ("Loan paid down (yours at sale)", "Төлөгдсөн үндсэн зээл (зарахад таных)"),
+    "cf_cash_out_at_refi": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авах бэлэн мөнгө"),
+    "cf_sale_proceeds": ("Cash from sale", "Борлуулалтаас орох мөнгө"),
+    "cf_cap_brrr": ("Months 1 to {m}: you pay only interest on the short-term loan. After that, the "
+                    "new 30-year loan's payments start. Cash flow is rent left after expenses, minus "
+                    "loan payments and money saved for big repairs.",
+                    "1-{m} дэх сар: богино хугацааны зээлийн зөвхөн хүүг төлнө. Үүний дараа шинэ "
+                    "30 жилийн зээлийн төлбөр эхэлнэ. Мөнгөн гүйлгээ = зардлын дараах түрээсийн "
+                    "орлого - зээлийн төлбөр - засварт зориулсан нөөцийн зардал."),
+    "cf_dscr_by_year": ("Rent covers loan, by year: {x}",
+                        "Түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа, жилээр: {x}"),
+    "cf_cap_rental": ("Cash flow is rent left after expenses, minus loan interest and money saved for "
+                      "big repairs. The loan you pay down is shown separately, because you get it "
+                      "back when you sell.",
+                      "Мөнгөн гүйлгээ = зардлын дараах түрээсийн орлого - хүүгийн төлбөр - "
+                      "засварт зориулсан нөөцийн зардал. Төлөгдсөн үндсэн зээлийг тусад нь харуулсан, учир нь "
+                      "зарах үед үүнийг буцааж авна."),
+
+    # --- footer ---
+    "disclaimer": ("For education and deal screening only. Not financial, lending, tax or "
+                   "investment advice. Check every number with your own lender and advisors.",
+                   "Зөвхөн сургалт болон анхан шатны үнэлгээнд зориулав. Санхүү, зээл, татвар, "
+                   "хөрөнгө оруулалтын зөвлөгөө биш. Тоо бүрийг өөрийн зээлдүүлэгч, "
+                   "зөвлөхүүдтэйгээ нягтална уу."),
+
 }
 
 
