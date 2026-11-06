@@ -44,8 +44,8 @@ TEXT = {
     "pt_Condo": ("Condo", "Кондо (орон сууц)"),
     "pt_Townhouse": ("Townhouse", "Таунхаус"),
     "pt_Duplex": ("Duplex", "Хоёр айлын байшин"),
-    "rt_Cash-Out": ("Cash-Out", "Дахин санхүүжилт (бэлэн мөнгө гаргаж авах)"),
-    "rt_Rate/Term": ("Rate/Term", "Дахин санхүүжилт (зөвхөн зээлийн нөхцөл солих)"),
+    "rt_Cash-Out": ("Cash-Out", "Бэлэн мөнгө гаргаж авах"),
+    "rt_Rate/Term": ("Rate/Term", "Зөвхөн зээлийн нөхцөл солих"),
 
     # --- input labels ---
     "state": ("State", "Муж"),
@@ -136,31 +136,32 @@ TEXT = {
     "t_return": ("Yearly return", "Жилийн өгөөж"),
     "t_dscr": ("Rent covers loan", "Түрээс / зээлийн төлбөрийн харьцаа"),
     "t_coc": ("First-year cash return", "Эхний жилийн бэлэн мөнгөний өгөөж"),
-    "t_cash_left": ("Cash left in deal", "Үлдсэн бэлэн мөнгө"),
+    "t_cash_left": ("Your money still in the property", "Үлдэгдэл хөрөнгө оруулалт"),
     "t_margin": ("Profit as % of sale price", "Ашиг, зарах үнийн %"),
     "t_net_profit": ("Net profit", "Цэвэр ашиг"),
     "t_max_pay": ("Most you should pay", "Төлж болох дээд үнэ"),
-    "c_goal": ("your goal {x}%", "таны зорилго {x}%"),
+    "c_goal": ("your goal {x}%", "таны зорилт {x}%"),
     "c_bank": ("bank wants 1.20x+", "банк 1.20x-ээс дээш шаарддаг"),
     "c_coc": ("of the cash you put in", "оруулсан бэлэн мөнгөнөөс"),
     "all_cash_out": ("All cash out", "Оруулсан мөнгөө бүрэн буцааж авсан"),
     "c_no_cash_left": ("no cash left in the deal", "хөрөнгө оруулалтаа бүрэн гаргаж авсан"),
-    "c_refi_more": ("refi returns {x} more than invested",
-                    "дахин санхүүжилт оруулснаас {x}-ээр их буцаана"),
-    "c_of_invested": ("of {x} invested", "нийт {x} оруулснаас"),
+    "c_refi_more": ("You got all your money back, plus {x}",
+                    "Оруулсан мөнгөө бүрэн буцааж авсан, нэмээд {x}"),
+    "c_of_invested": ("You put in {x}; refinance gave back {y}",
+                      "Та {x} оруулсан; дахин санхүүжилтээр {y} буцааж авсан"),
     "c_flip_months": ("{n}-month flip, as a yearly rate", "{n} сарын засаад зарах, жилийн хувиар"),
     "c_holding": ("holding {x} / mo", "эзэмших зардал {x} / сар"),
     "c_vs_asking": ("vs {x} asking", "худалдагчийн зарах үнэ {x}"),
     "c_bank_sets": ("the bank test sets this · asking {x}", "худалдагчийн зарах үнэ {x}"),
     "c_goal_sets": ("your goal sets this · asking {x}", "худалдагчийн зарах үнэ {x}"),
                  
-    "c_price_cant_fix": ("based on your goal; price can't fix the bank test",
-                         "зорилгод үндэслэсэн; үнээр банкны шалгуурыг засах боломжгүй"),
+    "c_price_cant_fix": ("based on your goal: Most you should pay can't fix the bank test",
+                         "Таны зорилгод үндэслэсэн: Төлж болох дээд үнээр банкны шалгуурыг засах боломжгүй"),
     "na": ("n/a", "Хамаарахгүй"),
     "c_all_back": ("you get all your cash back at refi",
                    "дахин санхүүжилтээр бүх мөнгөө буцааж авна"),
     "none": ("none", "Байхгүй"),
-    "c_no_price": ("no price meets the target", "зорилгод хүрэх үнэ алга"),
+    "c_no_price": ("no price meets the target", "зорилтод хүрэх үнэ байхгүй"),
 
     # --- pop-ups ---
     "what_mean": ("What does this mean?", "Энэ юу гэсэн үг вэ?"),
@@ -305,7 +306,7 @@ TEXT = {
     "l_new_loan": ("New loan", "Шинэ зээл"),
     "c_on_arv": ("on a value after repairs of {x}", "засварын дараах {x} үнэ цэнэд"),
     "l_refi_ltv": ("New loan % of value", "Зээл, байрны үнэлгээний харьцаа"),
-    "c_refi_at": ("{type}, refinance at month {m}", "{type}, {m} дахь сард"),
+    "c_refi_at": ("{type}, refinance at month {m}", "{type}, {m} {o} сард"),
     "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр авах бэлэн мөнгө"),
     "c_after_hm": ("after paying off the short-term loan",
                    "богино хугацааны зээлээ төлсний дараа"),
@@ -422,8 +423,8 @@ TEXT = {
                     "table. Net profit = sale price minus total cost.",
                     "Засаад зарах нь нэг удаа авч, нэг удаа зарах тул жилийн хүснэгт биш, зардлын "
                     "жагсаалт байна. Цэвэр ашиг = зарах үнэ хасах нийт зардал."),
-    "cf_year": ("Year {n}", "{n}-р жил"),
-    "cf_year_short": ("Y{n}", "{n}-р жил"),
+    "cf_year": ("Year {n}", "{n} {o} жил"),
+    "cf_year_short": ("Y{n}", "{n} {o} жил"),
     "cf_gross_rent": ("Rent charged", "Түрээсийн орлого"),
     "cf_effective_income": ("Rent after empty months", "Түрээслэгчгүй хугацааны дараах түрээс"),
     "cf_operating_expenses": ("Running costs", "Үйл ажиллагааны зардал"),
@@ -433,12 +434,12 @@ TEXT = {
     "cf_capex_reserve": ("Saved for big repairs", "Засварт зориулсан нөөц"),
     "cf_cash_flow": ("Cash flow", "Мөнгөн гүйлгээ"),
     "cf_principal": ("Loan paid down (yours at sale)", "Төлөгдсөн үндсэн зээл (зарахад таных)"),
-    "cf_cash_out_at_refi": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авах бэлэн мөнгө"),
+    "cf_cash_out_at_refi": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авсан бэлэн мөнгө"),
     "cf_sale_proceeds": ("Cash from sale", "Борлуулалтаас орох мөнгө"),
     "cf_cap_brrr": ("Months 1 to {m}: you pay only interest on the short-term loan. After that, the "
                     "new 30-year loan's payments start. Cash flow is rent left after expenses, minus "
                     "loan payments and money saved for big repairs.",
-                    "1-{m} дэх сар: богино хугацааны зээлийн зөвхөн хүүг төлнө. Үүний дараа шинэ "
+                    "1-{m} {o} сар: богино хугацааны зээлийн зөвхөн хүүг төлнө. Үүний дараа шинэ "
                     "30 жилийн зээлийн төлбөр эхэлнэ. Мөнгөн гүйлгээ = зардлын дараах түрээсийн "
                     "орлого - зээлийн төлбөр - засварт зориулсан нөөцийн зардал."),
     "cf_dscr_by_year": ("Rent covers loan, by year: {x}",
@@ -472,3 +473,14 @@ def tr(lang):
         return s.format(**kw) if kw else s
 
     return T
+
+def mn_ord(n):
+    """Mongolian ordinal ending: 1 дэх, 2 дахь, 4 дэх, 9 дэх..."""
+    n = int(n)
+    d = n % 10
+    if d:
+        return "дэх" if d in (1, 4, 9) else "дахь"
+    t = (n // 10) % 10
+    if t:
+        return "дэх" if t in (4, 9) else "дахь"
+    return "дахь"

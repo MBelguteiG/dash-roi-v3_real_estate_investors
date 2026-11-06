@@ -7,12 +7,23 @@ import pandas as pd
 from engine.sensitivity import two_way_irr, tornado_irr, brrr_tornado_irr
 from engine.assumptions import get_assumptions
 
-from i18n import tr, LANG_NAMES
+from i18n import tr, LANG_NAMES, mn_ord
 
 
 
 
 st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
+
+st.markdown(
+    """<style>
+    [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] * {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
+    </style>""",
+    unsafe_allow_html=True,
+)
 
 
 def money(x):
@@ -41,7 +52,7 @@ def verdict_tile(col, verdict, label, shown):
 def tile(col, label, value, caption):
     with col.container(border=True):
         st.metric(label, value)
-        st.caption(caption)
+        st.caption(caption.replace("$", "\\$"))
 
 
 def check(text, ok):
@@ -269,8 +280,9 @@ elif model == "BRRR":
     if result["cash_left"] < 0:
         tile(t[3], T("t_cash_left"), "$0", T("c_refi_more", x=money(-result["cash_left"])))
     else:
+        back = result["cash_invested"] - result["cash_left"]
         tile(t[3], T("t_cash_left"), money(result["cash_left"]),
-             T("c_of_invested", x=money(result["cash_invested"])))
+             T("c_of_invested", x=money(result["cash_invested"]), y=money(back)))
 else:
     walk_away = result["max_offer_mao"]
     tile(t[1], T("t_return"), f"{result['annualized_roi']:.2%}", T("c_flip_months", n=hold))
@@ -407,7 +419,7 @@ with lend:
         l = st.columns(4)
         tile(l[0], T("l_new_loan"), money(result["refi_loan"]), T("c_on_arv", x=money(arv)))
         tile(l[1], T("l_refi_ltv"), f"{refi:.0%}",
-             T("c_refi_at", type=T("rt_" + refi_type), m=refi_month))
+            T("c_refi_at", type=T("rt_" + refi_type), m=refi_month, o=mn_ord(refi_month)))
         tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]), T("c_after_hm"))
         tile(l[3], T("t_dscr"), f"{result['dscr']:.2f}x", T("c_bank_strong"))
         note = T("note_brrr", d=f"{result['dscr']:.2f}", ltv=f"{refi:.0%}")
@@ -517,21 +529,23 @@ with cf:
         keys = ["noi", "debt_service", "capex_reserve", "cash_flow", "cash_out_at_refi",
                 "sale_proceeds"]
         table = pd.DataFrame(
-            {T("cf_year", n=r["year"]): [r[k] for k in keys] for r in rows},
+            {T("cf_year", n=r["year"], o=mn_ord(r["year"])): [r[k] for k in keys] for r in rows},
             index=[T("cf_" + k) for k in keys],
         )
-        st.dataframe(table.style.format(money), width="stretch")
-        st.caption(T("cf_cap_brrr", m=refi_month))
+        st.dataframe(table.style.format(money), width="stretch",
+                     column_config={"_index": st.column_config.Column(width="large")})
+        st.caption(T("cf_cap_brrr", m=refi_month, o=mn_ord(refi_month)))
     else:
         rows = result["cash_flow_table"]
         keys = ["gross_rent", "effective_income", "operating_expenses", "noi", "interest",
                 "capex_reserve", "cash_flow", "principal", "sale_proceeds"]
         table = pd.DataFrame(
-            {T("cf_year", n=r["year"]): [r[k] for k in keys] for r in rows},
+            {T("cf_year", n=r["year"], o=mn_ord(r["year"])): [r[k] for k in keys] for r in rows},
             index=[T("cf_" + k) for k in keys],
         )
-        st.dataframe(table.style.format(money), width="stretch")
-        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'])}: {r['dscr']:.2f}x" for r in rows)
+        st.dataframe(table.style.format(money), width="stretch",
+                     column_config={"_index": st.column_config.Column(width="large")})
+        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'], o=mn_ord(r['year']))}: {r['dscr']:.2f}x" for r in rows)
         st.caption(T("cf_dscr_by_year", x=dscr_row))
         st.caption(T("cf_cap_rental"))
 st.divider()
