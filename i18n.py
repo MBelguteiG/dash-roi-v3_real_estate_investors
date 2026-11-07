@@ -149,7 +149,7 @@ TEXT = {
                     "Оруулсан мөнгөө бүрэн буцааж авсан, нэмээд {x}"),
     "c_of_invested": ("You put in {x}; refinance gave back {y}",
                       "Та {x} оруулсан; дахин санхүүжилтээр {y} буцааж авсан"),
-    "c_flip_months": ("{n}-month flip, as a yearly rate", "{n} сарын засаад зарах, жилийн хувиар"),
+    "c_flip_months": ("{n}-month flip, as a yearly rate", "{n} сарын өгөөжийг жилээр тооцсон"),
     "c_holding": ("holding {x} / mo", "эзэмших зардал {x} / сар"),
     "c_vs_asking": ("vs {x} asking", "худалдагчийн зарах үнэ {x}"),
     "c_bank_sets": ("the bank test sets this · asking {x}", "худалдагчийн зарах үнэ {x}"),
@@ -218,9 +218,9 @@ TEXT = {
     "pm_flip": ("The seller is asking **{asking}**. Don't offer more than **{price}**: above that, "
                 "after repairs, loan, holding and selling costs your profit falls below your "
                 "**{goal}%** goal.",
-                "Худалдагчийн зарах үнэ **{asking}**. Та **{price}**-аас илүү санал болгох ёсгүй: "
+                "Худалдагчийн зарах үнэ **{asking}**. Таны санал болгох дээд үнэ **{price}**: "
                 "үүнээс их төлбөл засвар, зээл, эзэмших болон борлуулалтын зардлын дараа ашиг "
-                "таны **{goal}%** зорилгод хүрэхгүй."),
+                "таны **{goal}%** зорилтод хүрэхгүй."),
 
     # --- points sentence ---
     "p_points": (
@@ -413,7 +413,7 @@ TEXT = {
     "cf_repairs": ("Repairs", "Засвар"),
     "cf_hm_interest": ("Short-term loan interest", "Богино хугацааны зээлийн хүү"),
     "cf_hm_fee": ("Short-term lender fee", "Богино хугацааны зээлдүүлэгчийн шимтгэл"),
-    "cf_closing": ("Buying closing costs", "Худалдан авах үеийн хаалтын зардал"),
+    "cf_closing": ("Buying closing costs", "Худалдан авахтай холбоотой зардал"),
     "cf_holding": ("Holding costs ({n} months)", "Эзэмших зардал ({n} сар)"),
     "cf_selling": ("Selling costs", "Борлуулалтын зардал"),
     "cf_total": ("Total cost", "Нийт зардал"),
