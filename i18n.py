@@ -306,8 +306,8 @@ TEXT = {
     "l_new_loan": ("New loan", "Шинэ зээл"),
     "c_on_arv": ("on a value after repairs of {x}", "засварын дараах {x} үнэ цэнэд"),
     "l_refi_ltv": ("New loan % of value", "Зээл, байрны үнэлгээний харьцаа"),
-    "c_refi_at": ("{type}, refinance at month {m}", "{type}, {m} {o} сард"),
-    "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр авах бэлэн мөнгө"),
+    "c_refi_at": ("{type}, refinance at month {m}", "Дахин санхүүжилтээр ({type}), {m} {o} сард"),
+    "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авсан бэлэн мөнгө"),
     "c_after_hm": ("after paying off the short-term loan",
                    "богино хугацааны зээлээ төлсний дараа"),
     "note_brrr": ("After the refinance, rent covers the loan {d}x and the new loan is {ltv} "
@@ -326,11 +326,10 @@ TEXT = {
     "c_buy_sell": ("from buying to selling", "худалдаж авснаас зарах хүртэл"),
     "note_flip_ok": ("The loan is {x} of the sale price, under the 75% cap. "
                      "A short-term lender is likely to fund.",
-                     "Зээл зарах үнийн {x}, 75%-ийн хязгаараас бага. "
-                     "Богино хугацааны зээл олгох магадлал өндөр."),
+                     "Зээл зарах үнийн дүнгийн {x}-ийг эзэлж байгаа нь зээлдүүлэгчийн 75%-ийн шалгуураас бага байна. "),
     "note_flip_bad": ("The loan is {x} of the sale price, over the 75% cap. "
                       "Expect the lender to lower the loan or say no.",
-                      "Зээл зарах үнийн {x}, 75%-ийн хязгаараас их. "
+                      "Зээл зарах үнийн дүнгийн {x}-ийг эзэлж байгаа нь зээлдүүлэгчийн 75%-ийн шалгуураас их байна. "
                       "Зээлийн хэмжээг бууруулах эсвэл зээл олгохгүй байж болзошгүй."),
     "fund": ("Will a lender fund it?", "Банк зээл олгох уу?"),
     "a_STRONG": ("STRONG", "Шаардлагыг бүрэн хангасан"),
