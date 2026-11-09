@@ -200,19 +200,19 @@ TEXT = {
         "бэлэн мөнгөний **{x}** юм.",
     ),
     "g_rental": ("hits your {x}% goal and passes the bank test",
-                 "таны {x}% зорилгод хүрч, банкны шалгуурыг давах"),
-    "g_brrr": ("still hits your {x}% goal", "таны {x}% зорилгод хүрэх"),
+                 "таны {x}% зорилтод хүрч, банкны шалгуурыг давах"),
+    "g_brrr": ("still hits your {x}% goal", "таны {x}% зорилтод хүрэх"),
     "g_flip": ("still leaves your target profit after repairs, loan and selling costs",
                "засвар, зээл, борлуулалтын зардлын дараа зорилтот ашгаа хадгалах"),
     "p_max": ("**{price}** is the highest price that {goal}. Pay more and the numbers stop working.",
               "**{price}** бол {goal} хамгийн өндөр үнэ. Үүнээс илүү төлбөл тооцоо таарахгүй."),
     "pm_goal": ("The seller is asking **{asking}**. Don't pay more than **{price}**: above that, "
                 "your yearly return falls below your **{goal}%** goal.",
-                "Худалдагчийн зарах үнэ **{asking}**. Та **{price}**-аас илүү төлөх ёсгүй: "
-                "үүнээс их төлбөл жилийн өгөөж таны **{goal}%** зорилгод хүрэхгүй."),
+                "Худалдагчийн зарах үнэ **{asking}**. Таны төлөх дээд үнэ **{price}**: "
+                "үүнээс их төлбөл жилийн өгөөж таны **{goal}%** зорилтод хүрэхгүй."),
     "pm_bank": ("The seller is asking **{asking}**. Don't pay more than **{price}**: above that, "
                 "the loan gets too big and fails the bank test (rent must cover the loan 1.20x).",
-                "Худалдагчийн зарах үнэ **{asking}**. Та **{price}**-аас илүү төлөх ёсгүй: "
+                "Худалдагчийн зарах үнэ **{asking}**. Таны төлөх дээд үнэ **{price}**: "
                 "үүнээс их төлбөл зээл томорч, банкны шалгуурыг (түрээс / зээлийн төлбөрийн "
                 "харьцаа 1.20x) давахгүй."),
     "pm_flip": ("The seller is asking **{asking}**. Don't offer more than **{price}**: above that, "
@@ -422,7 +422,7 @@ TEXT = {
     "cf_cap_flip": ("A flip is one buy and one sale, so this is a cost list rather than a yearly "
                     "table. Net profit = sale price minus total cost.",
                     "Засаад зарах нь нэг удаа авч, нэг удаа зарах тул жилийн хүснэгт биш, зардлын "
-                    "жагсаалт байна. Цэвэр ашиг = зарах үнэ хасах нийт зардал."),
+                    "жагсаалт байна. Цэвэр ашиг = зарах үнэ - нийт зардал."),
     "cf_year": ("Year {n}", "{n} {o} жил"),
     "cf_year_short": ("Y{n}", "{n} {o} жил"),
     "cf_gross_rent": ("Rent charged", "Түрээсийн орлого"),
