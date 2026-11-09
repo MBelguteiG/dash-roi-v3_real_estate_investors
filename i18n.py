@@ -250,29 +250,29 @@ TEXT = {
     "k_min_profit": ("Minimum profit test: {x} of the sale price. Needs at least 10%.",
                      "Ашгийн доод хязгаар: зарах үнийн {x}. Дор хаяж 10% байх ёстой."),
     "k_profit_goal": ("Profit goal: {x} of the sale price. Your goal is {goal}%.",
-                      "Ашгийн зорилго: зарах үнийн {x}. Таны зорилго {goal}%."),
+                      "Ашгийн зорилт: зарах үнийн {x}. Таны зорилт {goal}%."),
     "k_bank": ("Bank test: rent covers the loan {x}x. The bank wants 1.20x.",
                "Банкны шалгуур: түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {x}x. "
                "Банк 1.20x шаарддаг."),
     "k_return_aco": ("Return test: the refi gives back all the cash you put in",
-                    "Өгөөж зорилгод хүрсэн эсэх: дахин санхүүжилтээр оруулсан бүх мөнгөө буцааж авна"),
+                    "Өгөөж зорилтод хүрсэн эсэх: дахин санхүүжилтээр оруулсан бүх мөнгөө буцааж авна"),
     "k_return": ("Return test: {x} a year. Your goal is {goal}%.",
-                "Өгөөж зорилгод хүрсэн эсэх: жилд {x}. Таны зорилго {goal}%."),
+                "Өгөөж зорилтод хүрсэн эсэх: жилд {x}. Таны зорилт {goal}%."),
     "k_repairs": ("Repairs test (yours, not the bank's): after saving for big repairs, "
                   "rent covers the loan {x}x",
                   "Засварын зардлыг даах эсэх (банкных биш, таных): томоохон засварт мөнгө "
-                  "хуримтлуулсны дараа түрээс зээлийг {x}x нөхөнө"),
+                  "хуримтлуулсны дараа түрээс зээлийг {x}x нөхнө"),
     "k_repairs_low": (". Below 1.00x, you'd add your own money for big repairs.",
                       ". 1.00x-ээс доош бол томоохон засварт өөрийн мөнгө нэмнэ."),
     "f_mao_below": ("Most you should offer: **{mao}**, {x} below the asking price",
-                    "Санал болгох дээд үнэ: **{mao}**, худалдагчийн зарах үнээс {x}-ээр бага"),
+                    "Санал болгох дээд үнэ: **{mao}**, худалдагчийн зарах үнээс {x} бага"),
     "f_mao_under": ("Most you should offer: **{mao}**. The asking price is already {x} under it",
-                    "Санал болгох дээд үнэ: **{mao}**. Худалдагчийн үнэ үүнээс {x}-ээр аль хэдийн бага"),
+                    "Санал болгох дээд үнэ: **{mao}**. Худалдагчийн үнэ үүнээс {x} аль хэдийн бага"),
     "f_rent_bank": ("Rent the bank needs to see: **{x}**", "Банкны шаардах түрээс: **{x}**"),
     "f_rent_repairs": ("Rent to also cover big repairs: **{x}**",
-                       "Томоохон засварыг давхар нөхөх түрээс: **{x}**"),
+                       "Томоохон засварын нөөцийг түрээсийн төлбөрт нэмсэн дүн: **{x}**"),
     "f_max_goal": ("Most you can pay to hit your {goal}% goal: **{x}**",
-                   "{goal}% зорилгод хүрэх дээд үнэ: **{x}**"),
+                   "{goal}% зорилтод хүрэх дээд үнэ: **{x}**"),
     "f_max_bank": ("Most you can pay to pass the bank test: **{x}**",
                    "Банкны шалгуурыг давах дээд үнэ: **{x}**"),
     "f_aco": ("Price where the refi gives back all your cash: **{x}**",
@@ -286,11 +286,11 @@ TEXT = {
     "l_debt": ("Loan payments / yr", "Зээлийн төлбөр / жил"),
     "c_fixed": ("{x}% fixed, 30 years", "{x}% тогтмол хүү, 30 жил"),
     "c_bank_strong": ("bank wants 1.20x, 1.25x for strong",
-                      "банк 1.20x шаарддаг, 1.25x бол сайн"),
+                      "банкны шаардлага 1.20x; 1.25x бол хангалттай"),
     "note_rental": ("Rent covers the loan {d}x and the loan is {ltv} of the price. "
                     "Strong needs 1.25x and 80% or less; conditional needs 1.20x.",
                     "Түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {d}x, зээл үнийн {ltv}. "
-                    "Сайн үнэлгээнд 1.25x ба 80%-иас бага; нөхцөлтэйд 1.20x шаардлагатай."),
+                    "Шаардлага: 1.25x ба үнийн 80 хувиас хэтрэхгүй; нэмэлт шаардлагатайгаар 1.20x."),
     "l_cap": ("Cap rate", "Капиталжуулалтын түвшин"),
     "c_cap": ("rent left after expenses ÷ price", "зардлын дараах түрээсийн орлого ÷ үнэ"),
     "p_cap": (
@@ -313,8 +313,8 @@ TEXT = {
     "note_brrr": ("After the refinance, rent covers the loan {d}x and the new loan is {ltv} "
                   "of the value. Strong needs 1.25x and 80% or less; conditional needs 1.20x.",
                   "Дахин санхүүжилтийн дараа түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {d}x, "
-                  "шинэ зээл үнэлгээний {ltv}. Сайн үнэлгээнд 1.25x ба 80%-иас бага; "
-                  "нөхцөлтэйд 1.20x шаардлагатай."),
+                  "шинэ зээл үнэлгээний {ltv}. Шаардлага: 1.25x ба үнэлгээний 80 хувиас хэтрэхгүй; "
+                  "нэмэлт шаардлагатайгаар 1.20x."),
     "l_hm_loan": ("Short-term loan", "Богино хугацааны зээл"),
     "c_pct_price": ("{x}% of the price", "үнийн {x}%"),
     "l_ltv_arv": ("Loan % of sale price", "Зээл, зарах үнийн %"),
@@ -327,17 +327,17 @@ TEXT = {
     "note_flip_ok": ("The loan is {x} of the sale price, under the 75% cap. "
                      "A short-term lender is likely to fund.",
                      "Зээл зарах үнийн {x}, 75%-ийн хязгаараас бага. "
-                     "Богино хугацааны зээлдүүлэгч санхүүжүүлэх магадлалтай."),
+                     "Богино хугацааны зээл олгох магадлал өндөр."),
     "note_flip_bad": ("The loan is {x} of the sale price, over the 75% cap. "
                       "Expect the lender to lower the loan or say no.",
                       "Зээл зарах үнийн {x}, 75%-ийн хязгаараас их. "
-                      "Зээлдүүлэгч зээлийг бууруулах эсвэл татгалзаж болзошгүй."),
-    "fund": ("Will a lender fund it?", "Зээлдүүлэгч санхүүжүүлэх үү?"),
-    "a_STRONG": ("STRONG", "Сайн"),
-    "a_LIKELY": ("LIKELY", "Магадлалтай"),
-    "a_CONDITIONAL": ("CONDITIONAL", "Нөхцөлтэй"),
-    "a_LIKELY DECLINE": ("LIKELY DECLINE", "Татгалзах магадлалтай"),
-    "a_DECLINE": ("DECLINE", "Татгалзана"),
+                      "Зээлийн хэмжээг бууруулах эсвэл зээл олгохгүй байж болзошгүй."),
+    "fund": ("Will a lender fund it?", "Банк зээл олгох уу?"),
+    "a_STRONG": ("STRONG", "Шаардлагыг бүрэн хангасан"),
+    "a_LIKELY": ("LIKELY", "Зээл олгох магадлал өндөр"),
+    "a_CONDITIONAL": ("CONDITIONAL", "Нэмэлт шаардлагатайгаар олгож болзошгүй"),
+    "a_LIKELY DECLINE": ("LIKELY DECLINE", "Зээл олгохгүй байх магадлал өндөр"),
+    "a_DECLINE": ("DECLINE", "Зээл олгохгүй"),
 
     # --- sensitivity ---
     "var_Purchase price": ("Purchase price", "Худалдан авах үнэ"),
