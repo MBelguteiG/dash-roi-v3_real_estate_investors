@@ -16,6 +16,10 @@ st.set_page_config(page_title="Dash ROI Pro v3", layout="wide")
 
 st.markdown(
     """<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    [data-testid="stAppViewContainer"] *:not([data-testid="stIconMaterial"]) {
+            font-family: 'Inter', sans-serif !important;
+    }
     [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] * {
         white-space: normal !important;
         overflow: visible !important;
