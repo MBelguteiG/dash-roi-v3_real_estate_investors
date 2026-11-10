@@ -84,7 +84,9 @@ def tornado_chart(names, rows, base, height):
             marker_color=colour, customdata=list(zip(values, moves)),
             hovertemplate=T("s_hover"),
         ))
-    fig.add_vline(x=base, line_dash="dot", line_color="#4A5568")
+    fig.add_vline(x=base, line_dash="dot", line_color="#4A5568",
+                  annotation_text=T("s_line", base=f"{base:.2%}"),
+                  annotation_position="top")
     fig.update_layout(
         title=T("s_title", base=f"{base:.2%}"),
         barmode="overlay", height=height,
