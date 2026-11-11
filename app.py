@@ -138,7 +138,23 @@ def K(name):
     return f"{model}_{name}"
 
 
-# Input strip
+# Input strip. Every deal box starts EMPTY (RESPA: no pre-filled example deal);
+# the numbers appear once the user has typed all of them.
+REQ = []
+
+
+def num(col, label, **kw):
+    """Deal input that starts empty and must be filled in."""
+    v = col.number_input(T(label), value=None, placeholder="0", **kw)
+    REQ.append((T(label), v))
+    return v
+
+
+def missing():
+    return [label for label, v in REQ if v is None]
+
+
+opt = {}
 with st.container(border=True):
     c = st.columns(8)
     STATES = ["Illinois", "California"]
@@ -152,45 +168,45 @@ with st.container(border=True):
     st.session_state["state_val"] = state
     st.session_state["ptype_val"] = property_type
     if model == "Rental":
-        price = c[2].number_input(T("price"), value=340000, step=5000,
+        price = num(c[2], "price", step=5000,
                                   help=T("h_price"), key=K("price"))
-        down_pct = c[3].number_input(T("down"), value=25.0, step=1.0,
+        down_pct = num(c[3], "down", step=1.0,
                                      help=T("h_down"), key=K("down"))
-        rate = c[4].number_input(T("rate"), value=6.75, step=0.125, format="%.3f",
+        rate = num(c[4], "rate", step=0.125, format="%.3f",
                                  help=T("h_rate"), key=K("rate"))
-        rent = c[5].number_input(T("rent"), value=2300, step=50,
+        rent = num(c[5], "rent", step=50,
                                  help=T("h_rent"), key=K("rent"))
-        exit_year = c[6].number_input(T("years"), value=5, min_value=1, step=1,
+        exit_year = num(c[6], "years", min_value=1, step=1,
                                       help=T("h_years"), key=K("years"))
-        target = c[7].number_input(T("goal"), value=8.0, step=0.5,
+        target = num(c[7], "goal", step=0.5,
                                    help=T("h_goal"), key=K("goal"))
-        deal = dict(model="Rental", state=state, property_type=property_type,
+        deal = None if missing() else dict(model="Rental", state=state, property_type=property_type,
                     scenario=scenario, price=price, down_pct=down_pct / 100,
                     annual_rate=rate / 100, rehab=0, base_rent=rent,
                     exit_year=exit_year, target_irr=target / 100)
     elif model == "BRRR":
-        price = c[2].number_input(T("price"), value=250000, step=5000,
+        price = num(c[2], "price", step=5000,
                                   help=T("h_price_before"), key=K("price"))
-        rehab = c[3].number_input(T("rehab"), value=45000, step=1000,
+        rehab = num(c[3], "rehab", step=1000,
                                   help=T("h_rehab"), key=K("rehab"))
-        arv = c[4].number_input(T("arv"), value=340000, step=5000,
+        arv = num(c[4], "arv", step=5000,
                                 help=T("h_arv"), key=K("arv"))
-        rent = c[5].number_input(T("rent"), value=2400, step=50,
+        rent = num(c[5], "rent", step=50,
                                  help=T("h_rent_brrr"), key=K("rent"))
-        exit_year = c[6].number_input(T("years"), value=5, min_value=1, step=1,
+        exit_year = num(c[6], "years", min_value=1, step=1,
                                       help=T("h_years"), key=K("years"))
-        target = c[7].number_input(T("goal"), value=10.0, step=0.5,
+        target = num(c[7], "goal", step=0.5,
                                    help=T("h_goal"), key=K("goal"))
         d = st.columns([1, 1, 1, 1, 1, 1, 2])
-        hm_ltv = d[0].number_input(T("hm_ltv"), value=90.0, step=1.0,
+        hm_ltv = num(d[0], "hm_ltv", step=1.0,
                                    help=T("h_hm_ltv"), key=K("hm_ltv"))
-        hm_rate = d[1].number_input(T("hm_rate"), value=10.5, step=0.25,
+        hm_rate = num(d[1], "hm_rate", step=0.25,
                                     help=T("h_hm_rate"), key=K("hm_rate"))
-        refi_month = d[2].number_input(T("refi_month"), value=6, min_value=1, step=1,
+        refi_month = num(d[2], "refi_month", min_value=1, step=1,
                                        help=T("h_refi_month"), key=K("refi_month"))
-        refi_ltv = d[3].number_input(T("refi_ltv"), value=75.0, step=1.0,
+        refi_ltv = num(d[3], "refi_ltv", step=1.0,
                                      help=T("h_refi_ltv"), key=K("refi_ltv"))
-        post_rate = d[4].number_input(T("post_rate"), value=7.25, step=0.125,
+        post_rate = num(d[4], "post_rate", step=0.125,
                                       help=T("h_post_rate"), key=K("post_rate"))
         REFI = ["Cash-Out", "Rate/Term"]
         refi_type = d[5].selectbox(T("refi_type"), REFI,
@@ -198,7 +214,7 @@ with st.container(border=True):
                                    format_func=lambda r: T("rt_" + r),
                                    help=T("h_refi_type"), key=f"refi_{lang}")
         st.session_state["refi_val"] = refi_type
-        deal = dict(model="BRRR", state=state, property_type=property_type,
+        deal = None if missing() else dict(model="BRRR", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab,
                     base_rent=rent, exit_year=exit_year,
                     target_irr=target / 100, arv=arv, hm_ltv=hm_ltv / 100,
@@ -206,28 +222,28 @@ with st.container(border=True):
                     refi_month=refi_month, post_refi_rate=post_rate / 100,
                     refi_type=refi_type)
     else:
-        price = c[2].number_input(T("price"), value=200000, step=5000,
+        price = num(c[2], "price", step=5000,
                                   help=T("h_price_before"), key=K("price"))
-        rehab = c[3].number_input(T("rehab"), value=55000, step=1000,
+        rehab = num(c[3], "rehab", step=1000,
                                   help=T("h_rehab"), key=K("rehab"))
-        arv = c[4].number_input(T("arv_flip"), value=340000, step=5000,
+        arv = num(c[4], "arv_flip", step=5000,
                                 help=T("h_arv_flip"), key=K("arv"))
-        hold = c[5].number_input(T("hold"), value=6, min_value=1, step=1,
+        hold = num(c[5], "hold", min_value=1, step=1,
                                  help=T("h_hold"), key=K("hold"))
-        target = c[6].number_input(T("profit_goal"), value=15.0, step=0.5,
+        target = num(c[6], "profit_goal", step=0.5,
                                    help=T("h_profit_goal"), key=K("goal"))
         d = st.columns([1, 1, 1, 1, 1, 3])
-        hm_ltv = d[0].number_input(T("hm_ltv"), value=90.0, step=1.0,
+        hm_ltv = num(d[0], "hm_ltv", step=1.0,
                                    help=T("h_hm_ltv"), key=K("hm_ltv"))
-        hm_rate = d[1].number_input(T("hm_rate"), value=10.5, step=0.25,
+        hm_rate = num(d[1], "hm_rate", step=0.25,
                                     help=T("h_hm_rate"), key=K("hm_rate"))
-        points = d[2].number_input(T("lender_fee"), value=2.0, step=0.25,
+        points = num(d[2], "lender_fee", step=0.25,
                                    help=T("h_lender_fee"), key=K("lender_fee"))
-        utilities = d[3].number_input(T("utilities"), value=150, step=25,
+        utilities = num(d[3], "utilities", step=25,
                                       help=T("h_utilities"), key=K("utilities"))
-        maint = d[4].number_input(T("upkeep"), value=150, step=25,
+        maint = num(d[4], "upkeep", step=25,
                                   help=T("h_upkeep"), key=K("upkeep"))
-        deal = dict(model="Flip", state=state, property_type=property_type,
+        deal = None if missing() else dict(model="Flip", state=state, property_type=property_type,
                     scenario=scenario, price=price, rehab=rehab, arv=arv,
                     hm_ltv=hm_ltv / 100, hm_rate=hm_rate / 100,
                     hold_months=hold, points_pct=points / 100,
@@ -242,31 +258,39 @@ with st.container(border=True):
         placeholder=T("hoa_default", x=money(default_hoa)),
         help=T("h_hoa"), key=K("hoa"))
     if hoa_in is not None:
-        deal["hoa_override"] = hoa_in
+        opt["hoa_override"] = hoa_in
     tax_in = h[2].number_input(
         T("tax_yr"), value=None, min_value=0.0, step=100.0,
-        placeholder=money(price * defaults["PropertyTaxRate Annual"]),
+        placeholder=money((price or 0) * defaults["PropertyTaxRate Annual"]),
         help=T("h_tax_yr"), key=K("tax_yr"))
     if tax_in is not None:
-        deal["tax_override"] = tax_in
+        opt["tax_override"] = tax_in
     ins_in = h[3].number_input(
         T("ins_yr"), value=None, min_value=0.0, step=100.0,
         placeholder=money(defaults["Insurance Yearly"]),
         help=T("h_ins_yr"), key=K("ins_yr"))
     if ins_in is not None:
-        deal["insurance_override"] = ins_in
+        opt["insurance_override"] = ins_in
     dscr_min = 1.00   # Flip has no DSCR; kept so shared text calls work
     if model in ("Rental", "BRRR"):
         buy_pts = h[1].number_input(
             T("points"), min_value=0.0, max_value=4.0,
             value=0.0, step=0.5, help=T("h_points"), key=K("points"))
-        deal["points"] = buy_pts
+        opt["points"] = buy_pts
         dscr_min = h[4].number_input(
             T("dscr_min"), min_value=0.50, max_value=2.00, value=1.00, step=0.05,
             format="%.2f", help=T("h_dscr_min"), key=K("dscr_min"))
-        deal["dscr_min"] = dscr_min
+        opt["dscr_min"] = dscr_min
 
 
+
+if missing():
+    st.info("**" + T("start_title") + "**\n\n" + T("start_note") + "\n\n"
+            + T("start_missing", x=", ".join(missing())))
+    st.divider()
+    st.caption(T("disclaimer"))
+    st.stop()
+deal.update(opt)
 
 try:
     result = analyze_deal(**deal)

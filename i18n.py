@@ -72,6 +72,15 @@ TEXT = {
     "upkeep": ("Upkeep & security / mo", "Арчилгаа, хамгаалалт / сар"),
     "hoa": ("HOA / mo", "СӨХ төлбөр / сар"),
     "hoa_default": ("default {x}", "үндсэн {x}"),
+    "start_title": ("Enter your deal to see the numbers",
+                    "Тооцоог харахын тулд мэдээллээ оруулна уу"),
+    "start_note": ("Every box starts empty: nothing is filled in for you. Type 0 where a "
+                   "cost doesn't apply. HOA, property tax and insurance can stay empty to "
+                   "use the state average.",
+                   "Бүх талбар хоосон эхэлнэ. Хамаарахгүй зардлын талбарт 0 гэж бичнэ үү. "
+                   "СӨХ төлбөр, татвар, даатгалын талбарыг хоосон орхивол муж улсын "
+                   "дундажийг ашиглана."),
+    "start_missing": ("Still empty: {x}", "Хоосон байгаа талбар: {x}"),
     "dscr_min": ("Minimum DSCR", "Түрээс / сарын төлбөрийн доод харьцаа"),
     "tax_yr": ("Property tax / yr", "Үл хөдлөх эд хөрөнгийн албан татвар / жил"),
     "ins_yr": ("Insurance / yr", "Даатгал / жил"),
@@ -315,14 +324,18 @@ TEXT = {
     "l_cap": ("Cap rate", "Капиталжуулалтын түвшин"),
     "c_cap": ("rent left after expenses ÷ price", "зардлын дараах түрээсийн орлого ÷ үнэ"),
     "p_cap": (
-        "If you paid **all cash** with no loan, you'd earn **{x}** a year from rent: "
-        "{noi} left after expenses ÷ {price} price.\n\n"
-        "It ignores the loan, so you can compare properties side by side. Compare it with "
-        "similar rentals in the same area: higher means more income for the price.",
-        "Зээлгүйгээр **бүхэлд нь бэлнээр** төлсөн бол түрээсээс жилд **{x}** олно: "
-        "зардлын дараах {noi} ÷ {price} үнэ.\n\n"
-        "Зээлийг тооцдоггүй тул үл хөдлөх хөрөнгүүдийг хооронд нь харьцуулж болно. "
-        "Ижил бүсийн түрээсийн байртай харьцуулаарай: өндөр байх тусам үнэдээ илүү орлоготой.",
+        "**Cap rate** shows what the property earns if you paid the full price in cash, "
+        "with no loan: rent left after year-1 expenses **{noi}** ÷ price **{price}** "
+        "= **{x}** a year.\n\n"
+        "The loan is left out on purpose: every buyer's loan is different, but the "
+        "property's cap rate is the same for everyone. Use it to compare properties in "
+        "the same area: a higher cap rate means more income for the price.",
+        "**Капиталжуулалтын түвшин** нь худалдагчийн зарах үнийг бүхэлд нь бэлнээр төлж, зээл аваагүй үед "
+        "үл хөдлөх эд хөрөнгө жилд хэдэн хувийн орлого олохыг харуулна: эхний жилийн "
+        "зардлын дараах түрээсийн орлого **{noi}** ÷ үнэ **{price}** = **{x}**.\n\n"
+        "Хүн бүрийн зээл өөр байдаг тул зээлийг оруулаагүй. Ингэснээр ойролцоо "
+        "байршилтай үл хөдлөх эд хөрөнгүүдийг хооронд нь харьцуулж болдог: хувь өндөр байх "
+        "тусам үнэдээ харьцуулахад орлого их юм.",
     ),
     "l_new_loan": ("New loan", "Шинэ зээл"),
     "c_on_arv": ("on a value after repairs of {x}", "засварын дараах {x} үнэ цэнэд"),
