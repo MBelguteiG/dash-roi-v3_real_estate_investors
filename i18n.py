@@ -108,16 +108,29 @@ TEXT = {
               "Засвар дууссаны дараах зах зээлийн үнэ цэнэ."),
     "h_arv_flip": ("What you expect to sell it for once fixed up (ARV).",
                    "Засвар дууссаны дараа зарна гэж тооцож буй үнэ."),
-    "h_hm_ltv": ("The short-term (hard money) loan as a % of the price.",
-                 "Богино хугацааны (hard money) зээл, үнийн хувиар."),
-    "h_hm_rate": ("Yearly interest on the short-term loan. You pay interest only.",
-                  "Богино хугацааны зээлийн жилийн хүү. Зөвхөн хүүг нь төлнө."),
-    "h_refi_month": ("When you swap the short-term loan for a regular 30-year loan.",
-                     "Богино хугацааны зээлийг ердийн 30 жилийн зээлээр солих хугацаа."),
-    "h_refi_ltv": ("The new 30-year loan as a % of the value after repairs.",
-                   "Шинэ 30 жилийн зээлийн дүнг засварын дараах үнэлгээнд харьцуулсан хувь (ЗҮХ)."),
-    "h_post_rate": ("Yearly interest rate on the new 30-year loan.",
-                    "Шинэ 30 жилийн зээлийн жилийн хүү."),
+    "h_hm_ltv": ("The short-term (hard money) loan as a % of the price. Usually 70–90%. "
+                 "Ask your lender.",
+                 "Богино хугацааны (hard money) зээл, үнийн хувиар. Ихэвчлэн 70–90%. "
+                 "Зээлдүүлэгчээсээ лавлана уу."),
+    "h_hm_rate": ("Yearly interest on the short-term loan. You pay interest only. "
+                  "Usually 10–14%. Ask your lender.",
+                  "Богино хугацааны зээлийн жилийн хүү. Зөвхөн хүүг нь төлнө. "
+                  "Ихэвчлэн 10–14%. Зээлдүүлэгчээсээ лавлана уу."),
+    "h_refi_month": ("When you swap the short-term loan for a regular 30-year loan. Usually "
+                     "6–12 months; many lenders want about 6 months of ownership first. "
+                     "Must be before you sell.",
+                     "Богино хугацааны зээлийг ердийн 30 жилийн зээлээр солих хугацаа. "
+                     "Ихэвчлэн 6–12 сар; олон банк эхлээд 6 орчим сар эзэмшсэн байхыг "
+                     "шаарддаг. Зарахаас өмнө байх ёстой."),
+    "h_refi_ltv": ("The new 30-year loan as a % of the value after repairs. Usually 70–75% "
+                   "for a cash-out refinance. Ask your lender.",
+                   "Шинэ 30 жилийн зээлийн дүнг засварын дараах үнэлгээнд харьцуулсан хувь (ЗҮХ). "
+                   "Бэлэн мөнгө гаргаж авах дахин санхүүжилтэд ихэвчлэн 70–75%. "
+                   "Банкаасаа лавлана уу."),
+    "h_post_rate": ("Yearly interest rate on the new 30-year loan. Use the rate your lender "
+                    "quotes today; rates change often.",
+                    "Шинэ 30 жилийн зээлийн жилийн хүү. Банкны өнөөдрийн санал болгож буй "
+                    "хүүг оруулна уу; хүү байнга өөрчлөгддөг."),
     "h_refi_type": ("Cash-Out: borrow the full % and take cash back out. "
                     "Rate/Term: borrow only enough to pay off the short-term loan.",
                     "Дахин санхүүжилт (бэлэн мөнгө гаргаж авах): зээлийг бүтэн хувиар авч, бэлэн мөнгө буцааж авна. "
