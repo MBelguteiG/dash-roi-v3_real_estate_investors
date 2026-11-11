@@ -72,6 +72,9 @@ TEXT = {
     "upkeep": ("Upkeep & security / mo", "Арчилгаа, хамгаалалт / сар"),
     "hoa": ("HOA / mo", "СӨХ төлбөр / сар"),
     "hoa_default": ("default {x}", "үндсэн {x}"),
+    "dscr_min": ("Lender minimum (x)", "Банкны шаардах доод харьцаа (x)"),
+    "tax_yr": ("Property tax / yr", "Үл хөдлөх эд хөрөнгийн албан татвар / жил"),
+    "ins_yr": ("Insurance / yr", "Даатгал / жил"),
     "points": ("Points to lower rate", "Хүү бууруулах оноо (points)"),
 
     # --- input help notes (the ? icons) ---
@@ -119,6 +122,18 @@ TEXT = {
                     "Эзэмших хугацааны цахилгаан, ус, хийн зардал."),
     "h_upkeep": ("Lawn, cleaning, locks and alarms while it's empty.",
                  "Сул байх үеийн зүлэг, цэвэрлэгээ, цоож, дохиоллын зардал."),
+    "h_dscr_min": ("The lowest rent ÷ PITIA your lender accepts. Most DSCR lenders "
+                   "accept 1.00; some want 1.20 or 1.25.",
+                   "Банкны зөвшөөрөх түрээс ÷ сарын төлбөрийн хамгийн бага харьцаа. "
+                   "Ихэнх банк 1.00, зарим нь 1.20 эсвэл 1.25 шаарддаг."),
+    "h_tax_yr": ("Leave blank to use the state average. Type the exact yearly tax "
+                 "for this property if you know it.",
+                 "Хоосон орхивол муж улсын дундажийг ашиглана. Энэ үл хөдлөх эд хөрөнгийн "
+                 "жилийн татварыг мэдэж байвал яг дүнгээр нь оруулна уу."),
+    "h_ins_yr": ("Leave blank to use the state average. Type your insurance quote "
+                 "for this property if you have one.",
+                 "Хоосон орхивол муж улсын дундажийг ашиглана. Энэ үл хөдлөх эд хөрөнгийн "
+                 "даатгалын үнийн саналтай бол оруулна уу."),
     "h_hoa": ("Leave blank to use the state and property-type default.",
               "Хоосон орхивол муж болон байрны төрлийн үндсэн дүнг ашиглана."),
     "h_points": ("Each point costs 1% of the loan (for BRRR, the new loan) "
@@ -134,14 +149,15 @@ TEXT = {
     "v_ACCEPT": ("ACCEPT", "Худалдан авах"),
     "v_BUY": ("BUY", "Худалдан авах"),
     "t_return": ("Yearly return", "Жилийн өгөөж"),
-    "t_dscr": ("Rent covers loan", "Түрээс / зээлийн төлбөрийн харьцаа"),
+    "t_dscr": ("DSCR (rent ÷ PITIA)", "Түрээс / сарын төлбөрийн харьцаа"),
     "t_coc": ("First-year cash return", "Эхний жилийн бэлэн мөнгөний өгөөж"),
     "t_cash_left": ("Your money still in the property", "Үлдэгдэл хөрөнгө оруулалт"),
     "t_margin": ("Profit as % of sale price", "Ашиг, зарах үнийн %"),
     "t_net_profit": ("Net profit", "Цэвэр ашиг"),
     "t_max_pay": ("Most you should pay", "Төлж болох дээд үнэ"),
     "c_goal": ("your goal {x}%", "таны зорилт {x}%"),
-    "c_bank": ("bank wants 1.20x+", "банк 1.20x-ээс дээш шаарддаг"),
+    "c_bank": ("your lender minimum {m}x", "банкны шаардах доод харьцаа {m}x"),
+    "c_pitia": ("rent {rent} ÷ PITIA {pitia}", "түрээс {rent} ÷ сарын төлбөр {pitia}"),
     "c_coc": ("of the cash you put in", "оруулсан бэлэн мөнгөнөөс"),
     "all_cash_out": ("All cash out", "Оруулсан мөнгөө бүрэн буцааж авсан"),
     "c_no_cash_left": ("no cash left in the deal", "хөрөнгө оруулалтаа бүрэн гаргаж авсан"),
@@ -176,15 +192,20 @@ TEXT = {
         "мөнгөөр илэрхийлсэн үнэ цэнэ.\n\n"
         "**{years} жилийн нийт ашиг:** {profit}, өнөөгийн мөнгөөр {real_profit}.",
     ),
-    "when_rental": ("in the worst year", "хамгийн муу жилд"),
+    "when_rental": ("in year 1", "эхний жилд"),
     "when_brrr": ("after the refi", "дахин санхүүжилтийн дараа"),
     "p_dscr": (
-        "After vacancy and expenses, the rent covers your loan payment **{x} times** {when}. "
-        "Banks want at least **1.20x**, so there's a cushion if a tenant leaves or a repair "
-        "comes up. Below 1.00x, you pay part of the loan from your own pocket.",
-        "Холбогдох зардлыг хассаны дараах түрээсийн орлого {when} зээлийн төлбөрийн **{pct}**-ийг "
-        "төлөхөд хүрч байна. Банк дор хаяж **120%** (1.20x) шаарддаг. 100%-иас бага бол "
-        "зээлийн төлбөрийн дутуу хэсгийг өөрийн мөнгөөр төлнө.",
+        "This is how DSCR lenders measure it, {when}: monthly rent **{rent}** ÷ PITIA "
+        "**{pitia}** = **{x}x**.\n\n"
+        "PITIA = loan payment {pi} + property tax {tax} + insurance {ins} + HOA {hoa}.\n\n"
+        "Your lender minimum is **{m}x**; 1.25x is strong. Below 1.00x, the rent doesn't "
+        "cover the monthly payment.",
+        "Банк үүнийг {when} ингэж тооцдог: сарын түрээс **{rent}** ÷ сарын төлбөр "
+        "**{pitia}** = **{x}x**.\n\n"
+        "Сарын төлбөр = зээлийн үндсэн төлбөр ба хүү {pi} + үл хөдлөх эд хөрөнгийн албан "
+        "татвар {tax} + даатгал {ins} + СӨХ төлбөр {hoa}.\n\n"
+        "Банкны шаардах доод харьцаа **{m}x**; 1.25x бол хангалттай. 1.00x-ээс бага бол "
+        "түрээс сарын төлбөрийг бүрэн нөхөхгүй.",
     ),
     "p_coc_pos": (
         "In year 1 you keep **{x}** of the cash you put in, after the loan, expenses and "
@@ -211,10 +232,10 @@ TEXT = {
                 "Худалдагчийн зарах үнэ **{asking}**. Таны төлөх дээд үнэ **{price}**: "
                 "үүнээс их төлбөл жилийн өгөөж таны **{goal}%** зорилтод хүрэхгүй."),
     "pm_bank": ("The seller is asking **{asking}**. Don't pay more than **{price}**: above that, "
-                "the loan gets too big and fails the bank test (rent must cover the loan 1.20x).",
+                "the loan gets too big and fails the bank test (rent must cover PITIA {m}x).",
                 "Худалдагчийн зарах үнэ **{asking}**. Таны төлөх дээд үнэ **{price}**: "
-                "үүнээс их төлбөл зээл томорч, банкны шалгуурыг (түрээс / зээлийн төлбөрийн "
-                "харьцаа 1.20x) давахгүй."),
+                "үүнээс их төлбөл зээл томорч, банкны шалгуурыг (түрээс / сарын төлбөрийн "
+                "харьцаа {m}x) давахгүй."),
     "pm_flip": ("The seller is asking **{asking}**. Don't offer more than **{price}**: above that, "
                 "after repairs, loan, holding and selling costs your profit falls below your "
                 "**{goal}%** goal.",
@@ -251,9 +272,9 @@ TEXT = {
                      "Ашгийн доод хязгаар: зарах үнийн {x}. Дор хаяж 10% байх ёстой."),
     "k_profit_goal": ("Profit goal: {x} of the sale price. Your goal is {goal}%.",
                       "Ашгийн зорилт: зарах үнийн {x}. Таны зорилт {goal}%."),
-    "k_bank": ("Bank test: rent covers the loan {x}x. The bank wants 1.20x.",
-               "Банкны шалгуур: түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {x}x. "
-               "Банк 1.20x шаарддаг."),
+    "k_bank": ("Bank test: rent ÷ PITIA is {x}x. Your lender minimum is {m}x.",
+               "Банкны шалгуур: түрээс / сарын төлбөрийн харьцаа {x}x. "
+               "Банкны шаардах доод харьцаа {m}x."),
     "k_return_aco": ("Return test: the refi gives back all the cash you put in",
                     "Өгөөж зорилтод хүрсэн эсэх: дахин санхүүжилтээр оруулсан бүх мөнгөө буцааж авна"),
     "k_return": ("Return test: {x} a year. Your goal is {goal}%.",
@@ -285,12 +306,12 @@ TEXT = {
     "c_noi": ("year 1, before the loan payment", "эхний жил, зээлийн төлбөрөөс өмнө"),
     "l_debt": ("Loan payments / yr", "Зээлийн төлбөр / жил"),
     "c_fixed": ("{x}% fixed, 30 years", "{x}% тогтмол хүү, 30 жил"),
-    "c_bank_strong": ("bank wants 1.20x, 1.25x for strong",
-                      "банкны шаардлага 1.20x; 1.25x бол хангалттай"),
-    "note_rental": ("Rent covers the loan {d}x and the loan is {ltv} of the price. "
-                    "Strong needs 1.25x and 80% or less; conditional needs 1.20x.",
-                    "Түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {d}x, зээл үнийн {ltv}. "
-                    "Шаардлага: 1.25x ба үнийн 80 хувиас хэтрэхгүй; нэмэлт шаардлагатайгаар 1.20x."),
+    "c_bank_strong": ("rent {rent} ÷ PITIA {pitia}; minimum {m}x",
+                      "түрээс {rent} ÷ сарын төлбөр {pitia}; доод харьцаа {m}x"),
+    "note_rental": ("Rent ÷ PITIA is {d}x and the loan is {ltv} of the price. "
+                    "Strong needs {s}x and 80% or less; conditional needs {m}x.",
+                    "Түрээс / сарын төлбөрийн харьцаа {d}x, зээл үнийн {ltv}. "
+                    "Шаардлага: {s}x ба үнийн 80 хувиас хэтрэхгүй; нэмэлт шаардлагатайгаар {m}x."),
     "l_cap": ("Cap rate", "Капиталжуулалтын түвшин"),
     "c_cap": ("rent left after expenses ÷ price", "зардлын дараах түрээсийн орлого ÷ үнэ"),
     "p_cap": (
@@ -310,11 +331,11 @@ TEXT = {
     "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авсан бэлэн мөнгө"),
     "c_after_hm": ("after paying off the short-term loan",
                    "богино хугацааны зээлээ төлсний дараа"),
-    "note_brrr": ("After the refinance, rent covers the loan {d}x and the new loan is {ltv} "
-                  "of the value. Strong needs 1.25x and 80% or less; conditional needs 1.20x.",
-                  "Дахин санхүүжилтийн дараа түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа {d}x, "
-                  "шинэ зээл үнэлгээний {ltv}. Шаардлага: 1.25x ба үнэлгээний 80 хувиас хэтрэхгүй; "
-                  "нэмэлт шаардлагатайгаар 1.20x."),
+    "note_brrr": ("After the refinance, rent ÷ PITIA is {d}x and the new loan is {ltv} "
+                  "of the value. Strong needs {s}x and 80% or less; conditional needs {m}x.",
+                  "Дахин санхүүжилтийн дараа түрээс / сарын төлбөрийн харьцаа {d}x, "
+                  "шинэ зээл үнэлгээний {ltv}. Шаардлага: {s}x ба үнэлгээний 80 хувиас хэтрэхгүй; "
+                  "нэмэлт шаардлагатайгаар {m}x."),
     "l_hm_loan": ("Short-term loan", "Богино хугацааны зээл"),
     "c_pct_price": ("{x}% of the price", "үнийн {x}%"),
     "l_ltv_arv": ("Loan % of sale price", "Зээл, зарах үнийн %"),
@@ -453,8 +474,8 @@ TEXT = {
                     "1-{m} {o} сар: богино хугацааны зээлийн зөвхөн хүүг төлнө. Үүний дараа шинэ "
                     "30 жилийн зээлийн төлбөр эхэлнэ. Мөнгөн гүйлгээ = зардлын дараах түрээсийн "
                     "орлого - зээлийн төлбөр - засварт зориулсан нөөцийн зардал."),
-    "cf_dscr_by_year": ("Rent covers loan, by year: {x}",
-                        "Түрээсийн төлбөр болон зээлийн төлбөрийн харьцаа, жилээр: {x}"),
+    "cf_dscr_by_year": ("DSCR (rent ÷ PITIA), by year: {x}",
+                        "Түрээс / сарын төлбөрийн харьцаа, жилээр: {x}"),
     "cf_cap_rental": ("Cash flow is rent left after expenses, minus loan interest and money saved for "
                       "big repairs. The loan you pay down is shown separately, because you get it "
                       "back when you sell.",

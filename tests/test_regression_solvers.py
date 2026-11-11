@@ -9,12 +9,12 @@ TOL = 0.02  # dollars, same as crosscheck SOLVER_TOL
 SOLVER_CASES = [
     # R-05: v2 recorded no figure, only that it solves below the 500K asking price
     ("R-05-irr-on-R-01", max_price_irr, "R-01", 297588.34),
-    # R-06: v2 showed 208,382.81, where DSCR is 1.1996 (v2 solver stopped early)
-    ("R-06-dscr-on-R-02", max_price_dscr, "R-02", 208324.74),
+    # R-06: rent / PITIA = 1.00 (Nov 2026; v2 used NOI / debt at 1.20)
+    ("R-06-dscr-on-R-02", max_price_dscr, "R-02", 321000.01),
     # v2 showed 207,287.11
     ("irr-on-R-02", max_price_irr, "R-02", 207286.17),
-    # v2 showed 218,320, where DSCR is 1.1994 (v2 solver stopped early)
-    ("dscr-on-R-03", max_price_dscr, "R-03", 218232.55),
+    # rent / PITIA = 1.00 (Nov 2026)
+    ("dscr-on-R-03", max_price_dscr, "R-03", 335930.24),
 ]
 IDS = [c[0] for c in SOLVER_CASES]
 

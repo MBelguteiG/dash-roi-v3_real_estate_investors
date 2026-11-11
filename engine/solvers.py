@@ -80,7 +80,7 @@ def max_price_irr(inputs, target_irr=None):
             "value_at_price": irr_at_price(inputs, price), "reason": ""}
 
 
-def max_price_dscr(inputs, dscr_min=DSCR_LENDER_MIN):
+def max_price_dscr(inputs, dscr_min=None):
     """
     Highest price where min DSCR still meets the lender minimum
     (v2 Find_Max_Price_Lender, Module3). Rental only.
@@ -90,6 +90,8 @@ def max_price_dscr(inputs, dscr_min=DSCR_LENDER_MIN):
                         "DSCR; use Max Price All-Cash-Out")
     if inputs["model"] == "Flip":
         return _refused("Flip has no DSCR - use Max Offer (MAO)")
+    if dscr_min is None:
+        dscr_min = inputs.get("dscr_min", DSCR_LENDER_MIN)
     price = _solve_max_price(inputs, "min_dscr", dscr_min)
     if price is None:
         return _no_solution()

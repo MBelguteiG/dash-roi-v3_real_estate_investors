@@ -1,7 +1,7 @@
 import streamlit as st
 from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
-from engine.verdict import approval_likelihood
+from engine.verdict import approval_likelihood, DSCR_STRONG
 import plotly.graph_objects as go
 import pandas as pd
 from engine.sensitivity import two_way_irr, tornado_irr, brrr_tornado_irr
@@ -234,19 +234,37 @@ with st.container(border=True):
                     monthly_utilities=utilities,
                     monthly_maint_security=maint,
                     target_margin=target / 100)
-    default_hoa = get_assumptions(state, property_type, model, scenario)["HOA Monthly"]
-    h = st.columns([1, 1, 6])
+    defaults = get_assumptions(state, property_type, model, scenario)
+    default_hoa = defaults["HOA Monthly"]
+    h = st.columns([1, 1, 1, 1, 1, 3])
     hoa_in = h[0].number_input(
         T("hoa"), value=None, min_value=0.0, step=25.0,
         placeholder=T("hoa_default", x=money(default_hoa)),
         help=T("h_hoa"), key=K("hoa"))
     if hoa_in is not None:
         deal["hoa_override"] = hoa_in
+    tax_in = h[2].number_input(
+        T("tax_yr"), value=None, min_value=0.0, step=100.0,
+        placeholder=money(price * defaults["PropertyTaxRate Annual"]),
+        help=T("h_tax_yr"), key=K("tax_yr"))
+    if tax_in is not None:
+        deal["tax_override"] = tax_in
+    ins_in = h[3].number_input(
+        T("ins_yr"), value=None, min_value=0.0, step=100.0,
+        placeholder=money(defaults["Insurance Yearly"]),
+        help=T("h_ins_yr"), key=K("ins_yr"))
+    if ins_in is not None:
+        deal["insurance_override"] = ins_in
+    dscr_min = 1.00   # Flip has no DSCR; kept so shared text calls work
     if model in ("Rental", "BRRR"):
         buy_pts = h[1].number_input(
             T("points"), min_value=0.0, max_value=4.0,
             value=0.0, step=0.5, help=T("h_points"), key=K("points"))
         deal["points"] = buy_pts
+        dscr_min = h[4].number_input(
+            T("dscr_min"), min_value=0.50, max_value=2.00, value=1.00, step=0.05,
+            format="%.2f", help=T("h_dscr_min"), key=K("dscr_min"))
+        deal["dscr_min"] = dscr_min
 
 
 
@@ -269,7 +287,7 @@ if model == "Rental":
     dscr_value = result["min_dscr"]
     irr_ok = result["irr"] >= target / 100
     tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
-    tile(t[2], T("t_dscr"), f"{dscr_value:.2f}x", T("c_bank"))
+    tile(t[2], T("t_dscr"), f"{dscr_value:.3f}x", T("c_bank", m=f"{dscr_min:.2f}"))
     tile(t[3], T("t_coc"), f"{result['cash_on_cash']:.2%}", T("c_coc"))
 elif model == "BRRR":
     irr_solve = max_price_irr(deal)
@@ -282,7 +300,7 @@ elif model == "BRRR":
     else:
         tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
         irr_ok = result["irr"] >= target / 100
-    tile(t[2], T("t_dscr"), f"{dscr_value:.2f}x", T("c_bank"))
+    tile(t[2], T("t_dscr"), f"{dscr_value:.3f}x", T("c_bank", m=f"{dscr_min:.2f}"))
     if result["cash_left"] < 0:
         tile(t[3], T("t_cash_left"), "$0", T("c_refi_more", x=money(-result["cash_left"])))
     else:
@@ -301,7 +319,7 @@ if walk_away:
     if model == "Rental":
         bank_limit = dscr_solve["status"] == "SOLVED" and walk_away == dscr_solve["price"]
         cap = T("c_bank_sets" if bank_limit else "c_goal_sets", x=money(price))
-    if model == "BRRR" and dscr_value < 1.20:
+    if model == "BRRR" and dscr_value < dscr_min:
         cap = T("c_price_cant_fix")
     tile(t[4], T("t_max_pay"), money(walk_away), cap)
 elif model == "BRRR" and result["all_cash_out"]:
@@ -319,7 +337,11 @@ if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
 if model in ("Rental", "BRRR"):
     when = T("when_rental") if model == "Rental" else T("when_brrr")
     with t[2].popover(T("what_mean")):
-        st.markdown(T("p_dscr", x=f"{dscr_value:.2f}", pct=f"{dscr_value:.0%}", when=when))
+        st.markdown(T("p_dscr", x=f"{dscr_value:.3f}", when=when, m=f"{dscr_min:.2f}",
+                      rent=money(rent), pitia=money(result["pitia"]),
+                      pi=money(result["pi_monthly"]), tax=money(result["tax_monthly"]),
+                      ins=money(result["insurance_monthly"]),
+                      hoa=money(result["hoa_monthly"])).replace("$", "\\$"))
 
 if model == "Rental":
     with t[3].popover(T("what_mean")):
@@ -339,7 +361,7 @@ if walk_away:
         pm_key = "pm_flip"
     with t[4].popover(T("what_mean")):
         st.markdown(T(pm_key, price=money(walk_away), asking=money(price),
-                      goal=f"{target:.2f}").replace("$", "\\$"))
+                      goal=f"{target:.2f}", m=f"{dscr_min:.2f}").replace("$", "\\$"))
 
 if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
     be = int(-(-result["breakeven_months"] // 1))   # round up
@@ -371,7 +393,8 @@ with inv:
             check(T("k_profit_goal", x=f"{margin:.2%}", goal=f"{target:.2f}"),
                   margin >= target / 100)
         else:
-            check(T("k_bank", x=f"{dscr_value:.2f}"), dscr_value >= 1.20)
+            check(T("k_bank", x=f"{dscr_value:.3f}", m=f"{dscr_min:.2f}"),
+                  dscr_value >= dscr_min)
             if model == "BRRR" and result["all_cash_out"]:
                 check(T("k_return_aco"), True)
             else:
@@ -405,15 +428,19 @@ with inv:
 
 with lend:
     if model == "Rental":
-        approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"])
+        approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"],
+                                       dscr_min=dscr_min)
         l = st.columns(5)
         tile(l[0], T("l_loan"), money(result["loan_amount"]),
              T("c_of_price", x=f"{result['ltv']:.0%}"))
         tile(l[1], T("l_noi"), money(result["noi_y1"]), T("c_noi"))
         tile(l[2], T("l_debt"), money(result["annual_debt_service"]),
              T("c_fixed", x=f"{round(result['rate_used'] * 100, 3):g}"))
-        tile(l[3], T("t_dscr"), f"{result['min_dscr']:.2f}x", T("c_bank_strong"))
-        note = T("note_rental", d=f"{result['min_dscr']:.2f}", ltv=f"{result['ltv']:.0%}")
+        tile(l[3], T("t_dscr"), f"{result['min_dscr']:.3f}x",
+             T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
+               m=f"{dscr_min:.2f}"))
+        note = T("note_rental", d=f"{result['min_dscr']:.3f}", ltv=f"{result['ltv']:.0%}",
+                 m=f"{dscr_min:.2f}", s=f"{max(DSCR_STRONG, dscr_min):.2f}")
         cap_rate = result["noi_y1"] / price
         tile(l[4], T("l_cap"), f"{cap_rate:.2%}", T("c_cap"))
         with l[4].popover(T("what_mean")):
@@ -421,14 +448,17 @@ with lend:
                           price=money(price)).replace("$", "\\$"))
     elif model == "BRRR":
         refi = result["refi_ltv_effective"]
-        approval = approval_likelihood("BRRR", result["dscr"], refi)
+        approval = approval_likelihood("BRRR", result["dscr"], refi, dscr_min=dscr_min)
         l = st.columns(4)
         tile(l[0], T("l_new_loan"), money(result["refi_loan"]), T("c_on_arv", x=money(arv)))
         tile(l[1], T("l_refi_ltv"), f"{refi:.0%}",
             T("c_refi_at", type=T("rt_" + refi_type), m=refi_month, o=mn_ord(refi_month)))
         tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]), T("c_after_hm"))
-        tile(l[3], T("t_dscr"), f"{result['dscr']:.2f}x", T("c_bank_strong"))
-        note = T("note_brrr", d=f"{result['dscr']:.2f}", ltv=f"{refi:.0%}")
+        tile(l[3], T("t_dscr"), f"{result['dscr']:.3f}x",
+             T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
+               m=f"{dscr_min:.2f}"))
+        note = T("note_brrr", d=f"{result['dscr']:.3f}", ltv=f"{refi:.0%}",
+                 m=f"{dscr_min:.2f}", s=f"{max(DSCR_STRONG, dscr_min):.2f}")
     else:
         hm_ltv_arv = result["hm_loan"] / arv
         ltc = result["hm_loan"] / (price + rehab)
@@ -551,7 +581,7 @@ with cf:
         )
         st.dataframe(table.style.format(money), width="stretch",
                      column_config={"_index": st.column_config.Column(width="large")})
-        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'], o=mn_ord(r['year']))}: {r['dscr']:.2f}x" for r in rows)
+        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'], o=mn_ord(r['year']))}: {r['dscr']:.3f}x" for r in rows)
         st.caption(T("cf_dscr_by_year", x=dscr_row))
         st.caption(T("cf_cap_rental"))
 st.divider()

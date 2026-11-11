@@ -13,8 +13,32 @@ severe tier. Threshold is configurable (lenders vary 1.20-1.25).
 from engine.projection import project
 from engine.amortization import annual_debt_service
 
-# Lender DSCR minimum. Mainstream floor is 1.20; some lenders want 1.25.
-DSCR_LENDER_MIN = 1.20
+# Lender DSCR minimum (DSCR-loan convention: gross rent / PITIA).
+# 1.00 is the typical DSCR-loan floor; the user can raise it (1.20, 1.25...).
+DSCR_LENDER_MIN = 1.00
+DSCR_STRONG = 1.25
+
+
+def pitia(annual_debt, monthly_tax, monthly_insurance, monthly_hoa):
+    """Monthly PITIA = principal & interest + property tax + insurance + HOA."""
+    return annual_debt / 12 + monthly_tax + monthly_insurance + monthly_hoa
+
+
+def lender_dscr(monthly_rent, monthly_pitia):
+    """DSCR the way DSCR lenders size it: gross monthly rent / PITIA."""
+    return monthly_rent / monthly_pitia
+
+
+def lender_dscr_by_year(years, annual_debt):
+    """Rent / PITIA for each projected year (rent, tax, insurance, HOA grow)."""
+    return [lender_dscr(y["rent"], pitia(annual_debt, y["property_tax"],
+                                         y["insurance"], y["hoa"]))
+            for y in years]
+
+
+def required_rent_lender(monthly_pitia, dscr_target=DSCR_LENDER_MIN):
+    """Gross monthly rent a DSCR lender needs to see: target x PITIA."""
+    return dscr_target * monthly_pitia
 
 
 def dscr_by_year(noi_by_year, annual_debt):
@@ -29,9 +53,12 @@ def min_dscr(noi_by_year, annual_debt):
 
 def required_rent(annual_debt, tax_rate, price, annual_insurance, hoa,
                   vacancy_rate, maint_rate, mgmt_rate, capex_rate,
-                  dscr_target=DSCR_LENDER_MIN):
+                  dscr_target=1.20):
     """
-    Back-solve the gross monthly rent needed to hit the DSCR target.
+    Investor-side: back-solve the gross monthly rent whose NOI, after a
+    CapEx reserve, covers the loan payment 1.20x (drives the rent cushion and
+    "rent to also cover big repairs"). Not the lender DSCR - see
+    required_rent_lender() for rent / PITIA.
     Ports v2 Main_Dashboard B35:
       (required_monthly_NOI + fixed monthly expenses) / (1 - rent-based rates)
     Required monthly NOI = dscr_target * annual_debt / 12.
@@ -49,19 +76,17 @@ def required_rent(annual_debt, tax_rate, price, annual_insurance, hoa,
 def rental_verdict(irr_value, min_dscr_value, target_irr, rent_cushion,
                    dscr_min=DSCR_LENDER_MIN):
     """
-    Rental verdict. v3 tiered DSCR gate (upgraded from v2's single 1.0 line):
-      DSCR < 1.0             -> HARD REJECT (asset can't cover its debt)
-      1.0 <= DSCR < dscr_min -> REJECT (works, but not financeable)
+    Rental verdict. DSCR (rent / PITIA) is the sole hard gate, at the
+    user's minimum (default 1.00):
+      DSCR < dscr_min -> HARD REJECT (a DSCR lender won't fund it)
       DSCR >= dscr_min:
         IRR < target*0.5                  -> REJECT
         IRR >= target and rent_cushion > 0 -> STRONG BUY
         IRR >= target                      -> BUY
         otherwise                          -> NEGOTIATE
     """
-    if min_dscr_value < 1.0:
-        return "HARD REJECT"
     if min_dscr_value < dscr_min:
-        return "REJECT"
+        return "HARD REJECT"
     if irr_value < target_irr * 0.5:
         return "REJECT"
     if irr_value >= target_irr and rent_cushion > 0:
@@ -122,17 +147,18 @@ if __name__ == "__main__":
     except ValueError as e:
         print(f"Bad model caught: {e}")
 
-def approval_likelihood(model, min_dscr=None, ltv=None, hm_ltv_on_arv=None):
+def approval_likelihood(model, min_dscr=None, ltv=None, hm_ltv_on_arv=None,
+                        dscr_min=DSCR_LENDER_MIN):
     """
-    Lender fundability, ported from v2 Main_Dashboard G21.
+    Lender fundability. DSCR here is rent / PITIA.
     Flip: hard-money loan / ARV must be at or under 75%.
-    Rental/BRRR: STRONG at DSCR >= 1.25 and LTV <= 80%,
-    CONDITIONAL at DSCR >= 1.20, otherwise LIKELY DECLINE.
+    Rental/BRRR: STRONG at DSCR >= 1.25 (or the user's minimum, if higher)
+    and LTV <= 80%; CONDITIONAL at the user's minimum; else LIKELY DECLINE.
     """
     if model == "Flip":
         return "LIKELY" if hm_ltv_on_arv <= 0.75 else "UNLIKELY"
-    if min_dscr >= 1.25 and ltv <= 0.80:
+    if min_dscr >= max(DSCR_STRONG, dscr_min) and ltv <= 0.80:
         return "STRONG"
-    if min_dscr >= 1.20:
+    if min_dscr >= dscr_min:
         return "CONDITIONAL"
     return "LIKELY DECLINE"   

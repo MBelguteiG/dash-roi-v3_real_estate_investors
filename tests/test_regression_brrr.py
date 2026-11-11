@@ -37,12 +37,12 @@ CHECKS = [
     ("B-01", "cash_invested", 79375.00, 0.01),
     ("B-01", "cash_pulled_out", 30000.00, 0.01),
     ("B-01", "cash_left", 49375.00, 0.01),
-    ("B-01", "dscr", 0.70, 0.005),
+    ("B-01", "dscr", 1.0222, 0.0005),   # rent / PITIA on the new loan (Nov 2026)
     ("B-01", "required_rent", 3964.40, 0.01),
     ("B-01", "rent_cushion", -1564.40, 0.01),
     ("B-01", "sale_price", 388370.67, 0.01),
     ("B-01", "equity_at_exit", 146027.28, 0.01),
-    ("B-01", "verdict", "HARD REJECT", None),
+    ("B-01", "verdict", "NEGOTIATE", None),   # passes DSCR 1.0; IRR 6.1% < 10% goal
     # B-08: v2 showed equity 178,102.50 and proceeds 147,032.84;
     # v3 is 237.24 higher on both (documented B34 double-count fix)
     ("B-08", "equity_at_exit", 178339.74, 0.01),
@@ -55,7 +55,7 @@ CHECKS = [
     ("B-03", "cash_invested", 117375.00, 0.01),
     ("B-03", "cash_pulled_out", 29000.00, 0.01),
     ("B-03", "cash_left", 88375.00, 0.01),
-    ("B-03", "dscr", 0.5954, 0.0005),
+    ("B-03", "dscr", 0.8663, 0.0005),
     ("B-03", "required_rent", 6036.77, 0.01),
     ("B-03", "rent_cushion", -2836.77, 0.01),
     ("B-03", "sale_price", 739676.32, 0.01),
@@ -69,7 +69,7 @@ CHECKS = [
     ("B-04-650", "cash_pulled_out", 160000.00, 0.01),
     ("B-04-650", "cash_left", -49000.00, 0.01),
     ("B-04-650", "all_cash_out", True, None),
-    ("B-04-650", "dscr", 0.3131, 0.0005),
+    ("B-04-650", "dscr", 0.5437, 0.0005),
     ("B-04-650", "verdict", "HARD REJECT", None),
     # B-04 at ARV 750K: v2 guard fired on IRR > 100%
     ("B-04-750", "irr", 2.02709, 0.00005),

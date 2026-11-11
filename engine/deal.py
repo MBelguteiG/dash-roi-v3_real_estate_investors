@@ -63,7 +63,8 @@ def build_cash_flow_table(price, down_pct, rehab, closing_pct, annual_rate, exit
             "principal": debt - interest,
             "capex_reserve": capex,
             "cash_flow": y["noi_annual"] - interest - capex,
-            "dscr": y["noi_annual"] / debt,
+            "dscr": y["rent"] / (debt / 12 + y["property_tax"]
+                                 + y["insurance"] + y["hoa"]),
             "sale_proceeds": 0.0,
         })
     balance = balance_at(loan, annual_rate, exit_year * 12)

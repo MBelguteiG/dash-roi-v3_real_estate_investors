@@ -27,9 +27,11 @@ def test_rate_term_pulls_no_cash():
     assert RT["cash_left"] == pytest.approx(RT["cash_invested"], abs=0.01)
 
 
-def test_rate_term_dscr_scales_with_smaller_loan():
-    # Same NOI, same rate and term: DSCR is inverse to the loan amount
-    assert RT["dscr"] == pytest.approx(CASH["dscr"] * 255000 / 225000, rel=1e-9)
+def test_rate_term_dscr_rises_with_smaller_loan():
+    # Same rent, tax and insurance; a smaller loan means a smaller PITIA.
+    # Hand check: 2400 / (P&I on 225,000 at 7.25% + 458.33 tax + 150 ins)
+    assert RT["dscr"] > CASH["dscr"]
+    assert RT["dscr"] == pytest.approx(1.1198, abs=0.0001)
 
 
 def test_identical_when_cap_binds_below_payoff():
@@ -69,5 +71,5 @@ def test_irr_solver_rate_term():
 def test_b01_rate_term_regression():
     # B-01 with Rate/Term, checked on the page 2026-10-10
     assert RT["irr"] == pytest.approx(0.0643, abs=0.00005)
-    assert RT["verdict"] == "HARD REJECT"
+    assert RT["verdict"] == "NEGOTIATE"   # DSCR 1.12 passes; IRR under goal
     assert RT["refi_ltv_effective"] == pytest.approx(0.6618, abs=0.0001)

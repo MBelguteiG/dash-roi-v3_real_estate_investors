@@ -13,7 +13,8 @@ from engine.projection import project
 from engine.amortization import annual_debt_service
 from engine.deal import build_stream, build_cash_flow_table, cash_on_cash
 from engine.irr import irr, deflate
-from engine.verdict import dscr_by_year, min_dscr, required_rent, rental_verdict, verdict
+from engine.verdict import (required_rent, rental_verdict, verdict, DSCR_LENDER_MIN,
+                            pitia, lender_dscr, lender_dscr_by_year, required_rent_lender)
 
 from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_pulled_out,
                          cash_invested as brrr_cash_invested, cash_left_in_deal,
@@ -34,7 +35,8 @@ from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
 def analyze_rental(state, property_type, scenario,
                  price, down_pct, annual_rate, rehab, base_rent,
                  exit_year, target_irr, overrides=None,hoa_override=None,
-                 points=0.0, point_rate_cut=0.0025):           
+                 points=0.0, point_rate_cut=0.0025, dscr_min=DSCR_LENDER_MIN,
+                 tax_override=None, insurance_override=None):           
 
     """
     Run the full Rental analysis for one deal.
@@ -61,6 +63,10 @@ def analyze_rental(state, property_type, scenario,
     hoa = a["HOA Monthly"]
     if hoa_override is not None:
         hoa = hoa_override
+    if tax_override is not None:         # exact $/yr -> same rate-on-price shape
+        tax_rate = tax_override / price
+    if insurance_override is not None:
+        annual_insurance = insurance_override
     rent_growth = a["RentGrowth Annual"]
     tax_growth = a["Tax Growth"]
     inflation = a["Inflation Annual"]
@@ -115,18 +121,22 @@ def analyze_rental(state, property_type, scenario,
                     annual_insurance, hoa, base_maint, mgmt_rate,
                     rent_growth, tax_growth, inflation)
     noi_by_year = [y["noi_annual"] for y in years]
-    dscrs = dscr_by_year(noi_by_year, debt)
-    min_d = min_dscr(noi_by_year, debt)
+    dscrs = lender_dscr_by_year(years, debt)      # rent / PITIA, each year
+    # lenders measure DSCR at closing (year 1); P&I is flat while rent grows,
+    # so year 1 is also the lowest year. Key kept as "min_dscr" for the solver/UI.
+    min_d = dscrs[0]
+    y1 = years[0]
+    pitia_y1 = pitia(debt, y1["property_tax"], y1["insurance"], y1["hoa"])
     capex_y1 = base_rent * 12 * capex_rate
     dscr_res = post_refi_dscr_with_reserves(noi_by_year[0], capex_y1, loan, annual_rate)
 
     req_rent = required_rent(debt, tax_rate, price, annual_insurance, hoa,
                              vacancy_rate, maint_rate, mgmt_rate, capex_rate)
-    # same formula without the CapEx reserve: the rent for a lender DSCR of 1.20
-    req_rent_lender = required_rent(debt, tax_rate, price, annual_insurance, hoa,
-                                    vacancy_rate, maint_rate, mgmt_rate, 0.0)      
+    # the rent a DSCR lender needs to see: minimum x PITIA
+    req_rent_lender = required_rent_lender(pitia_y1, dscr_min)
     cushion = base_rent - req_rent
-    v = rental_verdict(irr_value, min_d, target_irr, rent_cushion=cushion)
+    v = rental_verdict(irr_value, min_d, target_irr, rent_cushion=cushion,
+                       dscr_min=dscr_min)
     
 
     return {
@@ -134,6 +144,12 @@ def analyze_rental(state, property_type, scenario,
         "cash_on_cash": coc,
         "dscr_by_year": dscrs,
         "min_dscr": min_d,
+        "dscr_min": dscr_min,
+        "pitia": pitia_y1,
+        "pi_monthly": debt / 12,
+        "tax_monthly": y1["property_tax"],
+        "insurance_monthly": y1["insurance"],
+        "hoa_monthly": y1["hoa"],
         "required_rent": req_rent,
         "required_rent_lender": req_rent_lender,
         "rent_cushion":  cushion,
@@ -159,7 +175,8 @@ def analyze_rental(state, property_type, scenario,
 
 def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
-                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None,points=0.0, point_rate_cut=0.0025):
+                 arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None,points=0.0, point_rate_cut=0.0025,
+                 dscr_min=DSCR_LENDER_MIN, tax_override=None, insurance_override=None):
     """
     Run the full BRRR analysis for one deal. Uses only the BRRR engine
     (brrr.py) - never retrofits Rental. Monthly stream + annualized IRR
@@ -177,6 +194,10 @@ def analyze_brrr(state, property_type, scenario,
     hoa = a["HOA Monthly"]
     if hoa_override is not None:
         hoa = hoa_override
+    if tax_override is not None:         # exact $/yr -> same rate-on-price shape
+        tax_rate = tax_override / price
+    if insurance_override is not None:
+        annual_insurance = insurance_override
     rent_growth = a["RentGrowth Annual"]
     tax_growth = a["Tax Growth"]
     inflation = a["Inflation Annual"]
@@ -233,16 +254,18 @@ def analyze_brrr(state, property_type, scenario,
                     annual_insurance, hoa, base_maint, mgmt_rate,
                     rent_growth, tax_growth, inflation)
     noi_y1 = years[0]["noi_annual"]
+    y1 = years[0]
     capex_y1 = base_rent * 12 * capex_rate
-    dscr = post_refi_dscr(noi_y1, rl, post_refi_rate)
+    refi_pitia = pitia(annual_debt_service(rl, post_refi_rate),
+                       y1["property_tax"], y1["insurance"], y1["hoa"])
+    dscr = lender_dscr(base_rent, refi_pitia)     # rent / PITIA on the new loan
     dscr_res = post_refi_dscr_with_reserves(noi_y1, capex_y1, rl, post_refi_rate)
 
     # --- required rent on POST-REFI debt (v2 B35 wrongly uses purchase mortgage) ---
     refi_debt = annual_debt_service(rl, post_refi_rate)
     req_rent = required_rent(refi_debt, tax_rate, price, annual_insurance, hoa,
                              vacancy_rate, maint_rate, mgmt_rate, capex_rate)
-    req_rent_lender = required_rent(refi_debt, tax_rate, price, annual_insurance, hoa,
-                                    vacancy_rate, maint_rate, mgmt_rate, 0.0)
+    req_rent_lender = required_rent_lender(refi_pitia, dscr_min)
     cushion = base_rent - req_rent
 
     # --- exit ---
@@ -255,7 +278,7 @@ def analyze_brrr(state, property_type, scenario,
                                       balance)
 
     v = verdict("BRRR", raw_irr=irr_value, cash_left=left, dscr=dscr,
-                target_irr=target_irr, rent_cushion=cushion)
+                target_irr=target_irr, rent_cushion=cushion, dscr_min=dscr_min)
 
     return {
         "irr": irr_value,
@@ -265,6 +288,12 @@ def analyze_brrr(state, property_type, scenario,
         "post_refi_cash_flow": post_refi_cf,
         "cash_on_cash": coc,
         "dscr": dscr,
+        "dscr_min": dscr_min,
+        "pitia": refi_pitia,
+        "pi_monthly": annual_debt_service(rl, post_refi_rate) / 12,
+        "tax_monthly": y1["property_tax"],
+        "insurance_monthly": y1["insurance"],
+        "hoa_monthly": y1["hoa"],
         "dscr_with_reserves": dscr_res,
         "refi_type": refi_type,
         "refi_loan": rl,
@@ -291,7 +320,8 @@ def analyze_brrr(state, property_type, scenario,
 
 def analyze_flip(state, property_type, scenario,
                  price, rehab, arv, hm_ltv, hm_rate, hold_months, points_pct,
-                 monthly_utilities, monthly_maint_security, target_margin,hoa_override=None):
+                 monthly_utilities, monthly_maint_security, target_margin,hoa_override=None,
+                 tax_override=None, insurance_override=None):
     """
     Run the full Flip analysis for one deal. Uses only the Flip engine
     (flip.py) - single-exit model: no cash-flow stream, no DSCR, no IRR.
@@ -302,6 +332,10 @@ def analyze_flip(state, property_type, scenario,
     monthly_hoa = a["HOA Monthly"]
     if hoa_override is not None:
         monthly_hoa = hoa_override
+    if tax_override is not None:
+        tax_rate = tax_override / price
+    if insurance_override is not None:
+        annual_insurance = insurance_override
     closing_pct = a["Closing Cost Buying"]
     selling_pct = a["SellingCost% Annual"]
 
@@ -362,17 +396,32 @@ def analyze_deal(model, **inputs):
     hoa_override = inputs.pop("hoa_override", None)
     if hoa_override is not None and hoa_override < 0:
         raise ValueError("HOA override cannot be negative")
+    extra = {}
+    for key, label in (("tax_override", "Property tax / yr"),
+                       ("insurance_override", "Insurance / yr")):
+        v = inputs.pop(key, None)
+        if v is not None:
+            if v < 0:
+                raise ValueError(f"{label} can't be negative.")
+            extra[key] = v
+    if model in ("Rental", "BRRR"):
+        dscr_min = inputs.pop("dscr_min", DSCR_LENDER_MIN)
+        if dscr_min <= 0:
+            raise ValueError("Minimum DSCR must be more than 0.")
+        extra["dscr_min"] = dscr_min
+    else:
+        inputs.pop("dscr_min", None)
     if overrides and model != "Rental":
         raise ValueError("Assumption overrides are Rental-only for now")
     validate_inputs(model, inputs)
 
 
     if model == "Rental":
-        return analyze_rental(**inputs, overrides=overrides,hoa_override=hoa_override)
+        return analyze_rental(**inputs, overrides=overrides,hoa_override=hoa_override, **extra)
     if model == "BRRR":
-        return analyze_brrr(**inputs,hoa_override=hoa_override)
+        return analyze_brrr(**inputs,hoa_override=hoa_override, **extra)
     if model == "Flip":
-        return analyze_flip(**inputs,hoa_override=hoa_override)
+        return analyze_flip(**inputs,hoa_override=hoa_override, **extra)
     raise ValueError(f"Unknown model: {model}")
 
 # --- Full Rental parity check against the v2 reference deal ---

@@ -55,6 +55,10 @@ def project_year(year, base_rent, vacancy_rate, base_annual_tax,
         "disbursements": disbursements,
         "noi_monthly": noi_monthly,
         "noi_annual": noi_monthly * 12,
+        # monthly pieces a DSCR lender puts in PITIA (besides the loan payment)
+        "property_tax": expenses["property_tax"],
+        "insurance": expenses["insurance"],
+        "hoa": hoa,
     }
 
 

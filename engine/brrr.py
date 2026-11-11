@@ -90,11 +90,11 @@ def is_all_cash_out(raw_irr, cash_left):
     return raw_irr > 1 or cash_left <= 0
 
 
-def brrr_verdict(raw_irr, cash_left, dscr, target_irr, rent_cushion, dscr_min=1.20):
+def brrr_verdict(raw_irr, cash_left, dscr, target_irr, rent_cushion, dscr_min=1.00):
     """
     BRRR verdict (v2 Main_Dashboard B42, BRRR branch).
-    DSCR is the sole hard gate at 1.20 (not 1.0 - a failed refi is fatal to
-    the whole strategy, unlike Rental where sub-1.20 is merely "not financeable").
+    DSCR (rent / PITIA on the new loan) is the sole hard gate, at the user's
+    minimum (default 1.00) - a failed refi is fatal to the whole strategy.
     All-cash-out deals (raw_irr > 1 OR cash_left <= 0) skip the IRR gate
     entirely - v2 achieves this as a side effect of Excel's text > number
     coercion on B27's "Initial Investment Recovered" display string; this is

@@ -50,9 +50,16 @@ def test_higher_appreciation_raises_irr():
     assert analyze_deal(**DEAL, overrides=up)["irr"] > BASE["irr"]
 
 
-def test_higher_vacancy_lowers_dscr():
-    up = {"VacancyRate% Annual": A["VacancyRate% Annual"] + 0.05}
+def test_higher_tax_lowers_dscr():
+    # property tax is part of PITIA
+    up = {"PropertyTaxRate Annual": A["PropertyTaxRate Annual"] + 0.005}
     assert analyze_deal(**DEAL, overrides=up)["min_dscr"] < BASE["min_dscr"]
+
+
+def test_vacancy_does_not_move_lender_dscr():
+    # DSCR lenders use gross rent / PITIA: vacancy is not in either side
+    up = {"VacancyRate% Annual": A["VacancyRate% Annual"] + 0.05}
+    assert analyze_deal(**DEAL, overrides=up)["min_dscr"] == pytest.approx(BASE["min_dscr"])
 
 
 def test_unknown_assumption_is_rejected():
