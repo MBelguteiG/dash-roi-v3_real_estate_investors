@@ -72,7 +72,7 @@ TEXT = {
     "upkeep": ("Upkeep & security / mo", "Арчилгаа, хамгаалалт / сар"),
     "hoa": ("HOA / mo", "СӨХ төлбөр / сар"),
     "hoa_default": ("default {x}", "үндсэн {x}"),
-    "dscr_min": ("Lender minimum (x)", "Банкны шаардах доод харьцаа (x)"),
+    "dscr_min": ("Minimum DSCR", "Түрээс / сарын төлбөрийн доод харьцаа"),
     "tax_yr": ("Property tax / yr", "Үл хөдлөх эд хөрөнгийн албан татвар / жил"),
     "ins_yr": ("Insurance / yr", "Даатгал / жил"),
     "points": ("Points to lower rate", "Хүү бууруулах оноо (points)"),
@@ -122,10 +122,10 @@ TEXT = {
                     "Эзэмших хугацааны цахилгаан, ус, хийн зардал."),
     "h_upkeep": ("Lawn, cleaning, locks and alarms while it's empty.",
                  "Сул байх үеийн зүлэг, цэвэрлэгээ, цоож, дохиоллын зардал."),
-    "h_dscr_min": ("The lowest rent ÷ PITIA your lender accepts. Most DSCR lenders "
-                   "accept 1.00; some want 1.20 or 1.25.",
+    "h_dscr_min": ("The lowest DSCR (rent ÷ PITIA) your lender will accept. Most DSCR lenders "
+                   "accept 1.00; some want 1.20 or 1.25. Ask your lender.",
                    "Банкны зөвшөөрөх түрээс ÷ сарын төлбөрийн хамгийн бага харьцаа. "
-                   "Ихэнх банк 1.00, зарим нь 1.20 эсвэл 1.25 шаарддаг."),
+                   "Ихэнх банк 1.00, зарим нь 1.20 эсвэл 1.25 шаарддаг. Банкнаасаа лавлана уу"),
     "h_tax_yr": ("Leave blank to use the state average. Type the exact yearly tax "
                  "for this property if you know it.",
                  "Хоосон орхивол муж улсын дундажийг ашиглана. Энэ үл хөдлөх эд хөрөнгийн "
