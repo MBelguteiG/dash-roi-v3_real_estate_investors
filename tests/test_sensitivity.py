@@ -105,3 +105,15 @@ def test_rate_bars_match_heatmap():
 
 def test_zero_rehab_gives_zero_width():
     assert BY_NAME["Rehab cost"]["low"] == pytest.approx(BY_NAME["Rehab cost"]["high"])
+
+def test_tornado_rows_carry_the_tested_values():
+    # the page shows these next to each bar (e.g. rent $2,070 - $2,530)
+    rows = {r["variable"]: r for r in tornado_irr(DEAL)["rows"]}
+    rent = rows["Monthly rent"]
+    assert rent["low_value"] == pytest.approx(DEAL["base_rent"] * 0.9)
+    assert rent["high_value"] == pytest.approx(DEAL["base_rent"] * 1.1)
+    assert rent["unit"] == "$"
+    growth = rows["Rent growth"]
+    assert growth["low_value"] == pytest.approx(A["RentGrowth Annual"] - 0.01)
+    assert growth["high_value"] == pytest.approx(A["RentGrowth Annual"] + 0.01)
+    assert growth["unit"] == "%"

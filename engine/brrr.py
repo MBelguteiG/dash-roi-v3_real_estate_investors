@@ -217,11 +217,18 @@ def build_brrr_monthly_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, 
                               post_refi_rate, arv, appreciation_rate, exit_year, selling_pct,
                               cash_invested_amt, base_rent, vacancy_rate, tax_rate,
                               annual_insurance, hoa, base_maint, mgmt_rate, capex_rate,
-                              rent_growth, tax_growth, inflation,return_rows=False):
+                              rent_growth, tax_growth, inflation,return_rows=False,
+                              rent_during_rehab=False):
     """
     Monthly Month 0..exit stream (v2 'BRRR Amortization' col H):
     month 0 = -cash invested; each month = (NOI_year - CapEx)/12 - payment,
     + cash pulled out in refi month, + net sale proceeds in exit month.
+
+    Months 1..refi_month are the repair period. By default (Nov 2026) the
+    property is empty then: no rent, but you still pay property tax,
+    insurance and HOA, plus the short-term loan interest. Rent starts the
+    month after the refinance. rent_during_rehab=True keeps the v2 method
+    (rent from month 1) for the v2 parity checks.
     """
     hm_loan = hard_money_loan(purchase_price, hm_ltv)
     rl = refi_loan(arv, refi_ltv)
@@ -234,6 +241,9 @@ def build_brrr_monthly_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, 
                     rent_growth, tax_growth, inflation)
     noi_by_year = {y["year"]: y["noi_annual"] for y in years}
     capex_by_year = {y["year"]: y["rent"] * 12 * capex_rate for y in years}
+    # monthly carrying costs while empty: property tax + insurance + HOA
+    carry_by_year = {y["year"]: y["property_tax"] + y["insurance"] + y["hoa"]
+                     for y in years}
 
     yh = years_held_post_refi(exit_year, refi_month)
     sale_price = sale_price_at_exit(arv, appreciation_rate, yh)
@@ -245,12 +255,16 @@ def build_brrr_monthly_stream(purchase_price, rehab, hm_ltv, hm_rate, refi_ltv, 
     for row in sched:
         m = row["month"]
         year = (m - 1) // 12 + 1
-        cf = (noi_by_year[year] - capex_by_year[year]) / 12 - row["payment"]
+        if m <= refi_month and not rent_during_rehab:
+            noi_m, capex_m = -carry_by_year[year], 0.0      # empty during repairs
+        else:
+            noi_m, capex_m = noi_by_year[year] / 12, capex_by_year[year] / 12
+        cf = noi_m - capex_m - row["payment"]
         rows.append({
             "month": m,
             "year": year,
-            "noi": noi_by_year[year] / 12,
-            "capex_reserve": capex_by_year[year] / 12,
+            "noi": noi_m,
+            "capex_reserve": capex_m,
             "debt_service": row["payment"],
             "cash_flow": cf,
             "cash_out_at_refi": pulled if m == refi_month else 0.0,
@@ -388,7 +402,7 @@ if __name__ == "__main__":
     tax_rate=tax_rate_b, annual_insurance=annual_insurance_b, hoa=hoa_b,
     base_maint=base_maint, mgmt_rate=mgmt_rate, capex_rate=capex_rate,
     rent_growth=rent_growth, tax_growth=tax_growth, inflation=inflation,
-
+    rent_during_rehab=True,   # v2 method, to match the v2 numbers below
     )
     print("\n=== BRRR MONTHLY STREAM (current $650K/$800K deal) ===")
     print(f"Stream length: {len(monthly)}   (v2: 61)")

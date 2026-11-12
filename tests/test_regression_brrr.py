@@ -33,7 +33,7 @@ CASES["B-04-750"] = {**CASES["B-04-650"], "arv": 750000}
 # (case, output key, expected, tolerance)
 CHECKS = [
     # B-01 / B-02: DSCR 0.70 and HARD REJECT match v2; other figures are v3-only
-    ("B-01", "irr", 0.06104, 0.00005),
+    ("B-01", "irr", 0.034842, 0.000005),   # empty until the refi (Nov 2026); hand-checked
     ("B-01", "cash_invested", 79375.00, 0.01),
     ("B-01", "cash_pulled_out", 30000.00, 0.01),
     ("B-01", "cash_left", 49375.00, 0.01),
@@ -42,7 +42,7 @@ CHECKS = [
     ("B-01", "rent_cushion", -1564.40, 0.01),
     ("B-01", "sale_price", 388370.67, 0.01),
     ("B-01", "equity_at_exit", 146027.28, 0.01),
-    ("B-01", "verdict", "NEGOTIATE", None),   # passes DSCR 1.0; IRR 6.1% < 10% goal
+    ("B-01", "verdict", "REJECT", None),   # passes DSCR 1.0; IRR 3.5% < half the 10% goal
     # B-08: v2 showed equity 178,102.50 and proceeds 147,032.84;
     # v3 is 237.24 higher on both (documented B34 double-count fix)
     ("B-08", "equity_at_exit", 178339.74, 0.01),
@@ -51,7 +51,7 @@ CHECKS = [
     
 
     # B-03: v2 showed IRR 12.76%, DSCR 0.60, HARD REJECT (strong IRR, fails DSCR gate)
-    ("B-03", "irr", 0.12805, 0.00005),
+    ("B-03", "irr", 0.106201, 0.000005),
     ("B-03", "cash_invested", 117375.00, 0.01),
     ("B-03", "cash_pulled_out", 29000.00, 0.01),
     ("B-03", "cash_left", 88375.00, 0.01),
@@ -64,7 +64,7 @@ CHECKS = [
     
     # B-04 at ARV 650K: v2 showed IRR 36.69% and no guard (its display then
     # checked IRR > 100% only); v3 flags it because cash left is negative
-    ("B-04-650", "irr", 0.36748, 0.00005),
+    ("B-04-650", "irr", 0.302557, 0.000005),
     ("B-04-650", "cash_invested", 111000.00, 0.01),
     ("B-04-650", "cash_pulled_out", 160000.00, 0.01),
     ("B-04-650", "cash_left", -49000.00, 0.01),
@@ -72,7 +72,7 @@ CHECKS = [
     ("B-04-650", "dscr", 0.5437, 0.0005),
     ("B-04-650", "verdict", "HARD REJECT", None),
     # B-04 at ARV 750K: v2 guard fired on IRR > 100%
-    ("B-04-750", "irr", 2.02709, 0.00005),
+    ("B-04-750", "irr", 1.580416, 0.000005),
     ("B-04-750", "cash_pulled_out", 240000.00, 0.01),
     ("B-04-750", "cash_left", -129000.00, 0.01),
     ("B-04-750", "all_cash_out", True, None),

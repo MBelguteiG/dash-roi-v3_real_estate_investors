@@ -25,7 +25,8 @@ DEALS = {
     "BRRR": dict(model="BRRR", state="California", property_type="Townhouse",
                  scenario="Base", price=650000, rehab=25000, base_rent=4500,
                  exit_year=5, target_irr=0.13, arv=800000, hm_ltv=0.85,
-                 hm_rate=0.12, refi_ltv=0.75, refi_month=6, post_refi_rate=0.09),
+                 hm_rate=0.12, refi_ltv=0.75, refi_month=6, post_refi_rate=0.09,
+                 rent_during_rehab=True),   # v2 method: rent from month 1
     "Flip": dict(model="Flip", state="California", property_type="Townhouse",
                  scenario="Base", price=650000, rehab=25000, arv=800000,
                  hm_ltv=0.85, hm_rate=0.12, hold_months=5, points_pct=0.02,

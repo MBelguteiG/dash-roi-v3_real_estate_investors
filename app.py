@@ -73,19 +73,34 @@ def driver_note(rows, base, names):
     lo, hi = sorted((top["low"], top["high"]))
     st.markdown(T("s_driver", name=name, lo=f"{lo:.2%}", hi=f"{hi:.2%}", base=f"{base:.2%}"))
 
+def pct_txt(v):
+    """0.0675 -> '6.75%', 0.02 -> '2%'."""
+    return f"{v * 100:.2f}".rstrip("0").rstrip(".") + "%"
+
+
+def tested_txt(r, v):
+    return money(v) if r["unit"] == "$" else pct_txt(v)
+
+
 def tornado_chart(names, rows, base, height):
+    """Each row is labelled with the input values tested (low - high), and the
+    hover shows the exact value behind each bar end and its yearly return."""
+    labels = [f"{n}<br><span style='font-size:11px;color:#6B7280'>"
+              f"{tested_txt(r, r['low_value'])} – {tested_txt(r, r['high_value'])}</span>"
+              for n, r in zip(names, rows)]
     fig = go.Figure()
     for label, pick, colour in ((T("s_helps"), max, "#2a78d6"),
                                 (T("s_hurts"), min, "#A0AEC0")):
-        values, moves = [], []
-        for r in rows:
+        values, data = [], []
+        for n, r in zip(names, rows):
             v = pick(r["low"], r["high"])
+            used = r["low_value"] if v == r["low"] else r["high_value"]
             values.append(v)
-            moves.append(T("s_lower") if v == r["low"] else T("s_higher"))
+            data.append((v, tested_txt(r, used), n))
         fig.add_trace(go.Bar(
-            name=label, y=names, orientation="h",
+            name=label, y=labels, orientation="h",
             x=[v - base for v in values], base=[base] * len(values),
-            marker_color=colour, customdata=list(zip(values, moves)),
+            marker_color=colour, customdata=data,
             hovertemplate=T("s_hover"),
         ))
     fig.add_vline(x=base, line_dash="dot", line_color="#4A5568",
@@ -94,9 +109,10 @@ def tornado_chart(names, rows, base, height):
     fig.update_layout(
         title=T("s_title", base=f"{base:.2%}"),
         barmode="overlay", height=height,
+        font={"family": "Inter, sans-serif"},   # same font the page uses, so labels fit
         xaxis={"title": T("t_return"), "tickformat": ".1%"},
-        yaxis={"type": "category", "autorange": "reversed"},
-        legend={"orientation": "h", "y": -0.2},
+        yaxis={"type": "category", "autorange": "reversed", "automargin": True},
+        legend={"orientation": "h", "y": -0.22, "x": 0, "entrywidth": 190},
         margin={"t": 50, "l": 10, "r": 10, "b": 10},
         plot_bgcolor="#FFFFFF",
     )
@@ -518,7 +534,7 @@ with sens:
             names = [var_name(r["variable"]) + (" *" if r["all_cash_out"] else "") for r in rows]
             base_irr = tor["base"]
             driver_note(rows, base_irr, PLAIN)
-            st.plotly_chart(tornado_chart(names, rows, base_irr, 360))
+            st.plotly_chart(tornado_chart(names, rows, base_irr, 440))
             caption = T("s_cap_brrr")
             if any(r["all_cash_out"] for r in rows):
                 caption += T("s_aco_star")
@@ -551,6 +567,7 @@ with sens:
             xaxis={"title": T("price"), "type": "category"},
             yaxis={"title": T("s_loan_rate"), "type": "category", "autorange": "reversed"},
             height=420,
+            font={"family": "Inter, sans-serif"},
             margin={"t": 50, "l": 10, "r": 10, "b": 10},
             plot_bgcolor="#FFFFFF",
         )
@@ -562,7 +579,7 @@ with sens:
         names = [var_name(r["variable"]) for r in tor["rows"]]
         base_irr = tor["base"]
         driver_note(tor["rows"], base_irr, PLAIN)
-        st.plotly_chart(tornado_chart(names, tor["rows"], base_irr, 380))
+        st.plotly_chart(tornado_chart(names, tor["rows"], base_irr, 460))
         st.caption(T("s_cap_rental"))
 
 with cf:

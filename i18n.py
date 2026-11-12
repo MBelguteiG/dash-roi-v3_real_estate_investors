@@ -404,8 +404,8 @@ TEXT = {
     "s_hurts": ("Hurts your return", "Өгөөжийг бууруулна"),
     "s_lower": ("lower", "бага"),
     "s_higher": ("higher", "өндөр"),
-    "s_hover": ("If %{y} is %{customdata[1]}: yearly return %{customdata[0]:.2%}<extra></extra>",
-                "%{y} %{customdata[1]} бол: жилийн өгөөж %{customdata[0]:.2%}<extra></extra>"),
+    "s_hover": ("%{customdata[2]}: %{customdata[1]}<br>Yearly return: %{customdata[0]:.2%}<extra></extra>",
+                "%{customdata[2]}: %{customdata[1]}<br>Жилийн өгөөж: %{customdata[0]:.2%}<extra></extra>"),
     "s_title": ("What moves your yearly return most<br><sup>Dotted line = your deal, {base}</sup>",
                 "Жилийн өгөөжид юу хамгийн их нөлөөлөх вэ?<br><sup>Тасархай шугам = Таны хөрөнгө оруулалтын өгөөж, {base}</sup>"),
     "s_line": ("Your deal {base}", "Таны өгөөж {base}"),
@@ -494,12 +494,15 @@ TEXT = {
     "cf_principal": ("Loan paid down (yours at sale)", "Төлөгдсөн үндсэн зээл (зарахад таных)"),
     "cf_cash_out_at_refi": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авсан бэлэн мөнгө"),
     "cf_sale_proceeds": ("Cash from sale", "Борлуулалтаас орох мөнгө"),
-    "cf_cap_brrr": ("Months 1 to {m}: you pay only interest on the short-term loan. After that, the "
-                    "new 30-year loan's payments start. Cash flow is rent left after expenses, minus "
-                    "loan payments and money saved for big repairs.",
-                    "1-{m} {o} сар: богино хугацааны зээлийн зөвхөн хүүг төлнө. Үүний дараа шинэ "
-                    "30 жилийн зээлийн төлбөр эхэлнэ. Мөнгөн гүйлгээ = зардлын дараах түрээсийн "
-                    "орлого - зээлийн төлбөр - засварт зориулсан нөөцийн зардал."),
+    "cf_cap_brrr": ("Months 1 to {m}: the property is empty for repairs, so there is no rent. You "
+                    "pay interest on the short-term loan plus property tax, insurance and HOA. After "
+                    "the refinance, rent starts and the new 30-year loan's payments start. Cash flow "
+                    "is rent left after expenses, minus loan payments and money saved for big repairs.",
+                    "1-{m} {o} сар: засварын хугацаанд түрээслэгчгүй тул түрээсийн орлого байхгүй. "
+                    "Богино хугацааны зээлийн хүү, үл хөдлөх эд хөрөнгийн албан татвар, даатгал, "
+                    "СӨХ төлбөрийг төлнө. Дахин санхүүжилтийн дараа түрээс орж, шинэ 30 жилийн "
+                    "зээлийн төлбөр эхэлнэ. Мөнгөн гүйлгээ = зардлын дараах түрээсийн орлого - "
+                    "зээлийн төлбөр - засварт зориулсан нөөцийн зардал."),
     "cf_dscr_by_year": ("DSCR (rent ÷ PITIA), by year: {x}",
                         "Түрээс / сарын төлбөрийн харьцаа, жилээр: {x}"),
     "cf_cap_rental": ("Cash flow is rent left after expenses, minus loan interest and money saved for "

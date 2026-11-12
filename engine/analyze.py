@@ -176,7 +176,8 @@ def analyze_rental(state, property_type, scenario,
 def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
                  arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None,points=0.0, point_rate_cut=0.0025,
-                 dscr_min=DSCR_LENDER_MIN, tax_override=None, insurance_override=None):
+                 dscr_min=DSCR_LENDER_MIN, tax_override=None, insurance_override=None,
+                 rent_during_rehab=False):
     """
     Run the full BRRR analysis for one deal. Uses only the BRRR engine
     (brrr.py) - never retrofits Rental. Monthly stream + annualized IRR
@@ -237,6 +238,7 @@ def analyze_brrr(state, property_type, scenario,
         annual_insurance=annual_insurance, hoa=hoa, base_maint=base_maint,
         mgmt_rate=mgmt_rate, capex_rate=capex_rate, rent_growth=rent_growth,
         tax_growth=tax_growth, inflation=inflation,return_rows=True,
+        rent_during_rehab=rent_during_rehab,
     )
     monthly[refi_month] -= points_cost   # points are paid at the refinance
     for row in mrows:

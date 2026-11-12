@@ -30,7 +30,7 @@ def test_brrr_irr_solver_b05():
     # v2 recorded no figure, only that the solver gives a sensible price
     result = max_price_irr(B01)
     assert result["status"] == "SOLVED"
-    assert result["price"] == pytest.approx(239470.94, abs=TOL)
+    assert result["price"] == pytest.approx(231069.01, abs=TOL)   # empty until the refi
 
 
 def test_brrr_dscr_solver_refuses_b06():

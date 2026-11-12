@@ -35,6 +35,14 @@ TORNADO_VARS = [
 ]
 
 
+# money inputs show as $; everything else is a rate shown as %
+_DOLLARS = {"price", "base_rent", "rehab", "arv"}
+
+
+def _unit(key):
+    return "$" if key in _DOLLARS else "%"
+
+
 def _shift(value, swing, how, sign):
     if how == "relative":
         return value * (1 + sign * swing)
@@ -50,15 +58,19 @@ def tornado_irr(deal):
     a = get_assumptions(deal["state"], deal["property_type"], "Rental", deal["scenario"])
     rows = []
     for label, where, key, swing, how in TORNADO_VARS:
-        irrs = []
+        irrs, tested = [], []
+        start = deal[key] if where == "input" else a[key]
         for sign in (-1, 1):
+            new = _shift(start, swing, how, sign)
+            tested.append(new)
             if where == "input":
-                new = _shift(deal[key], swing, how, sign)
                 irrs.append(analyze_deal(**{**deal, key: new})["irr"])
             else:
-                new = _shift(a[key], swing, how, sign)
                 irrs.append(analyze_deal(**deal, overrides={key: new})["irr"])
-        rows.append({"variable": label, "low": irrs[0], "high": irrs[1]})
+        rows.append({"variable": label, "low": irrs[0], "high": irrs[1],
+                     # the input values tested, so the page can show them
+                     "low_value": tested[0], "high_value": tested[1],
+                     "base_value": start, "unit": _unit(key)})
     rows.sort(key=lambda r: abs(r["high"] - r["low"]), reverse=True)
     return {"base": base, "rows": rows}
 
@@ -82,10 +94,12 @@ def brrr_tornado_irr(deal):
     base = analyze_deal(**deal)
     rows = []
     for label, key, swing, how in BRRR_TORNADO_VARS:
-        runs = [analyze_deal(**{**deal, key: _shift(deal[key], swing, how, sign)})
-                for sign in (-1, 1)]
+        tested = [_shift(deal[key], swing, how, sign) for sign in (-1, 1)]
+        runs = [analyze_deal(**{**deal, key: v}) for v in tested]
         rows.append({"variable": label,
                      "low": runs[0]["irr"], "high": runs[1]["irr"],
+                     "low_value": tested[0], "high_value": tested[1],
+                     "base_value": deal[key], "unit": _unit(key),
                      "all_cash_out": runs[0]["all_cash_out"] or runs[1]["all_cash_out"]})
     rows.sort(key=lambda r: abs(r["high"] - r["low"]), reverse=True)
     return {"base": base["irr"], "base_all_cash_out": base["all_cash_out"],
