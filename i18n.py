@@ -399,11 +399,11 @@ TEXT = {
     "b_value": ("value after repairs", "засварын дараах үнэлгээний"),
     "after_refi": (" These figures are after the refinance.", " Энэ тооцоо дахин санхүүжилтийн дараах байдлаар."),
     "n_meets": ("Rent ÷ PITIA is {d}x and your lender's minimum is {m}x. The loan is {ltv} "
-                "of the {base}, within the usual 80% limit. A higher ratio usually gets "
-                "better loan terms.",
+                "of the {base}, within the usual 80% limit. Rent could fall to {need} "
+                "a month and still meet the minimum.",
                 "Түрээс / сарын төлбөрийн харьцаа {d}x, банкны шаардах доод харьцаа {m}x. "
                 "Зээл {base} {ltv} буюу ихэвчлэн тавигддаг 80 хувийн хязгаараас хэтрээгүй. "
-                "Харьцаа өндөр байх тусам зээлийн нөхцөл ихэвчлэн илүү таатай байдаг."),
+                "Сарын түрээс {need} хүртэл буурсан ч банкны доод шаардлагыг хангана."),
     "n_ltv": ("Rent ÷ PITIA is {d}x, which meets your lender's minimum of {m}x, but the loan "
               "is {ltv} of the {base}. Most DSCR lenders lend up to 80%.",
               "Түрээс / сарын төлбөрийн харьцаа {d}x, банкны шаардах доод харьцаа {m}x тул "

@@ -1,3 +1,4 @@
+import math
 import streamlit as st
 from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
@@ -32,6 +33,18 @@ st.markdown(
 
 def money(x):
     return f"-${abs(x):,.0f}" if x < 0 else f"${x:,.0f}"
+
+
+def ratio(x):
+    """DSCR shown cut (not rounded) to 3 decimals, so 0.9998 shows 0.999x,
+    never 1.000x while the lender check says below 1.00."""
+    return f"{math.floor(x * 1000 + 1e-9) / 1000:.3f}"
+
+
+def rent_needed(x):
+    """Rent the lender needs, rounded UP to the next dollar, so typing the
+    shown amount always reaches the minimum."""
+    return money(math.ceil(x - 1e-9))
 
 
 def money2(x):
@@ -327,7 +340,7 @@ if model == "Rental":
     dscr_value = result["min_dscr"]
     irr_ok = result["irr"] >= target / 100
     tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
-    tile(t[2], T("t_dscr"), f"{dscr_value:.3f}x", T("c_bank", m=f"{dscr_min:.2f}"))
+    tile(t[2], T("t_dscr"), ratio(dscr_value) + "x", T("c_bank", m=f"{dscr_min:.2f}"))
     tile(t[3], T("t_coc"), f"{result['cash_on_cash']:.2%}", T("c_coc"))
 elif model == "BRRR":
     irr_solve = max_price_irr(deal)
@@ -340,7 +353,7 @@ elif model == "BRRR":
     else:
         tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
         irr_ok = result["irr"] >= target / 100
-    tile(t[2], T("t_dscr"), f"{dscr_value:.3f}x", T("c_bank", m=f"{dscr_min:.2f}"))
+    tile(t[2], T("t_dscr"), ratio(dscr_value) + "x", T("c_bank", m=f"{dscr_min:.2f}"))
     if result["cash_left"] < 0:
         tile(t[3], T("t_cash_left"), "$0", T("c_refi_more", x=money(-result["cash_left"])))
     else:
@@ -377,7 +390,7 @@ if model in ("Rental", "BRRR") and not result.get("all_cash_out"):
 if model in ("Rental", "BRRR"):
     when = T("when_rental") if model == "Rental" else T("when_brrr")
     with t[2].popover(T("what_mean")):
-        st.markdown(T("p_dscr", x=f"{dscr_value:.3f}", when=when, m=f"{dscr_min:.2f}",
+        st.markdown(T("p_dscr", x=ratio(dscr_value), when=when, m=f"{dscr_min:.2f}",
                       rent=money(rent), pitia=money(result["pitia"]),
                       pi=money(result["pi_monthly"]), tax=money(result["tax_monthly"]),
                       ins=money(result["insurance_monthly"]),
@@ -433,7 +446,7 @@ with inv:
             check(T("k_profit_goal", x=f"{margin:.2%}", goal=f"{target:.2f}"),
                   margin >= target / 100)
         else:
-            check(T("k_bank", x=f"{dscr_value:.3f}", m=f"{dscr_min:.2f}"),
+            check(T("k_bank", x=ratio(dscr_value), m=f"{dscr_min:.2f}"),
                   dscr_value >= dscr_min)
             if model == "BRRR" and result["all_cash_out"]:
                 check(T("k_return_aco"), True)
@@ -469,8 +482,8 @@ with inv:
 def lender_note(approval, d, ltv, base):
     """The sentence after the lender decision, for Rental and BRRR."""
     key = {"MEETS MIN": "n_meets", "LTV HIGH": "n_ltv", "BELOW MIN": "n_below"}[approval]
-    return T(key, d=f"{d:.3f}", m=f"{dscr_min:.2f}", ltv=f"{ltv:.0%}", base=T(base),
-             need=money(result["required_rent_lender"])).replace("$", "\\$")
+    return T(key, d=ratio(d), m=f"{dscr_min:.2f}", ltv=f"{ltv:.0%}", base=T(base),
+             need=rent_needed(result["required_rent_lender"])).replace("$", "\\$")
 
 
 with lend:
@@ -483,7 +496,7 @@ with lend:
         tile(l[1], T("l_noi"), money(result["noi_y1"]), T("c_noi"))
         tile(l[2], T("l_debt"), money(result["annual_debt_service"]),
              T("c_fixed", x=f"{round(result['rate_used'] * 100, 3):g}"))
-        tile(l[3], T("t_dscr"), f"{result['min_dscr']:.3f}x",
+        tile(l[3], T("t_dscr"), ratio(result['min_dscr']) + "x",
              T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
                m=f"{dscr_min:.2f}"))
         note = lender_note(approval, result["min_dscr"], result["ltv"], "b_price")
@@ -500,7 +513,7 @@ with lend:
         tile(l[1], T("l_refi_ltv"), f"{refi:.0%}",
             T("c_refi_at", type=T("rt_" + refi_type), m=refi_month, o=mn_ord(refi_month)))
         tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]), T("c_after_hm"))
-        tile(l[3], T("t_dscr"), f"{result['dscr']:.3f}x",
+        tile(l[3], T("t_dscr"), ratio(result['dscr']) + "x",
              T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
                m=f"{dscr_min:.2f}"))
         note = lender_note(approval, result["dscr"], refi, "b_value") + T("after_refi")
@@ -627,7 +640,7 @@ with cf:
         )
         st.dataframe(table.style.format(money), width="stretch",
                      column_config={"_index": st.column_config.Column(width="large")})
-        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'], o=mn_ord(r['year']))}: {r['dscr']:.3f}x" for r in rows)
+        dscr_row = "  ·  ".join(f"{T('cf_year_short', n=r['year'], o=mn_ord(r['year']))}: {ratio(r['dscr'])}x" for r in rows)
         st.caption(T("cf_dscr_by_year", x=dscr_row))
         st.caption(T("cf_cap_rental"))
 st.divider()
