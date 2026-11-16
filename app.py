@@ -1,7 +1,7 @@
 import streamlit as st
 from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
-from engine.verdict import approval_likelihood, DSCR_STRONG
+from engine.verdict import approval_likelihood
 import plotly.graph_objects as go
 import pandas as pd
 from engine.sensitivity import two_way_irr, tornado_irr, brrr_tornado_irr
@@ -466,6 +466,13 @@ with inv:
             if model == "BRRR" and aco["status"] == "SOLVED":
                 st.write(T("f_aco", x=money(aco["price"])))
 
+def lender_note(approval, d, ltv, base):
+    """The sentence after the lender decision, for Rental and BRRR."""
+    key = {"MEETS MIN": "n_meets", "LTV HIGH": "n_ltv", "BELOW MIN": "n_below"}[approval]
+    return T(key, d=f"{d:.3f}", m=f"{dscr_min:.2f}", ltv=f"{ltv:.0%}", base=T(base),
+             need=money(result["required_rent_lender"])).replace("$", "\\$")
+
+
 with lend:
     if model == "Rental":
         approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"],
@@ -479,8 +486,7 @@ with lend:
         tile(l[3], T("t_dscr"), f"{result['min_dscr']:.3f}x",
              T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
                m=f"{dscr_min:.2f}"))
-        note = T("note_rental", d=f"{result['min_dscr']:.3f}", ltv=f"{result['ltv']:.0%}",
-                 m=f"{dscr_min:.2f}", s=f"{max(DSCR_STRONG, dscr_min):.2f}")
+        note = lender_note(approval, result["min_dscr"], result["ltv"], "b_price")
         cap_rate = result["noi_y1"] / price
         tile(l[4], T("l_cap"), f"{cap_rate:.2%}", T("c_cap"))
         with l[4].popover(T("what_mean")):
@@ -497,8 +503,7 @@ with lend:
         tile(l[3], T("t_dscr"), f"{result['dscr']:.3f}x",
              T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
                m=f"{dscr_min:.2f}"))
-        note = T("note_brrr", d=f"{result['dscr']:.3f}", ltv=f"{refi:.0%}",
-                 m=f"{dscr_min:.2f}", s=f"{max(DSCR_STRONG, dscr_min):.2f}")
+        note = lender_note(approval, result["dscr"], refi, "b_value") + T("after_refi")
     else:
         hm_ltv_arv = result["hm_loan"] / arv
         ltc = result["hm_loan"] / (price + rehab)
@@ -515,9 +520,9 @@ with lend:
 
     st.markdown("#### " + T("fund"))
     shown = T("a_" + approval, default=approval)
-    if approval in ("STRONG", "LIKELY"):
+    if approval in ("MEETS MIN", "LIKELY"):
         st.success(f"{shown}: {note}")
-    elif approval == "CONDITIONAL":
+    elif approval == "LTV HIGH":
         st.warning(f"{shown}: {note}")
     else:
         st.error(f"{shown}: {note}")

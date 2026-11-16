@@ -17,6 +17,7 @@ from engine.amortization import annual_debt_service
 # 1.00 is the typical DSCR-loan floor; the user can raise it (1.20, 1.25...).
 DSCR_LENDER_MIN = 1.00
 DSCR_STRONG = 1.25
+MAX_LTV = 0.80        # most DSCR lenders lend up to 80% of the price / value
 
 
 def pitia(annual_debt, monthly_tax, monthly_insurance, monthly_hoa):
@@ -150,15 +151,17 @@ if __name__ == "__main__":
 def approval_likelihood(model, min_dscr=None, ltv=None, hm_ltv_on_arv=None,
                         dscr_min=DSCR_LENDER_MIN):
     """
-    Lender fundability. DSCR here is rent / PITIA.
+    Lender fundability, one rule the way DSCR lenders decide (Nov 2026):
     Flip: hard-money loan / ARV must be at or under 75%.
-    Rental/BRRR: STRONG at DSCR >= 1.25 (or the user's minimum, if higher)
-    and LTV <= 80%; CONDITIONAL at the user's minimum; else LIKELY DECLINE.
+    Rental/BRRR (DSCR = rent / PITIA):
+      DSCR < the user's minimum        -> BELOW MIN
+      meets the minimum, LTV over 80%  -> LTV HIGH
+      meets the minimum, LTV <= 80%    -> MEETS MIN
     """
     if model == "Flip":
         return "LIKELY" if hm_ltv_on_arv <= 0.75 else "UNLIKELY"
-    if min_dscr >= max(DSCR_STRONG, dscr_min) and ltv <= 0.80:
-        return "STRONG"
-    if min_dscr >= dscr_min:
-        return "CONDITIONAL"
-    return "LIKELY DECLINE"   
+    if min_dscr < dscr_min:
+        return "BELOW MIN"
+    if ltv > MAX_LTV:
+        return "LTV HIGH"
+    return "MEETS MIN"   

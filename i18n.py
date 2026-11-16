@@ -164,7 +164,7 @@ TEXT = {
                  "бөгөөд хүүг ойролцоогоор 0.25%-иар бууруулна."),
 
         # --- verdict + tiles ---
-    "verdict": ("Verdict", "Шийдвэр"),
+    "verdict": ("Investor verdict", "Хөрөнгө оруулагчийн шийдвэр"),
     "v_HARD REJECT": ("HARD REJECT", "Шууд татгалзах"),
     "v_REJECT": ("REJECT", "Татгалзах"),
     "v_NEGOTIATE": ("NEGOTIATE", "Нөхцөл тохиролцох"),
@@ -330,11 +330,14 @@ TEXT = {
     "c_fixed": ("{x}% fixed, 30 years", "{x}% тогтмол хүү, 30 жил"),
     "c_bank_strong": ("rent {rent} ÷ PITIA {pitia}; minimum {m}x",
                       "түрээс {rent} ÷ сарын төлбөр {pitia}; доод харьцаа {m}x"),
-    "note_rental": ("Rent ÷ PITIA is {d}x and the loan is {ltv} of the price. "
-                    "Strong needs {s}x and 80% or less; conditional needs {m}x.",
-                    "Түрээс / сарын төлбөрийн харьцаа {d}x, зээл үнийн {ltv}. "
-                    "Шаардлага: {s}x ба үнийн 80 хувиас хэтрэхгүй; нэмэлт шаардлагатайгаар {m}x."),
-    "l_cap": ("Cap rate", "Капиталжуулалтын түвшин"),
+    "note_rental": ("Your rent ÷ PITIA is {d}x and the loan is {ltv} of the price. "
+                    "{s}x or more and a loan of 80% or less: a lender is likely to fund it. "
+                    "{m}x or more: a lender may fund it with extra conditions. "
+                    "Under {m}x: a lender won't fund it.",
+                    "Таны түрээс / сарын төлбөрийн харьцаа {d}x, зээл үнийн {ltv}. "
+                    "Харьцаа {s}x буюу түүнээс дээш, зээл үнийн 80 хувиас хэтрэхгүй бол банк "
+                    "зээл олгох магадлал өндөр. Харьцаа {m}x буюу түүнээс дээш бол банк нэмэлт "
+                    "шаардлага тавьж зээл олгож болзошгүй. Харьцаа {m}x хүрэхгүй бол банк зээл олгохгүй."),    "l_cap": ("Cap rate", "Капиталжуулалтын түвшин"),
     "c_cap": ("rent left after expenses ÷ price", "зардлын дараах түрээсийн орлого ÷ үнэ"),
     "p_cap": (
         "**Cap rate** shows what the property earns if you paid the full price in cash, "
@@ -357,11 +360,15 @@ TEXT = {
     "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авсан бэлэн мөнгө"),
     "c_after_hm": ("after paying off the short-term loan",
                    "богино хугацааны зээлээ төлсний дараа"),
-    "note_brrr": ("After the refinance, rent ÷ PITIA is {d}x and the new loan is {ltv} "
-                  "of the value. Strong needs {s}x and 80% or less; conditional needs {m}x.",
-                  "Дахин санхүүжилтийн дараа түрээс / сарын төлбөрийн харьцаа {d}x, "
-                  "шинэ зээл үнэлгээний {ltv}. Шаардлага: {s}x ба үнэлгээний 80 хувиас хэтрэхгүй; "
-                  "нэмэлт шаардлагатайгаар {m}x."),
+    "note_brrr": ("After the refinance, your rent ÷ PITIA is {d}x and the new loan is {ltv} "
+                  "of the value. {s}x or more and a loan of 80% or less: a lender is likely to "
+                  "fund it. {m}x or more: a lender may fund it with extra conditions. "
+                  "Under {m}x: a lender won't fund it.",
+                  "Дахин санхүүжилтийн дараа таны түрээс / сарын төлбөрийн харьцаа {d}x, "
+                  "шинэ зээл үнэлгээний {ltv}. Харьцаа {s}x буюу түүнээс дээш, зээл үнэлгээний "
+                  "80 хувиас хэтрэхгүй бол банк зээл олгох магадлал өндөр. Харьцаа {m}x буюу "
+                  "түүнээс дээш бол банк нэмэлт шаардлага тавьж зээл олгож болзошгүй. Харьцаа "
+                  "{m}x хүрэхгүй бол банк зээл олгохгүй."),
     "l_hm_loan": ("Short-term loan", "Богино хугацааны зээл"),
     "c_pct_price": ("{x}% of the price", "үнийн {x}%"),
     "l_ltv_arv": ("Loan % of sale price", "Зээл, зарах үнийн %"),
@@ -385,6 +392,27 @@ TEXT = {
     "a_LIKELY DECLINE": ("LIKELY DECLINE", "Зээл олгохгүй байх магадлал өндөр"),
     "a_DECLINE": ("DECLINE", "Зээл олгохгүй"),
 
+    "a_MEETS MIN": ("MEETS THE LENDER'S MINIMUM", "Банкны доод шаардлагыг хангаж байна"),
+    "a_LTV HIGH": ("LOAN TOO HIGH", "Зээлийн хэмжээ хэт өндөр"),
+    "a_BELOW MIN": ("BELOW THE LENDER'S MINIMUM", "Банкны доод шаардлагыг хангахгүй байна"),
+    "b_price": ("price", "үнийн"),
+    "b_value": ("value after repairs", "засварын дараах үнэлгээний"),
+    "after_refi": (" These figures are after the refinance.", " Энэ тооцоо дахин санхүүжилтийн дараах байдлаар."),
+    "n_meets": ("Rent ÷ PITIA is {d}x and your lender's minimum is {m}x. The loan is {ltv} "
+                "of the {base}, within the usual 80% limit. A higher ratio usually gets "
+                "better loan terms.",
+                "Түрээс / сарын төлбөрийн харьцаа {d}x, банкны шаардах доод харьцаа {m}x. "
+                "Зээл {base} {ltv} буюу ихэвчлэн тавигддаг 80 хувийн хязгаараас хэтрээгүй. "
+                "Харьцаа өндөр байх тусам зээлийн нөхцөл ихэвчлэн илүү таатай байдаг."),
+    "n_ltv": ("Rent ÷ PITIA is {d}x, which meets your lender's minimum of {m}x, but the loan "
+              "is {ltv} of the {base}. Most DSCR lenders lend up to 80%.",
+              "Түрээс / сарын төлбөрийн харьцаа {d}x, банкны шаардах доод харьцаа {m}x тул "
+              "хангаж байна. Гэвч зээл {base} {ltv} байна. Ихэнх банк 80 хувиас хэтрэхгүй "
+              "зээл олгодог."),
+    "n_below": ("Rent ÷ PITIA is {d}x and your lender's minimum is {m}x. Rent would need to "
+                "be {need} a month to reach it.",
+                "Түрээс / сарын төлбөрийн харьцаа {d}x, банкны шаардах доод харьцаа {m}x. "
+                "Үүнд хүрэхийн тулд сарын түрээс {need} байх шаардлагатай."),
     # --- sensitivity ---
     "var_Purchase price": ("Purchase price", "Худалдан авах үнэ"),
     "var_Value after repairs": ("Value after repairs", "Засварын дараах үнэ цэнэ"),
