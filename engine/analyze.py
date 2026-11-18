@@ -24,6 +24,7 @@ from engine.brrr import (hard_money_loan, hard_money_interest, refi_loan, cash_p
                          brrr_selling_cost, brrr_net_sale_proceeds,
                         brrr_selling_cost, brrr_net_sale_proceeds, is_all_cash_out, rate_term_ltv,brrr_yearly_table)
 
+from engine.apr import estimated_apr
 from engine.flip import (hm_points, buying_closing_costs, monthly_holding_cost,
                          total_holding_cost, selling_cost, total_project_cost,
                          net_flip_profit, cash_invested as flip_cash_invested,
@@ -168,6 +169,11 @@ def analyze_rental(state, property_type, scenario,
         "rate_used": annual_rate,
         "monthly_saving": monthly_saving,
         "breakeven_months": points_cost / monthly_saving if monthly_saving > 0 else None,
+        # cash you put in at the start = down payment + closing + repairs + points
+        "down_payment": price * down_pct,
+        "closing_costs": price * closing_pct,
+        "rehab": rehab,
+        "cash_in": -stream[0],
     }
 
 
@@ -386,6 +392,16 @@ def analyze_flip(state, property_type, scenario,
     }
 
 
+def _add_apr(result, loan, lender_fees):
+    """Estimated APR on the long-term loan (Rental: purchase loan; BRRR: the
+    refinance loan). Display only - returns already count lender fees inside
+    the closing cost estimate, so nothing here changes the cash flows."""
+    result["lender_fees"] = lender_fees
+    result["apr"] = estimated_apr(loan, result["rate_used"],
+                                  result["points_cost"] + lender_fees)
+    return result
+
+
 def analyze_deal(model, **inputs):
     """
     Single entry point for the UI. Routes to each model's own orchestrator -
@@ -413,15 +429,20 @@ def analyze_deal(model, **inputs):
         extra["dscr_min"] = dscr_min
     else:
         inputs.pop("dscr_min", None)
+    lender_fees = inputs.pop("lender_fees", 0.0) or 0.0
+    if lender_fees < 0:
+        raise ValueError("Lender fees can't be negative.")
     if overrides and model != "Rental":
         raise ValueError("Assumption overrides are Rental-only for now")
     validate_inputs(model, inputs)
 
 
     if model == "Rental":
-        return analyze_rental(**inputs, overrides=overrides,hoa_override=hoa_override, **extra)
+        r = analyze_rental(**inputs, overrides=overrides,hoa_override=hoa_override, **extra)
+        return _add_apr(r, r["loan_amount"], lender_fees)
     if model == "BRRR":
-        return analyze_brrr(**inputs,hoa_override=hoa_override, **extra)
+        r = analyze_brrr(**inputs,hoa_override=hoa_override, **extra)
+        return _add_apr(r, r["refi_loan"], lender_fees)
     if model == "Flip":
         return analyze_flip(**inputs,hoa_override=hoa_override, **extra)
     raise ValueError(f"Unknown model: {model}")

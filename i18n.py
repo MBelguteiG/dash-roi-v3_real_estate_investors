@@ -85,6 +85,7 @@ TEXT = {
     "tax_yr": ("Property tax / yr", "Үл хөдлөх эд хөрөнгийн албан татвар / жил"),
     "ins_yr": ("Insurance / yr", "Даатгал / жил"),
     "points": ("Points to lower rate", "Хүү бууруулах оноо (points)"),
+    "fees": ("Lender fees", "Зээлийн шимтгэл, хураамж"),
 
     # --- input help notes (the ? icons) ---
     "h_price": ("What you pay for the property.",
@@ -158,6 +159,15 @@ TEXT = {
                  "даатгалын үнийн саналтай бол оруулна уу."),
     "h_hoa": ("Leave blank to use the state and property-type default.",
               "Хоосон орхивол муж болон байрны төрлийн үндсэн дүнг ашиглана."),
+    "h_fees": ("Optional. What the lender charges to make the loan (for BRRR, the new loan): "
+               "origination, underwriting, processing. Used only for the estimated APR, "
+               "for comparing loan offers. Your returns already include these in the closing "
+               "costs. Title, appraisal and recording fees don't count toward APR.",
+               "Заавал биш. Зээлдүүлэгчийн зээл олгоход авах шимтгэл, хураамж (BRRR-д шинэ "
+               "зээлийн): зээл олгох, зээлийн шинжилгээ, бүрдүүлэлтийн. Зөвхөн зээлийн бодит "
+               "өртгийг тооцож, зээлийн саналуудыг харьцуулахад ашиглана. Таны өгөөжийн "
+               "тооцоонд эдгээр нь худалдан авах зардалд аль хэдийн орсон. Өмчлөх эрхийн "
+               "даатгал, үнэлгээ, бүртгэлийн хураамж зээлийн бодит өртөгт орохгүй."),
     "h_points": ("Each point costs 1% of the loan (for BRRR, the new loan) "
                  "and lowers your rate by about 0.25%.",
                  "Нэг оноо зээлийн 1%-тай тэнцэх үнэтэй (BRRR-д шинэ зээлийн) "
@@ -181,6 +191,11 @@ TEXT = {
     "c_bank": ("your lender minimum {m}x", "банкны шаардах доод харьцаа {m}x"),
     "c_pitia": ("rent {rent} ÷ PITIA {pitia}", "түрээс {rent} ÷ сарын төлбөр {pitia}"),
     "c_coc": ("of the cash you put in", "оруулсан бэлэн мөнгөнөөс"),
+    "c_coc_amt": ("of the {x} you put in", "оруулсан {x} бэлэн мөнгөнөөс"),
+    "b_down": ("Down payment", "Урьдчилгаа төлбөр"),
+    "b_closing": ("Closing costs", "Худалдан авахтай холбоотой зардал"),
+    "b_repairs": ("Repairs", "Засварын зардал"),
+    "b_points": ("Points", "Хүү бууруулах оноо"),
     "all_cash_out": ("All cash out", "Оруулсан мөнгөө бүрэн буцааж авсан"),
     "c_no_cash_left": ("no cash left in the deal", "хөрөнгө оруулалтаа бүрэн гаргаж авсан"),
     "c_refi_more": ("You got all your money back, plus {x}",
@@ -328,6 +343,7 @@ TEXT = {
     "c_noi": ("year 1, before the loan payment", "эхний жил, зээлийн төлбөрөөс өмнө"),
     "l_debt": ("Loan payments / yr", "Зээлийн төлбөр / жил"),
     "c_fixed": ("{x}% fixed, 30 years", "{x}% тогтмол хүү, 30 жил"),
+    "c_apr": ("estimated APR {x}", "зээлийн бодит өртөг {x} (тооцоолсон)"),
     "c_bank_strong": ("rent {rent} ÷ PITIA {pitia}; minimum {m}x",
                       "түрээс {rent} ÷ сарын төлбөр {pitia}; доод харьцаа {m}x"),
     "note_rental": ("Your rent ÷ PITIA is {d}x and the loan is {ltv} of the price. "

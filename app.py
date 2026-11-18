@@ -281,7 +281,7 @@ with st.container(border=True):
                     target_margin=target / 100)
     defaults = get_assumptions(state, property_type, model, scenario)
     default_hoa = defaults["HOA Monthly"]
-    h = st.columns([1, 1, 1, 1, 1, 3])
+    h = st.columns([1, 1, 1, 1, 1, 1, 2])
     hoa_in = h[0].number_input(
         T("hoa"), value=None, min_value=0.0, step=25.0,
         placeholder=T("hoa_default", x=money(default_hoa)),
@@ -310,6 +310,11 @@ with st.container(border=True):
             T("dscr_min"), min_value=0.50, max_value=2.00, value=1.00, step=0.05,
             format="%.2f", help=T("h_dscr_min"), key=K("dscr_min"))
         opt["dscr_min"] = dscr_min
+        fees_in = h[5].number_input(
+            T("fees"), value=None, min_value=0.0, step=100.0, placeholder="$0",
+            help=T("h_fees"), key=K("fees"))
+        if fees_in is not None:
+            opt["lender_fees"] = fees_in
 
 
 
@@ -341,7 +346,8 @@ if model == "Rental":
     irr_ok = result["irr"] >= target / 100
     tile(t[1], T("t_return"), f"{result['irr']:.2%}", T("c_goal", x=f"{target:.2f}"))
     tile(t[2], T("t_dscr"), ratio(dscr_value) + "x", T("c_bank", m=f"{dscr_min:.2f}"))
-    tile(t[3], T("t_coc"), f"{result['cash_on_cash']:.2%}", T("c_coc"))
+    tile(t[3], T("t_coc"), f"{result['cash_on_cash']:.2%}",
+         T("c_coc_amt", x=money(result["cash_in"])))
 elif model == "BRRR":
     irr_solve = max_price_irr(deal)
     aco = max_price_all_cash_out(deal)
@@ -396,6 +402,19 @@ if model in ("Rental", "BRRR"):
                       ins=money(result["insurance_monthly"]),
                       hoa=money(result["hoa_monthly"])).replace("$", "\\$"))
 
+def cash_in_parts():
+    """Rental: the pieces of the cash you put in, skipping any that are $0."""
+    parts = [("b_down", result["down_payment"]), ("b_closing", result["closing_costs"]),
+             ("b_repairs", result["rehab"]), ("b_points", result["points_cost"])]
+    return [(k, v) for k, v in parts if v > 0]
+
+
+def cash_in_table():
+    rows = [f"| {T(k)} | {money(v)} |" for k, v in cash_in_parts()]
+    rows.append(f"| **{T('cf_cash_in')}** | **{money(result['cash_in'])}** |")
+    return ("| | |\n|---|---:|\n" + "\n".join(rows)).replace("$", "\\$")
+
+
 if model == "Rental":
     with t[3].popover(T("what_mean")):
         coc = result["cash_on_cash"]
@@ -404,6 +423,7 @@ if model == "Rental":
                 st.markdown(T("p_coc_pos", x=f"{coc:.2%}", amt=amt).replace("$", "\\$"))
         else:
                 st.markdown(T("p_coc_neg", x=f"{-coc:.2%}", amt=amt).replace("$", "\\$"))
+        st.markdown(cash_in_table())
 
 if walk_away:
     if model == "Rental":
@@ -490,12 +510,16 @@ with lend:
     if model == "Rental":
         approval = approval_likelihood("Rental", result["min_dscr"], result["ltv"],
                                        dscr_min=dscr_min)
-        l = st.columns(5)
+        l = st.columns(6)
         tile(l[0], T("l_loan"), money(result["loan_amount"]),
              T("c_of_price", x=f"{result['ltv']:.0%}"))
+        tile(l[1], T("cf_cash_in"), money(result["cash_in"]),
+             " + ".join(T(k).lower() for k, _ in cash_in_parts()))
+        l = l[:1] + l[2:]
         tile(l[1], T("l_noi"), money(result["noi_y1"]), T("c_noi"))
         tile(l[2], T("l_debt"), money(result["annual_debt_service"]),
-             T("c_fixed", x=f"{round(result['rate_used'] * 100, 3):g}"))
+             T("c_fixed", x=f"{round(result['rate_used'] * 100, 3):g}")
+             + " · " + T("c_apr", x=f"{result['apr']:.2%}"))
         tile(l[3], T("t_dscr"), ratio(result['min_dscr']) + "x",
              T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
                m=f"{dscr_min:.2f}"))
@@ -509,7 +533,8 @@ with lend:
         refi = result["refi_ltv_effective"]
         approval = approval_likelihood("BRRR", result["dscr"], refi, dscr_min=dscr_min)
         l = st.columns(4)
-        tile(l[0], T("l_new_loan"), money(result["refi_loan"]), T("c_on_arv", x=money(arv)))
+        tile(l[0], T("l_new_loan"), money(result["refi_loan"]),
+             T("c_on_arv", x=money(arv)) + " · " + T("c_apr", x=f"{result['apr']:.2%}"))
         tile(l[1], T("l_refi_ltv"), f"{refi:.0%}",
             T("c_refi_at", type=T("rt_" + refi_type), m=refi_month, o=mn_ord(refi_month)))
         tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]), T("c_after_hm"))
