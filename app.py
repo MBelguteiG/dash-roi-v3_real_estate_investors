@@ -490,8 +490,8 @@ with inv:
                 line = T("f_mao_under", mao=mao, x=money(-over))
             st.write(line.replace("$", "\\$"))
         else:
-            st.write(T("f_rent_bank", x=money2(result["required_rent_lender"])))
-            st.write(T("f_rent_repairs", x=money2(result["required_rent"])))
+            st.write(T("f_rent_bank", x=rent_needed(result["required_rent_lender"])))
+            st.write(T("f_rent_repairs", x=rent_needed(result["required_rent"])))
             if irr_solve["status"] == "SOLVED":
                 st.write(T("f_max_goal", goal=f"{target:.2f}", x=money(irr_solve["price"])))
             if model == "Rental" and dscr_solve["status"] == "SOLVED":
