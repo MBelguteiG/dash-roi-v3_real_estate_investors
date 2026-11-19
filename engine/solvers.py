@@ -118,7 +118,15 @@ def max_price_all_cash_out(inputs):
     a = get_assumptions(inputs["state"], inputs["property_type"], "BRRR",
                         inputs["scenario"])
     closing_pct = a["Closing Cost Buying"]
-    price = (inputs["arv"] * inputs["refi_ltv"] - inputs["rehab"]) / (1 + closing_pct)
+    # Refinance closing costs and points also come out of the refi cash
+    # (Nov 19, 2026), the same way analyze_brrr() does it.
+    refi_closing = inputs.get("refi_closing")
+    if refi_closing is None:
+        refi_closing = not inputs.get("rent_during_rehab", False)
+    refi_amt = inputs["arv"] * inputs["refi_ltv"]
+    costs = refi_amt * ((a["Refi Closing Cost"] if refi_closing else 0.0)
+                        + inputs.get("points", 0.0) / 100)
+    price = (refi_amt - costs - inputs["rehab"]) / (1 + closing_pct)
     if price <= 0:
         return _no_solution()
     return {"status": "SOLVED", "price": price,
