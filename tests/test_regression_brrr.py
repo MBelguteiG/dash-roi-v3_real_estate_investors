@@ -1,7 +1,8 @@
 import pytest
 from engine.analyze import analyze_deal
 
-B01 = dict(model="BRRR", state="Illinois", property_type="SFH",
+B01 = dict(model="BRRR", refi_closing=False,  # before refi closing costs (Nov 19)
+           state="Illinois", property_type="SFH",
            scenario="Base", price=250000, rehab=45000, base_rent=2400,
            exit_year=5, target_irr=0.10, arv=340000, hm_ltv=0.90,
            hm_rate=0.105, refi_ltv=0.75, refi_month=6,
@@ -11,14 +12,16 @@ CASES = {
     "B-01": B01,
     # B-08 was run in v2 with refi LTV at 65% (inferred from its recorded figures)
     "B-08": {**B01, "refi_ltv": 0.65},
-    "B-03": dict(model="BRRR", state="California", property_type="SFH",
+    "B-03": dict(model="BRRR", refi_closing=False,  # before refi closing costs (Nov 19)
+           state="California", property_type="SFH",
                  scenario="Base", price=450000, rehab=60000, base_rent=3200,
                  exit_year=5, target_irr=0.10, arv=620000, hm_ltv=0.90,
                  hm_rate=0.105, refi_ltv=0.70, refi_month=6,
                  post_refi_rate=0.0725),
 
         # B-04: rent 2300 inferred from v2's recorded IRR of 36.69%
-    "B-04-650": dict(model="BRRR", state="California", property_type="SFH",
+    "B-04-650": dict(model="BRRR", refi_closing=False,  # before refi closing costs (Nov 19)
+           state="California", property_type="SFH",
                 scenario="Base", price=400000, rehab=60000, base_rent=2300,
                 exit_year=5, target_irr=0.10, arv=650000, hm_ltv=0.90,
                 hm_rate=0.105, refi_ltv=0.80, refi_month=6,

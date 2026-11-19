@@ -183,7 +183,7 @@ def analyze_brrr(state, property_type, scenario,
                  price, rehab, base_rent, exit_year, target_irr,
                  arv, hm_ltv, hm_rate, refi_ltv, refi_month, post_refi_rate, refi_type="Cash-Out",hoa_override=None,points=0.0, point_rate_cut=0.0025,
                  dscr_min=DSCR_LENDER_MIN, tax_override=None, insurance_override=None,
-                 rent_during_rehab=False):
+                 rent_during_rehab=False, refi_closing=None):
     """
     Run the full BRRR analysis for one deal. Uses only the BRRR engine
     (brrr.py) - never retrofits Rental. Monthly stream + annualized IRR
@@ -199,6 +199,15 @@ def analyze_brrr(state, property_type, scenario,
     selling_pct = a["SellingCost% Annual"]
     annual_insurance = a["Insurance Yearly"]
     hoa = a["HOA Monthly"]
+    # Refinance closing costs (title, appraisal, recording, lender origination and
+    # underwriting): Freddie Mac says 3%-6% of the new loan principal
+    # (myhome.freddiemac.com/refinancing/costs-of-refinancing). By scenario:
+    # Conservative 6%, Base 4.5% (midpoint), Aggressive 3%. They come out of the
+    # cash at the refinance. The v2 method (rent_during_rehab=True) leaves them out
+    # unless refi_closing is set, so the v2 parity checks still match.
+    if refi_closing is None:
+        refi_closing = not rent_during_rehab
+    refi_cost_pct = a["Refi Closing Cost"] if refi_closing else 0.0
     if hoa_override is not None:
         hoa = hoa_override
     if tax_override is not None:         # exact $/yr -> same rate-on-price shape
@@ -231,7 +240,9 @@ def analyze_brrr(state, property_type, scenario,
     if post_refi_rate <= 0:
         raise ValueError("Too many points: the rate would drop to zero")
     monthly_saving = (base_refi_debt - annual_debt_service(rl, post_refi_rate)) / 12
+    refi_cost = rl * refi_cost_pct
     pulled -= points_cost   # points are paid out of the refinance cash
+    pulled -= refi_cost     # so are the refinance closing costs
     left = cash_left_in_deal(ci, pulled)
 
     # --- monthly stream + IRR ---
@@ -246,10 +257,10 @@ def analyze_brrr(state, property_type, scenario,
         tax_growth=tax_growth, inflation=inflation,return_rows=True,
         rent_during_rehab=rent_during_rehab,
     )
-    monthly[refi_month] -= points_cost   # points are paid at the refinance
+    monthly[refi_month] -= points_cost + refi_cost   # paid at the refinance
     for row in mrows:
         if row["month"] == refi_month:
-            row["cash_out_at_refi"] -= points_cost
+            row["cash_out_at_refi"] -= points_cost + refi_cost
 
     irr_value = brrr_irr(monthly)
     real_monthly = deflate(monthly, inflation, periods_per_year=12)
@@ -321,6 +332,8 @@ def analyze_brrr(state, property_type, scenario,
         "real_total_profit": sum(real_monthly),
         "inflation": inflation,
         "points_cost": points_cost,
+        "refi_cost": refi_cost,
+        "refi_cost_pct": refi_cost_pct,
         "rate_used": post_refi_rate,
         "monthly_saving": monthly_saving,
         "breakeven_months": points_cost / monthly_saving if monthly_saving > 0 else None,

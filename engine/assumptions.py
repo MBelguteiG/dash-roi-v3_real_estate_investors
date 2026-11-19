@@ -21,7 +21,7 @@ PERCENT_COLS = [
     "RentGrowth Annual", "Inflation Annual", "Appreciation Annual",
     "Management Fee", "Closing Cost Buying", "PropertyTaxRate Annual",
     "VacancyRate% Annual", "Maintenance% Annual", "CapEx% Annual",
-    "SellingCost% Annual", "Tax Growth",
+    "SellingCost% Annual", "Tax Growth", "Refi Closing Cost",
 ]
 # Columns that come in as "$1,900.00" or "$200.00" and must become floats.
 DOLLAR_COLS = ["Insurance Yearly", "HOA Monthly"]

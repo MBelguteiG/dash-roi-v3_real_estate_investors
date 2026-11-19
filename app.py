@@ -537,7 +537,8 @@ with lend:
              T("c_on_arv", x=money(arv)) + " · " + T("c_apr", x=f"{result['apr']:.2%}"))
         tile(l[1], T("l_refi_ltv"), f"{refi:.0%}",
             T("c_refi_at", type=T("rt_" + refi_type), m=refi_month, o=mn_ord(refi_month)))
-        tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]), T("c_after_hm"))
+        tile(l[2], T("l_cash_back"), money(result["cash_pulled_out"]),
+             T("c_after_hm_costs", x=money(result["refi_cost"] + result["points_cost"])))
         tile(l[3], T("t_dscr"), ratio(result['dscr']) + "x",
              T("c_bank_strong", rent=money(rent), pitia=money(result["pitia"]),
                m=f"{dscr_min:.2f}"))

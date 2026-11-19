@@ -145,10 +145,19 @@ TEXT = {
                     "Эзэмших хугацааны цахилгаан, ус, хийн зардал."),
     "h_upkeep": ("Lawn, cleaning, locks and alarms while it's empty.",
                  "Сул байх үеийн зүлэг, цэвэрлэгээ, цоож, дохиоллын зардал."),
-    "h_dscr_min": ("The lowest DSCR (rent ÷ PITIA) your lender will accept. Most DSCR lenders "
-                   "accept 1.00; some want 1.20 or 1.25. Ask your lender.",
-                   "Банкны зөвшөөрөх түрээс ÷ сарын төлбөрийн хамгийн бага харьцаа. "
-                   "Ихэнх банк 1.00, зарим нь 1.20 эсвэл 1.25 шаарддаг. Банкнаасаа лавлана уу"),
+    "h_dscr_min": ("The lowest DSCR (rent ÷ PITIA) your lender will accept. For 1–4 unit "
+                   "rentals, Fannie Mae and Freddie Mac don't use DSCR; DSCR loans come from "
+                   "private lenders, who set their own minimum, often 1.00. For apartment "
+                   "buildings with 5 or more units, Fannie Mae and Freddie Mac want at least "
+                   "1.25x (Freddie Mac: 1.20x in top markets), counted as rent left after "
+                   "expenses and repair reserves ÷ yearly loan payment. Ask your lender.",
+                   "Банкны зөвшөөрдөг хамгийн бага харьцаа (түрээсийн төлбөр ÷ мортгэйжийн сарын төлбөр). 1–4 айлын "
+                   "түрээсийн байранд Fannie Mae, Freddie Mac энэ харьцааг ашигладаггүй; ийм "
+                   "зээлийг хувийн зээлдүүлэгчид олгодог бөгөөд доод харьцааг өөрсдөө "
+                   "тогтоодог, ихэвчлэн 1.00. 5 ба түүнээс дээш айлын орон сууцны барилгад "
+                   "Fannie Mae, Freddie Mac хамгийн багадаа 1.25x (Freddie Mac: томоохон зах "
+                   "зээлд 1.20x) шаарддаг бөгөөд үүнийг зардлын дараах түрээсийн орлого ÷ "
+                   "зээлийн төлбөрөөр тооцдог. Банкнаасаа лавлана уу."),
     "h_tax_yr": ("Leave blank to use the state average. Type the exact yearly tax "
                  "for this property if you know it.",
                  "Хоосон орхивол муж улсын дундажийг ашиглана. Энэ үл хөдлөх эд хөрөнгийн "
@@ -162,11 +171,13 @@ TEXT = {
     "h_fees": ("Optional. What the lender charges to make the loan (for BRRR, the new loan): "
                "origination, underwriting, processing. Used only for the estimated APR, "
                "for comparing loan offers. Your returns already include these in the closing "
-               "costs. Title, appraisal and recording fees don't count toward APR.",
+               "costs (for BRRR, in the refinance closing costs). Title, appraisal "
+               "and recording fees don't count toward APR.",
                "Заавал биш. Зээлдүүлэгчийн зээл олгоход авах шимтгэл, хураамж (BRRR-д шинэ "
                "зээлийн): зээл олгох, зээлийн шинжилгээ, бүрдүүлэлтийн. Зөвхөн зээлийн бодит "
                "өртгийг тооцож, зээлийн саналуудыг харьцуулахад ашиглана. Таны өгөөжийн "
-               "тооцоонд эдгээр нь худалдан авах зардалд аль хэдийн орсон. Өмчлөх эрхийн "
+               "тооцоонд эдгээр нь худалдан авахтай холбоотой зардалд (BRRR-д дахин "
+               "санхүүжилтийн зардалд) аль хэдийн орсон. Өмчлөх эрхийн "
                "даатгал, үнэлгээ, бүртгэлийн хураамж зээлийн бодит өртөгт орохгүй."),
     "h_points": ("Each point costs 1% of the loan (for BRRR, the new loan) "
                  "and lowers your rate by about 0.25%.",
@@ -376,6 +387,9 @@ TEXT = {
     "l_cash_back": ("Cash back at refinance", "Дахин санхүүжилтээр гаргаж авсан бэлэн мөнгө"),
     "c_after_hm": ("after paying off the short-term loan",
                    "богино хугацааны зээлээ төлсний дараа"),
+    "c_after_hm_costs": ("after paying off the short-term loan and {x} in refinance costs",
+                         "богино хугацааны зээл болон дахин санхүүжилтийн {x} зардлыг "
+                         "төлсний дараа"),
     "note_brrr": ("After the refinance, your rent ÷ PITIA is {d}x and the new loan is {ltv} "
                   "of the value. {s}x or more and a loan of 80% or less: a lender is likely to "
                   "fund it. {m}x or more: a lender may fund it with extra conditions. "

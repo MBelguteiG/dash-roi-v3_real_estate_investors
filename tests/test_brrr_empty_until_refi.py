@@ -10,7 +10,8 @@ from engine.brrr import build_brrr_monthly_stream
 from tests.test_regression_brrr import B01
 
 # BDash's IL condo check deal (2026-11-11), without points
-CONDO = dict(model="BRRR", state="Illinois", property_type="Condo", scenario="Base",
+CONDO = dict(model="BRRR", refi_closing=False,  # before refi closing costs (Nov 19)
+           state="Illinois", property_type="Condo", scenario="Base",
              price=200000, rehab=25000, arv=300000, base_rent=2100, exit_year=4,
              target_irr=0.10, hm_ltv=0.80, hm_rate=0.12, refi_month=6,
              refi_ltv=0.75, post_refi_rate=0.0655, refi_type="Cash-Out")
