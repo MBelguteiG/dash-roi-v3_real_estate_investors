@@ -261,6 +261,11 @@ def analyze_brrr(state, property_type, scenario,
     for row in mrows:
         if row["month"] == refi_month:
             row["cash_out_at_refi"] -= points_cost + refi_cost
+    # Months 1..refi_month: cash paid each month while repairing (Nov 24, 2026).
+    # Short-term loan interest, and (empty property) tax + insurance + HOA.
+    repair_rows = [r for r in mrows if r["month"] <= refi_month]
+    rehab_interest = sum(r["debt_service"] for r in repair_rows)
+    rehab_carry = 0.0 if rent_during_rehab else -sum(r["noi"] for r in repair_rows)
 
     irr_value = brrr_irr(monthly)
     real_monthly = deflate(monthly, inflation, periods_per_year=12)
@@ -334,6 +339,19 @@ def analyze_brrr(state, property_type, scenario,
         "points_cost": points_cost,
         "refi_cost": refi_cost,
         "refi_cost_pct": refi_cost_pct,
+        # pieces for the cost breakdown
+        "hm_loan": hm,
+        "down_payment": price - hm,
+        "closing_costs": closing,
+        "closing_pct": closing_pct,
+        "rehab": rehab,
+        "refi_month": refi_month,
+        "rehab_interest": rehab_interest,
+        "rehab_carry": rehab_carry,
+        # equity after the refi = value - new loan = cash left + value created
+        "arv": arv,
+        "equity_after_refi": arv - rl,
+        "value_created": arv - (price + rehab + closing + refi_cost + points_cost),
         "rate_used": post_refi_rate,
         "monthly_saving": monthly_saving,
         "breakeven_months": points_cost / monthly_saving if monthly_saving > 0 else None,

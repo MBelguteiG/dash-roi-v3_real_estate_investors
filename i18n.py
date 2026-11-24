@@ -195,6 +195,36 @@ TEXT = {
     "t_dscr": ("DSCR (rent ÷ PITIA)", "Түрээс / сарын төлбөрийн харьцаа"),
     "t_coc": ("First-year cash return", "Эхний жилийн бэлэн мөнгөний өгөөж"),
     "t_cash_left": ("Your money still in the property", "Үлдэгдэл хөрөнгө оруулалт"),
+    # --- BRRR cost breakdown (Nov 24, 2026) ---
+    "bk_purchase": ("At purchase", "Худалдан авахад"),
+    "bk_down": ("Down payment (price − short-term loan)",
+                "Урьдчилгаа төлбөр (үнэ − богино хугацааны зээл)"),
+    "bk_rehab": ("While repairing ({m} months, paid monthly)",
+                 "Засварын үед ({m} сар, сар бүр төлнө)"),
+    "bk_hm_int": ("Short-term loan interest", "Богино хугацааны зээлийн хүү"),
+    "bk_carry": ("Property tax, insurance, HOA (no rent yet)",
+                 "Үл хөдлөх хөрөнгийн албан татвар, даатгал, СӨХ төлбөр (түрээсгүй үе)"),
+    "bk_rehab_total": ("Paid while repairing", "Засварын үед төлсөн"),
+    "bk_refi": ("At the refinance (month {m})", "Дахин санхүүжилтийн үед ({m} {o} сар)"),
+    "bk_payoff": ("Pay off the short-term loan", "Богино хугацааны зээлийг төлөх"),
+    "bk_refi_cost": ("Refinance closing costs ({x}, includes lender fees)",
+                     "Дахин санхүүжилтийн зардал ({x}, зээлийн шимтгэл, хураамжийг багтаасан)"),
+    "bk_note": ("What you pay while repairing comes from your pocket too. It isn't in "
+                "\"money still in the property\", but it is counted in the yearly return "
+                "and the cash flow table. Your equity is not cash you pay: it comes back "
+                "to you when you sell, as cash from the sale.",
+                "Засварын үед төлсөн зардлыг мөн өөрийн мөнгөөр төлнө. Энэ нь үлдэгдэл "
+                "хөрөнгө оруулалтад ороогүй ч жилийн өгөөж болон мөнгөн гүйлгээний "
+                "хүснэгтэд тооцогдсон. Өөрийн хөрөнгө нь таны төлөх мөнгө биш: зарах үед "
+                "борлуулалтаас орох мөнгө болж танд буцаж ирнэ."),
+    "bk_eq_head": ("Your equity after the refinance",
+                   "Дахин санхүүжилтийн дараах таны өөрийн хөрөнгө"),
+    "bk_equity": ("Your equity (value − new loan)", "Таны өөрийн хөрөнгө (байрны үнэ цэнэ − шинэ зээл)"),
+    "bk_eq_left": ("of which: your money still in", "үүнээс: таны оруулсан үлдэгдэл хөрөнгө оруулалт"),
+    "bk_eq_extra": ("of which: cash taken out beyond what you put in",
+                    "үүнээс: оруулснаас илүү гаргаж авсан мөнгө"),
+    "bk_eq_created": ("of which: value the repairs created",
+                      "үүнээс: засвараар бий болсон үнэ цэнэ"),
     "t_margin": ("Profit as % of sale price", "Ашиг, зарах үнийн %"),
     "t_net_profit": ("Net profit", "Цэвэр ашиг"),
     "t_max_pay": ("Most you should pay", "Төлж болох дээд үнэ"),

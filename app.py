@@ -415,6 +415,46 @@ def cash_in_table():
     return ("| | |\n|---|---:|\n" + "\n".join(rows)).replace("$", "\\$")
 
 
+def brrr_cost_table():
+    """BRRR: every cost, in the order you pay it (Nov 24, 2026)."""
+    r = result
+    m = r["refi_month"]
+    rows = [(f"**{T('bk_purchase')}**", ""),
+            (T("bk_down"), money(r["down_payment"])),
+            (f"{T('b_closing')} ({r['closing_pct']:.2%})", money(r["closing_costs"])),
+            (T("b_repairs"), money(r["rehab"])),
+            (f"**{T('cf_cash_in')}**", f"**{money(r['cash_invested'])}**"),
+            (f"**{T('bk_rehab', m=m)}**", ""),
+            (T("bk_hm_int"), money(r["rehab_interest"])),
+            (T("bk_carry"), money(r["rehab_carry"])),
+            (f"**{T('bk_rehab_total')}**",
+             f"**{money(r['rehab_interest'] + r['rehab_carry'])}**"),
+            (f"**{T('bk_refi', m=m, o=mn_ord(m))}**", ""),
+            (T("l_new_loan"), money(r["refi_loan"])),
+            (T("bk_payoff"), "−\u2060" + money(r["hm_loan"])),
+            (T("bk_refi_cost", x=f"{r['refi_cost_pct']:.1%}"), "−\u2060" + money(r["refi_cost"]))]
+    if r["points_cost"] > 0:
+        rows.append((T("b_points"), "−\u2060" + money(r["points_cost"])))
+    rows += [(f"**{T('l_cash_back')}**", f"**{money(r['cash_pulled_out'])}**"),
+             (f"**{T('t_cash_left')}**", f"**{money(max(r['cash_left'], 0))}**"),
+             (f"**{T('bk_eq_head')}**", ""),
+             (T("arv"), money(r["arv"])),
+             (T("l_new_loan"), "−\u2060" + money(r["refi_loan"])),
+             (f"**{T('bk_equity')}**", f"**{money(r['equity_after_refi'])}**"),
+             (T("bk_eq_left"), money(max(r["cash_left"], 0)))]
+    if r["cash_left"] < 0:
+        rows.append((T("bk_eq_extra"), "−\u2060" + money(-r["cash_left"])))
+    vc = r["value_created"]
+    rows.append((T("bk_eq_created"), money(vc) if vc >= 0 else "−\u2060" + money(-vc)))
+    body = "\n".join(f"| {a} | {b} |" for a, b in rows)
+    return ("| | |\n|---|---:|\n" + body).replace("$", "\\$")
+
+
+if model == "BRRR":
+    with t[3].popover(T("what_mean")):
+        st.markdown(brrr_cost_table())
+        st.caption(T("bk_note", m=result["refi_month"]))
+
 if model == "Rental":
     with t[3].popover(T("what_mean")):
         coc = result["cash_on_cash"]
