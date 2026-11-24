@@ -331,6 +331,12 @@ TEXT = {
         "Сарын хэмнэлт үүнийг **{be} сард** нөхнө (та {hold} сар эзэмшихээр төлөвлөж байна).",
     ),
     "p_worth": (" Worth it.", " Ашигтай."),
+    "p_no_fund": (
+        " Even with points, rent ÷ PITIA is {d1}x, still below your lender's minimum of "
+        "{m}x, so these points don't get this deal funded.",
+        " Оноотой ч түрээс / сарын төлбөрийн харьцаа {d1}x байх тул банкны доод "
+        "шаардлагыг ({m}x) хангахгүй. Иймд эдгээр оноо зээл авах боломжийг бүрдүүлэхгүй.",
+    ),
     "p_fund": (
         " Without points, rent ÷ PITIA would be {d0}x, below your lender's minimum of "
         "{m}x. With them it's {d1}x: these points are what get this deal funded.",

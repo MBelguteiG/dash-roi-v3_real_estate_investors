@@ -498,6 +498,8 @@ if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
     if d_before < dscr_min <= d_now:
         st.success(text + T("p_fund", d0=ratio(d_before), d1=ratio(d_now),
                             m=f"{dscr_min:.2f}"))
+    elif d_now < dscr_min:
+        st.error(text + T("p_no_fund", d1=ratio(d_now), m=f"{dscr_min:.2f}"))
     elif be <= hold_months:
         st.success(text + T("p_worth"))
     else:
