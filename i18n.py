@@ -191,6 +191,8 @@ TEXT = {
     "v_NEGOTIATE": ("NEGOTIATE", "Нөхцөл тохиролцох"),
     "v_ACCEPT": ("ACCEPT", "Худалдан авах"),
     "v_BUY": ("BUY", "Худалдан авах"),
+    "v_why_dscr": ("Lender won't fund: rent ÷ PITIA {d}x is below {m}x",
+                   "Банк зээл олгохгүй: түрээс / сарын төлбөрийн харьцаа {d}x, доод шаардлага {m}x"),
     "t_return": ("Yearly return", "Жилийн өгөөж"),
     "t_dscr": ("DSCR (rent ÷ PITIA)", "Түрээс / сарын төлбөрийн харьцаа"),
     "t_coc": ("First-year cash return", "Эхний жилийн бэлэн мөнгөний өгөөж"),
@@ -329,6 +331,13 @@ TEXT = {
         "Сарын хэмнэлт үүнийг **{be} сард** нөхнө (та {hold} сар эзэмшихээр төлөвлөж байна).",
     ),
     "p_worth": (" Worth it.", " Ашигтай."),
+    "p_fund": (
+        " Without points, rent ÷ PITIA would be {d0}x, below your lender's minimum of "
+        "{m}x. With them it's {d1}x: these points are what get this deal funded.",
+        " Оноогүй бол түрээс / сарын төлбөрийн харьцаа {d0}x байх тул банкны доод "
+        "шаардлагыг ({m}x) хангахгүй. Оноотой бол {d1}x болж хангана: энэ оноо л зээл "
+        "авах боломжийг бүрдүүлж байна.",
+    ),
     "p_not_worth": (
         " The monthly savings alone won't repay it before you sell. A lower rate also pays "
         "down more of your loan, so check your Yearly return above to see the full effect.",

@@ -51,7 +51,7 @@ def money2(x):
     return f"-${abs(x):,.2f}" if x < 0 else f"${x:,.2f}"
 
 
-def verdict_tile(col, verdict, label, shown):
+def verdict_tile(col, verdict, label, shown, reason=None):
     if "REJECT" in verdict:
         bg = "#8A1C12"
     elif verdict == "NEGOTIATE":
@@ -62,7 +62,9 @@ def verdict_tile(col, verdict, label, shown):
         f'<div style="background:{bg};color:#FFFFFF;border-radius:10px;'
         f'padding:14px 18px"><div style="font-size:13px;letter-spacing:0.08em;'
         f'text-transform:uppercase">{label}</div>'
-        f'<div style="font-size:24px;font-weight:700">{shown}</div></div>',
+        f'<div style="font-size:24px;font-weight:700">{shown}</div>'
+        + (f'<div style="font-size:13px;margin-top:4px;opacity:0.9">{reason}</div>'
+           if reason else "") + '</div>',
         unsafe_allow_html=True)
 
 
@@ -335,7 +337,12 @@ verdict = result["verdict"]
 
 # Headline tiles
 t = st.columns(5)
-verdict_tile(t[0], verdict, T("verdict"), T("v_" + verdict, default=verdict))
+# Say why when the lender test is what rejects the deal (Nov 24, 2026)
+lender_d = {"Rental": "min_dscr", "BRRR": "dscr"}.get(model)
+v_reason = None
+if verdict == "HARD REJECT" and lender_d and result[lender_d] < dscr_min:
+    v_reason = T("v_why_dscr", d=ratio(result[lender_d]), m=f"{dscr_min:.2f}")
+verdict_tile(t[0], verdict, T("verdict"), T("v_" + verdict, default=verdict), v_reason)
 
 if model == "Rental":
     irr_solve = max_price_irr(deal)
@@ -485,7 +492,13 @@ if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
              to=f"{round(result['rate_used'] * 100, 3):g}",
              save=money(result["monthly_saving"]), be=be,
              hold=hold_months).replace("$", "\\$")
-    if be <= hold_months:
+    # Are the points what lift the deal to the lender's minimum?
+    d_now = result[lender_d]
+    d_before = analyze_deal(**{**deal, "points": 0.0})[lender_d]
+    if d_before < dscr_min <= d_now:
+        st.success(text + T("p_fund", d0=ratio(d_before), d1=ratio(d_now),
+                            m=f"{dscr_min:.2f}"))
+    elif be <= hold_months:
         st.success(text + T("p_worth"))
     else:
         st.warning(text + T("p_not_worth"))
