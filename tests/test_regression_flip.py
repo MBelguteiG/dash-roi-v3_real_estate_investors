@@ -1,7 +1,8 @@
 import pytest
 from engine.analyze import analyze_deal
 
-F01 = dict(model="Flip", state="California", property_type="SFH",
+F01 = dict(model="Flip", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="California", property_type="SFH",
            scenario="Base", price=450000, rehab=70000, arv=650000,
            hm_ltv=0.90, hm_rate=0.105, hold_months=6, points_pct=0.02,
            monthly_utilities=150.0, monthly_maint_security=150.0,
@@ -14,7 +15,8 @@ CASES = {
     "F-01d": {**F01, "property_type": "Duplex"},
 }
 
-F02 = dict(model="Flip", state="Illinois", property_type="SFH",
+F02 = dict(model="Flip", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="Illinois", property_type="SFH",
            scenario="Base", price=200000, rehab=55000, arv=340000,
            hm_ltv=0.90, hm_rate=0.105, hold_months=6, points_pct=0.02,
            monthly_utilities=150.0, monthly_maint_security=150.0,

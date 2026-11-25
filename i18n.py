@@ -211,6 +211,42 @@ TEXT = {
     "bk_payoff": ("Pay off the short-term loan", "Богино хугацааны зээлийг төлөх"),
     "bk_refi_cost": ("Refinance closing costs ({x}, includes lender fees)",
                      "Дахин санхүүжилтийн зардал ({x}, зээлийн шимтгэл, хураамжийг багтаасан)"),
+    # --- Rental cost breakdown (Nov 25, 2026) ---
+    "rk_down": ("Down payment", "Урьдчилгаа төлбөр"),
+    "rk_year1": ("Year 1 (paid monthly)", "Эхний жил (сар бүр төлнө)"),
+    "rk_vacancy": ("Empty months ({x} of rent)", "Сул байх сарууд (түрээсийн {x})"),
+    "rk_tax": ("Property tax", "Үл хөдлөх хөрөнгийн албан татвар"),
+    "rk_ins": ("Insurance", "Даатгал"),
+    "rk_hoa": ("HOA", "СӨХ төлбөр"),
+    "rk_maint": ("Maintenance ({x} of rent)", "Засвар үйлчилгээ (түрээсийн {x})"),
+    "rk_mgmt": ("Property management ({x} of rent)", "Үл хөдлөх хөрөнгийн менежмент (түрээсийн {x})"),
+    "rk_capex": ("Saved for big repairs ({x} of rent)", "Томоохон засварын нөөц (түрээсийн {x})"),
+    "rk_cf1": ("Year 1 cash flow", "Эхний жилийн мөнгөн гүйлгээ"),
+    "rk_sale": ("When you sell (end of year {n})", "Зарах үед ({n} жилийн эцэст)"),
+    "rk_sale_price": ("Sale price (value grows {x} a year for {n} years)",
+                      "Борлуулах үнэ (үнэ цэнэ {n} жилийн турш жил бүр {x} өснө)"),
+    "rk_selling": ("Selling costs ({x})", "Борлуулалтын зардал ({x})"),
+    "rk_payoff": ("Pay off the loan balance", "Зээлийн үлдэгдлийг төлөх"),
+    "rk_note": ("Years 2 and later: rent, costs and repair savings grow each year; the loan "
+                "payment stays the same. The Cash flow table shows every year.",
+                "2 дахь жилээс хойш түрээс, зардал, засварын нөөц жил бүр өснө; зээлийн "
+                "төлбөр өөрчлөгдөхгүй. Жил бүрийн тоог Мөнгөн гүйлгээний хүснэгтээс харна уу."),
+    # --- Flip cost breakdown (Nov 25, 2026) ---
+    "fk_holding": ("While fixing and selling ({m} months, paid monthly)",
+                   "Засварлаж, зарах хугацаанд ({m} сар, сар бүр төлнө)"),
+    "fk_util": ("Utilities", "Ашиглалтын зардал"),
+    "fk_upkeep": ("Upkeep & security", "Арчилгаа, хамгаалалт"),
+    "fk_sale": ("At the sale", "Зарах үед"),
+    "fk_cash_back": ("Cash back from the sale", "Борлуулалтаас танд буцаж ирэх мөнгө"),
+    "fk_profit_how": ("cash back − cash you put in", "буцаж ирэх мөнгө − оруулсан бэлэн мөнгө"),
+    "fk_note": ("Selling costs are paid out of the sale money at closing, like the loan "
+                "payoff, so they are not part of the cash you put in. Return on cash: "
+                "net profit ÷ cash you put in = {r}. Yearly return: that × (12 ÷ {m} months) "
+                "= {y}.",
+                "Борлуулалтын зардлыг зээлийн үлдэгдлийн нэгэн адил хэлцэл хаах үед "
+                "борлуулалтын мөнгөнөөс төлдөг тул оруулсан бэлэн мөнгөнд ороогүй. "
+                "Оруулсан мөнгөний өгөөж: цэвэр ашиг ÷ оруулсан бэлэн мөнгө = {r}. Жилийн "
+                "өгөөж: үүнийг × (12 ÷ {m} сар) = {y}."),
     "bk_note": ("What you pay while repairing comes from your pocket too. It isn't in "
                 "\"money still in the property\", but it is counted in the yearly return "
                 "and the cash flow table. Your equity is not cash you pay: it comes back "

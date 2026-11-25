@@ -80,8 +80,19 @@ def build_cash_flow_table(price, down_pct, rehab, closing_pct, annual_rate, exit
             "dscr": y["rent"] / (debt / 12 + y["property_tax"]
                                  + y["insurance"] + y["hoa"]),
             "sale_proceeds": 0.0,
+            # yearly cost pieces, for the cost breakdown (Nov 25, 2026)
+            "vacancy": (y["rent"] - y["receipts"]) * 12,
+            "tax": y["property_tax"] * 12,
+            "insurance": y["insurance"] * 12,
+            "hoa": y["hoa"] * 12,
+            "maintenance": y["maintenance"] * 12,
+            "management": y["management"] * 12,
         })
     balance = balance_at(loan, annual_rate, exit_year * 12)
+    years_grown = exit_year - 1 if v2_method else exit_year
+    rows[-1]["sale_price"] = price * (1 + appreciation) ** years_grown
+    rows[-1]["selling_cost"] = rows[-1]["sale_price"] * selling_pct
+    rows[-1]["loan_balance"] = balance
     rows[-1]["sale_proceeds"] = net_sale_proceeds(price, appreciation, selling_pct,
                                                   balance, exit_year, v2_method)
     return rows

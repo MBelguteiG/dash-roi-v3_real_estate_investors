@@ -59,6 +59,8 @@ def project_year(year, base_rent, vacancy_rate, base_annual_tax,
         "property_tax": expenses["property_tax"],
         "insurance": expenses["insurance"],
         "hoa": hoa,
+        "maintenance": maintenance,
+        "management": expenses["management"],
     }
 
 

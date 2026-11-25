@@ -176,6 +176,10 @@ def analyze_rental(state, property_type, scenario,
         "closing_costs": price * closing_pct,
         "rehab": rehab,
         "cash_in": -stream[0],
+        # rates shown in the cost breakdown
+        "closing_pct": closing_pct, "vacancy_rate": vacancy_rate,
+        "maint_rate": maint_rate, "mgmt_rate": mgmt_rate, "capex_rate": capex_rate,
+        "appreciation": appreciation, "selling_pct": selling_pct, "exit_year": exit_year,
     }
 
 
@@ -362,7 +366,7 @@ def analyze_brrr(state, property_type, scenario,
 def analyze_flip(state, property_type, scenario,
                  price, rehab, arv, hm_ltv, hm_rate, hold_months, points_pct,
                  monthly_utilities, monthly_maint_security, target_margin,hoa_override=None,
-                 tax_override=None, insurance_override=None):
+                 tax_override=None, insurance_override=None, v2_method=False):
     """
     Run the full Flip analysis for one deal. Uses only the Flip engine
     (flip.py) - single-exit model: no cash-flow stream, no DSCR, no IRR.
@@ -393,7 +397,10 @@ def analyze_flip(state, property_type, scenario,
 
     # --- returns ---
     profit = net_flip_profit(arv, tpc)
-    ci = flip_cash_invested(tpc, hm)
+    # Cash you put in (Nov 25, 2026 fix): selling costs are paid out of the sale
+    # money at closing, like the loan payoff, not from your pocket - so they are
+    # left out. v2 (v2_method=True) counted them: total cost - loan.
+    ci = flip_cash_invested(tpc, hm) if v2_method else flip_cash_invested(tpc - sell, hm)
     roi = roi_on_cash(profit, ci)
     aroi = annualized_roi(roi, hold_months)
     margin = profit_margin(profit, arv)
@@ -422,6 +429,15 @@ def analyze_flip(state, property_type, scenario,
         "max_offer_70pct": mao_70,
         "over_under_mao": over_under_max_offer(price, mao),
         "verdict": v,
+        # pieces for the cost breakdown
+        "down_payment": price - hm,
+        "tax_monthly": price * tax_rate / 12,
+        "insurance_monthly": annual_insurance / 12,
+        "hoa_monthly": monthly_hoa,
+        "utilities_monthly": monthly_utilities,
+        "upkeep_monthly": monthly_maint_security,
+        "closing_pct": closing_pct, "selling_pct": selling_pct,
+        "cash_back_at_sale": arv - sell - hm,
     }
 
 

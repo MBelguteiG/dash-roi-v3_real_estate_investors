@@ -457,6 +457,82 @@ def brrr_cost_table():
     return ("| | |\n|---|---:|\n" + body).replace("$", "\\$")
 
 
+def rental_cost_table():
+    """Rental: every cost, in the order you pay it (Nov 25, 2026)."""
+    r = result
+    y1 = r["cash_flow_table"][0]
+    last = r["cash_flow_table"][-1]
+    neg = lambda v: "−\u2060" + money(v)
+    pct = lambda v: f"{v * 100:.4g}%"
+    rows = [(f"**{T('bk_purchase')}**", ""),
+            (T("rk_down"), money(r["down_payment"])),
+            (f"{T('b_closing')} ({pct(r['closing_pct'])})", money(r["closing_costs"]))]
+    if r["rehab"] > 0:
+        rows.append((T("b_repairs"), money(r["rehab"])))
+    if r["points_cost"] > 0:
+        rows.append((T("b_points"), money(r["points_cost"])))
+    rows += [(f"**{T('cf_cash_in')}**", f"**{money(r['cash_in'])}**"),
+             (f"**{T('rk_year1')}**", ""),
+             (T("cf_gross_rent"), money(y1["gross_rent"])),
+             (T("rk_vacancy", x=pct(r["vacancy_rate"])), neg(y1["vacancy"])),
+             (T("rk_tax"), neg(y1["tax"])),
+             (T("rk_ins"), neg(y1["insurance"])),
+             (T("rk_hoa"), neg(y1["hoa"])),
+             (T("rk_maint", x=pct(r["maint_rate"])), neg(y1["maintenance"])),
+             (T("rk_mgmt", x=pct(r["mgmt_rate"])), neg(y1["management"])),
+             (f"**{T('cf_noi')}**", f"**{money(y1['noi'])}**"),
+             (T("cf_debt_service"), neg(y1["debt_service"])),
+             (T("rk_capex", x=pct(r["capex_rate"])), neg(y1["capex_reserve"])),
+             (f"**{T('rk_cf1')}**", f"**{money(y1['cash_flow'])}**" if y1["cash_flow"] >= 0
+              else f"**{neg(-y1['cash_flow'])}**"),
+             (f"**{T('rk_sale', n=r['exit_year'])}**", ""),
+             (T("rk_sale_price", x=pct(r["appreciation"]), n=r["exit_year"]),
+              money(last["sale_price"])),
+             (T("rk_selling", x=pct(r["selling_pct"])), neg(last["selling_cost"])),
+             (T("rk_payoff"), neg(last["loan_balance"])),
+             (f"**{T('cf_sale_proceeds')}**", f"**{money(last['sale_proceeds'])}**")]
+    body = "\n".join(f"| {a} | {b} |" for a, b in rows)
+    return ("| | |\n|---|---:|\n" + body).replace("$", "\\$")
+
+
+def flip_cost_table():
+    """Flip: every cost, in the order you pay it (Nov 25, 2026)."""
+    r = result
+    n = hold
+    neg = lambda v: "−\u2060" + money(v)
+    pct = lambda v: f"{v * 100:.4g}%"
+    hm_fee_pct = r["hm_points"] / r["hm_loan"] if r["hm_loan"] else 0
+    rows = [(f"**{T('bk_purchase')}**", ""),
+            (T("bk_down"), money(r["down_payment"])),
+            (f"{T('b_closing')} ({pct(r['closing_pct'])})", money(r["closing_costs"])),
+            (f"{T('cf_hm_fee')} ({pct(hm_fee_pct)})", money(r["hm_points"])),
+            (T("b_repairs"), money(rehab)),
+            (f"**{T('fk_holding', m=n)}**", ""),
+            (T("bk_hm_int"), money(r["hm_interest"])),
+            (T("rk_tax"), money(r["tax_monthly"] * n)),
+            (T("rk_ins"), money(r["insurance_monthly"] * n)),
+            (T("rk_hoa"), money(r["hoa_monthly"] * n)),
+            (T("fk_util"), money(r["utilities_monthly"] * n)),
+            (T("fk_upkeep"), money(r["upkeep_monthly"] * n)),
+            (f"**{T('cf_cash_in')}**", f"**{money(r['cash_invested'])}**"),
+            (f"**{T('fk_sale')}**", ""),
+            (T("cf_sale"), money(arv)),
+            (f"{T('cf_selling')} ({pct(r['selling_pct'])})", neg(r["selling_cost"])),
+            (T("bk_payoff"), neg(r["hm_loan"])),
+            (f"**{T('fk_cash_back')}**", f"**{money(r['cash_back_at_sale'])}**"),
+            (f"**{T('t_net_profit')}** ({T('fk_profit_how')})",
+             f"**{money(r['net_profit'])}**" if r["net_profit"] >= 0
+             else f"**{neg(-r['net_profit'])}**")]
+    body = "\n".join(f"| {a} | {b} |" for a, b in rows)
+    return ("| | |\n|---|---:|\n" + body).replace("$", "\\$")
+
+
+if model == "Flip":
+    with t[3].popover(T("what_mean")):
+        st.markdown(flip_cost_table())
+        st.caption(T("fk_note", m=hold, r=f"{result['roi_on_cash']:.2%}",
+                     y=f"{result['annualized_roi']:.2%}"))
+
 if model == "BRRR":
     with t[3].popover(T("what_mean")):
         st.markdown(brrr_cost_table())
@@ -470,7 +546,8 @@ if model == "Rental":
                 st.markdown(T("p_coc_pos", x=f"{coc:.2%}", amt=amt).replace("$", "\\$"))
         else:
                 st.markdown(T("p_coc_neg", x=f"{-coc:.2%}", amt=amt).replace("$", "\\$"))
-        st.markdown(cash_in_table())
+        st.markdown(rental_cost_table())
+        st.caption(T("rk_note"))
 
 if walk_away:
     if model == "Rental":
