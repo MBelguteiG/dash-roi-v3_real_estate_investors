@@ -18,7 +18,8 @@ from engine.analyze import analyze_deal
 from engine.solvers import max_price_irr, max_price_dscr, max_price_all_cash_out
 
 DEALS = {
-    "Rental": dict(model="Rental", state="Illinois", property_type="Townhouse",
+    "Rental": dict(model="Rental", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="Illinois", property_type="Townhouse",
                    scenario="Conservative", price=250000, down_pct=0.30,
                    annual_rate=0.078, rehab=28000, base_rent=2750,
                    exit_year=5, target_irr=0.15),
@@ -114,7 +115,8 @@ def run():
     return counts["FAIL"] == 0
 
 # --- Solvers (Phase 3) ---------------------------------------------------
-CA_RENTAL = dict(model="Rental", state="California", property_type="Townhouse",
+CA_RENTAL = dict(model="Rental", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="California", property_type="Townhouse",
                  scenario="Base", price=650000, down_pct=0.15, annual_rate=0.071,
                  rehab=25000, base_rent=4500, exit_year=5, target_irr=0.13)
 

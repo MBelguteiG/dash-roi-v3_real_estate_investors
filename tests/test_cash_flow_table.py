@@ -3,7 +3,7 @@ from engine.analyze import analyze_deal
 from tests.test_regression_rental import CASES
 
 R02 = CASES["R-02"]
-R = analyze_deal(**R02)
+R = analyze_deal(**{**R02, "v2_method": False})   # current method
 T = R["cash_flow_table"]
 
 
@@ -23,7 +23,9 @@ def test_min_dscr_matches_tile():
 def test_rows_add_up():
     for r in T:
         assert r["effective_income"] - r["operating_expenses"] == pytest.approx(r["noi"])
-        assert r["noi"] - r["interest"] - r["capex_reserve"] == pytest.approx(r["cash_flow"])
+        # Nov 25: full loan payment (interest + principal) comes out of cash flow
+        assert r["noi"] - r["debt_service"] - r["capex_reserve"] == pytest.approx(r["cash_flow"])
+        assert r["interest"] + r["principal"] == pytest.approx(r["debt_service"])
 
 
 def test_sale_only_in_exit_year():

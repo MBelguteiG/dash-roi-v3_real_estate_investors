@@ -2,19 +2,23 @@ import pytest
 from engine.analyze import analyze_deal
 
 CASES = {
-    "R-02": dict(model="Rental", state="Illinois", property_type="SFH",
+    "R-02": dict(model="Rental", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="Illinois", property_type="SFH",
                  scenario="Base", price=340000, down_pct=0.25,
                  annual_rate=0.0675, rehab=0, base_rent=2300,
                  exit_year=5, target_irr=0.08),
-    "R-01": dict(model="Rental", state="California", property_type="SFH",
+    "R-01": dict(model="Rental", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="California", property_type="SFH",
                  scenario="Base", price=500000, down_pct=0.25,
                  annual_rate=0.0675, rehab=0, base_rent=2400,
                  exit_year=5, target_irr=0.08),
-    "R-03": dict(model="Rental", state="Illinois", property_type="SFH",
+    "R-03": dict(model="Rental", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="Illinois", property_type="SFH",
                  scenario="Base", price=300000, down_pct=0.25,
                  annual_rate=0.0675, rehab=0, base_rent=2400,
                  exit_year=5, target_irr=0.08),
-    "R-04": dict(model="Rental", state="California", property_type="SFH",
+    "R-04": dict(model="Rental", v2_method=True,  # v2 method (before Nov 25 fix)
+           state="California", property_type="SFH",
                  scenario="Base", price=550000, down_pct=0.20,
                  annual_rate=0.0675, rehab=0, base_rent=2300,
                  exit_year=5, target_irr=0.08),

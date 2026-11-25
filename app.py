@@ -713,8 +713,8 @@ with cf:
         st.caption(T("cf_cap_brrr", m=refi_month, o=mn_ord(refi_month)))
     else:
         rows = result["cash_flow_table"]
-        keys = ["gross_rent", "effective_income", "operating_expenses", "noi", "interest",
-                "capex_reserve", "cash_flow", "principal", "sale_proceeds"]
+        keys = ["gross_rent", "effective_income", "operating_expenses", "noi", "debt_service",
+                "capex_reserve", "cash_flow", "sale_proceeds"]
         table = pd.DataFrame(
             {T("cf_year", n=r["year"], o=mn_ord(r["year"])): [r[k] for k in keys] for r in rows},
             index=[T("cf_" + k) for k in keys],

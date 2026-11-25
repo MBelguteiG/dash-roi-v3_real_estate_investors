@@ -37,7 +37,7 @@ def analyze_rental(state, property_type, scenario,
                  price, down_pct, annual_rate, rehab, base_rent,
                  exit_year, target_irr, overrides=None,hoa_override=None,
                  points=0.0, point_rate_cut=0.0025, dscr_min=DSCR_LENDER_MIN,
-                 tax_override=None, insurance_override=None):           
+                 tax_override=None, insurance_override=None, v2_method=False):
 
     """
     Run the full Rental analysis for one deal.
@@ -98,6 +98,7 @@ def analyze_rental(state, property_type, scenario,
         base_maint=base_maint, mgmt_rate=mgmt_rate, capex_rate = capex_rate,
         rent_growth=rent_growth, tax_growth=tax_growth,
         inflation=inflation, appreciation=appreciation,selling_pct=selling_pct,
+        v2_method=v2_method,
     )
     table = build_cash_flow_table(
         price=price, down_pct=down_pct, rehab=rehab, closing_pct=closing_pct,
@@ -107,6 +108,7 @@ def analyze_rental(state, property_type, scenario,
         base_maint=base_maint, mgmt_rate=mgmt_rate, capex_rate=capex_rate,
         rent_growth=rent_growth, tax_growth=tax_growth,
         inflation=inflation, appreciation=appreciation, selling_pct=selling_pct,
+        v2_method=v2_method,
     )
 
     stream[0] -= points_cost   # points are paid up front, with the down payment

@@ -608,12 +608,14 @@ TEXT = {
                     "зээлийн төлбөр - засварт зориулсан нөөцийн зардал."),
     "cf_dscr_by_year": ("DSCR (rent ÷ PITIA), by year: {x}",
                         "Түрээс / сарын төлбөрийн харьцаа, жилээр: {x}"),
-    "cf_cap_rental": ("Cash flow is rent left after expenses, minus loan interest and money saved for "
-                      "big repairs. The loan you pay down is shown separately, because you get it "
-                      "back when you sell.",
-                      "Мөнгөн гүйлгээ = зардлын дараах түрээсийн орлого - хүүгийн төлбөр - "
-                      "засварт зориулсан нөөцийн зардал. Төлөгдсөн үндсэн зээлийг тусад нь харуулсан, учир нь "
-                      "зарах үед үүнийг буцааж авна."),
+    "cf_cap_rental": ("Cash flow is rent left after expenses, minus the full loan payment "
+                      "(interest and principal) and money saved for big repairs. The principal you "
+                      "pay down comes back to you when you sell, as a smaller loan balance in the "
+                      "cash from sale.",
+                      "Мөнгөн гүйлгээ = зардлын дараах түрээсийн орлого - зээлийн төлбөр (хүү ба "
+                      "үндсэн зээл) - засварт зориулсан нөөцийн зардал. Төлсөн үндсэн зээл тань "
+                      "зарах үед зээлийн үлдэгдэл бага байх хэлбэрээр борлуулалтаас орох мөнгөнд "
+                      "буцаж ирнэ."),
 
     # --- footer ---
     "disclaimer": ("For education and deal screening only. Not financial, lending, tax or "

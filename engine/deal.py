@@ -25,23 +25,36 @@ def initial_investment(price, down_pct, rehab, closing_pct):
     return down + rehab + closing
 
 
-def net_sale_proceeds(price, appreciation, selling_pct, loan_balance, exit_year):
+def net_sale_proceeds(price, appreciation, selling_pct, loan_balance, exit_year,
+                      v2_method=False):
     """
-    v2 convention: Year 1 = base price, appreciation compounds from Year 2,
-    so exit-year value uses (1+appr)^(exit_year-1).
+    Value grows every year you hold it: sale price = price x (1+appr)^exit_year
+    (Nov 25, 2026 - standard method; BRRR already grows for every year held).
+    v2 convention (v2_method=True): Year 1 = base price, growth from Year 2,
+    so (1+appr)^(exit_year-1) - one year of growth short.
     Net = sale price - selling costs - remaining loan.
     """
-    sale_price = price * (1 + appreciation) ** (exit_year - 1)
+    years = exit_year - 1 if v2_method else exit_year
+    sale_price = price * (1 + appreciation) ** years
     selling_cost = sale_price * selling_pct
     return sale_price - selling_cost - loan_balance
 
 def build_cash_flow_table(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
                           base_rent, vacancy_rate, tax_rate, base_annual_insurance,
                           base_hoa, base_maint, mgmt_rate, capex_rate,
-                          rent_growth, tax_growth, inflation, appreciation, selling_pct):
+                          rent_growth, tax_growth, inflation, appreciation, selling_pct,
+                          v2_method=False):
     """
     Year-by-year Rental cash-flow rows. build_stream() is derived from this,
     so the table and the IRR always use the same numbers.
+
+    Nov 25, 2026 fixes (v2_method=False, the default):
+    1) the sale price grows for every year held (see net_sale_proceeds);
+    2) cash flow subtracts the FULL loan payment (interest +
+    principal), the same as BRRR. The v2 method subtracted interest only, yet
+    the sale still used the paid-down balance, so the principal was counted
+    coming back at sale but never going out - it overstated returns.
+    v2_method=True keeps both v2 conventions for the v2 parity checks.
     """
     from engine.amortization import annual_debt_service
     loan = price - price * down_pct
@@ -61,28 +74,31 @@ def build_cash_flow_table(price, down_pct, rehab, closing_pct, annual_rate, exit
             "noi": y["noi_annual"],
             "interest": interest,
             "principal": debt - interest,
+            "debt_service": debt,
             "capex_reserve": capex,
-            "cash_flow": y["noi_annual"] - interest - capex,
+            "cash_flow": y["noi_annual"] - (interest if v2_method else debt) - capex,
             "dscr": y["rent"] / (debt / 12 + y["property_tax"]
                                  + y["insurance"] + y["hoa"]),
             "sale_proceeds": 0.0,
         })
     balance = balance_at(loan, annual_rate, exit_year * 12)
     rows[-1]["sale_proceeds"] = net_sale_proceeds(price, appreciation, selling_pct,
-                                                  balance, exit_year)
+                                                  balance, exit_year, v2_method)
     return rows
 
 
 def build_stream(price, down_pct, rehab, closing_pct, annual_rate, exit_year,
                  base_rent, vacancy_rate, tax_rate, base_annual_insurance,
                  base_hoa, base_maint, mgmt_rate, capex_rate,
-                 rent_growth, tax_growth, inflation, appreciation,selling_pct):
+                 rent_growth, tax_growth, inflation, appreciation,selling_pct,
+                 v2_method=False):
     """Assemble the Year 0..N investor cash-flow stream for IRR."""
     rows = build_cash_flow_table(
         price, down_pct, rehab, closing_pct, annual_rate, exit_year,
         base_rent, vacancy_rate, tax_rate, base_annual_insurance,
         base_hoa, base_maint, mgmt_rate, capex_rate,
-        rent_growth, tax_growth, inflation, appreciation, selling_pct)
+        rent_growth, tax_growth, inflation, appreciation, selling_pct,
+        v2_method)
     stream = [-initial_investment(price, down_pct, rehab, closing_pct)]
     stream += [r["cash_flow"] for r in rows]
     stream[-1] += rows[-1]["sale_proceeds"]
