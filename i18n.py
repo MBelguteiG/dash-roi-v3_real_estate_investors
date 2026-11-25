@@ -366,6 +366,15 @@ TEXT = {
         "**{cost}** төлснөөр хүү {frm}%-иас **{to}%** болж буурч, сард **{save}** хэмнэнэ. "
         "Сарын хэмнэлт үүнийг **{be} сард** нөхнө (та {hold} сар эзэмшихээр төлөвлөж байна).",
     ),
+    "p_points_brrr": (
+        "Paying **{cost}** lowers your new loan's rate from {frm}% to **{to}%** and saves "
+        "**{save} a month**. The monthly savings pay it back in **{be} months**. You pay the "
+        "new loan for {hold} months: {total} months owned, minus the {r} months before the "
+        "refinance.",
+        "**{cost}** төлснөөр шинэ зээлийн хүү {frm}%-иас **{to}%** болж буурч, сард "
+        "**{save}** хэмнэнэ. Сарын хэмнэлт үүнийг **{be} сард** нөхнө. Та шинэ зээлийг {hold} "
+        "сар төлнө: нийт эзэмших {total} сараас дахин санхүүжилтээс өмнөх {r} сарыг хассан.",
+    ),
     "p_worth": (" Worth it.", " Ашигтай."),
     "p_no_fund": (
         " Even with points, rent ÷ PITIA is {d1}x, still below your lender's minimum of "

@@ -564,11 +564,14 @@ if model in ("Rental", "BRRR") and result.get("points_cost", 0) > 0:
     be = int(-(-result["breakeven_months"] // 1))   # round up
     hold_months = exit_year * 12 - (refi_month if model == "BRRR" else 0)
     typed_rate = deal["annual_rate"] if model == "Rental" else deal["post_refi_rate"]
-    text = T("p_points", cost=money(result["points_cost"]),
+    # BRRR: the points are on the new loan, which you only pay after the refi
+    text = T("p_points_brrr" if model == "BRRR" else "p_points",
+             cost=money(result["points_cost"]),
              frm=f"{round(typed_rate * 100, 3):g}",
              to=f"{round(result['rate_used'] * 100, 3):g}",
              save=money(result["monthly_saving"]), be=be,
-             hold=hold_months).replace("$", "\\$")
+             hold=hold_months, total=exit_year * 12,
+             r=refi_month if model == "BRRR" else 0).replace("$", "\\$")
     # Are the points what lift the deal to the lender's minimum?
     d_now = result[lender_d]
     d_before = analyze_deal(**{**deal, "points": 0.0})[lender_d]
